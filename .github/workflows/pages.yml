@@ -35,7 +35,7 @@ jobs:
       - name: Assemble site
         run: |
           mkdir _site
-          cp -r app engine data scenarios rubrics rules _site/
+          for d in app engine data scenarios rubrics rules; do if [ -d "$d" ]; then cp -r "$d" _site/; fi; done
           printf '<!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="0; url=app/"><title>ACM Trainer</title><a href="app/">ACM Trainer</a>\n' > _site/index.html
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
