@@ -1,0 +1,7122 @@
+{
+ "meta": {
+  "acm": "1.4.8",
+  "ace": "3.21.2",
+  "schema": 1,
+  "credits": "Advanced Combat Medicine by Blue and the ACM team; ACE3 by the ACE team",
+  "sources": "ACM Guide/notes (code-verified extraction); constants list their source functions"
+ },
+ "thresholds": {
+  "_source": "ACM_main/script_macros.hpp; ACE medical_engine/script_macros_medical.hpp; core/ov/handleUnitVitals",
+  "bloodVolume": {
+   "default": 6.0,
+   "class1": 5.95,
+   "class2": 5.1,
+   "class3": 4.2,
+   "class4": 3.6,
+   "fatalBleedout": 3.0,
+   "stableVitalsMin": 5.1,
+   "bpDropStart": 4.8,
+   "reversibleArrest": 4.2,
+   "asystole": 3.1,
+   "vasoconstrictionStart": 5.9,
+   "vasoconstrictionFull": 4.5
+  },
+  "spo2": {
+   "targetPlayer": [
+    98.5,
+    99.0
+   ],
+   "cyanosisSlight": 91,
+   "cyanosisModerate": 82,
+   "cyanosisSevere": 67,
+   "visionEffects": 85,
+   "unconscious": 80,
+   "hypoxicArrest": 67,
+   "death": 55,
+   "noBreathingDecline": {
+    "heartStopped": 0.1,
+    "heartBeating": [
+     0.12,
+     0.1
+    ],
+    "ramp": [
+     90,
+     75
+    ]
+   }
+  },
+  "heartRate": {
+   "restingPlayer": [
+    75,
+    82
+   ],
+   "maxPlayer": [
+    195,
+    202
+   ],
+   "fatalLow": 40,
+   "fatalHigh": 220,
+   "criticalRecoverLow": 45,
+   "criticalRecoverHigh": 200,
+   "criticalExtremeLow": 10,
+   "criticalExtremeHigh": 245
+  },
+  "map": {
+   "fatalLow": 55,
+   "fatalHigh": 200,
+   "criticalRecoverLow": 60,
+   "criticalRecoverHigh": 180,
+   "criticalExtremeLow": 30,
+   "criticalExtremeHigh": 220
+  },
+  "respiration": {
+   "restingPlayer": [
+    16,
+    20
+   ],
+   "unconsciousBelow": 6,
+   "checkSlowBelow": 15.9,
+   "checkRapidAbove": 22,
+   "bvm": 10,
+   "cpr": [
+    20,
+    30
+   ],
+   "max": 60
+  },
+  "criticalGrace": {
+   "seconds": [
+    15,
+    30
+   ],
+   "extraBeforeArrest": 15
+  },
+  "reversibleArrestWindow": 360,
+  "chest": {
+   "tensionHemothoraxFluid": 1.2,
+   "maxFluid": 1.5,
+   "noBreathingFluid": 1.4
+  },
+  "bodyWeight": {
+   "ideal": 83,
+   "playerRange": [
+    75,
+    105
+   ]
+  },
+  "platelets": {
+   "default": 3
+  },
+  "aceConstants": {
+   "penetrationThreshold": 0.35,
+   "fractureDamageThreshold": 0.5,
+   "limpingDamageThreshold": 0.3,
+   "knockOutBleedThreshold": 0.5,
+   "ivChangePerSecond": 4.1667,
+   "wakeUpCheckInterval": 15
+  }
+ },
+ "trauma": {
+  "_source": "damage/handleTrauma, handleCardiacArrestTrauma, ACM_damage XEH_preInit",
+  "player": {
+   "head": {
+    "cardiacArrest": 8,
+    "death": 9
+   },
+   "torso": {
+    "cardiacArrest": 11,
+    "death": 12
+   }
+  },
+  "ai": {
+   "head": {
+    "cardiacArrest": 2,
+    "death": 4
+   },
+   "torso": {
+    "cardiacArrest": 5,
+    "death": 7
+   }
+  }
+ },
+ "wounds": {
+  "_source": "ACE medical_damage config ACE_Medical_Injuries; damage/inflictInternalBleeding; breathing/generatePTXMap",
+  "types": {
+   "Abrasion": {
+    "bleeding": 0.001,
+    "pain": 0.4
+   },
+   "Avulsion": {
+    "bleeding": 0.1,
+    "pain": 1.0,
+    "limp": true,
+    "internal": [
+     0.2,
+     0.4
+    ],
+    "chest": {
+     "medium": [
+      0.25,
+      0,
+      0.5,
+      0.2
+     ],
+     "large": [
+      0.5,
+      0.2,
+      2,
+      0.5
+     ]
+    }
+   },
+   "Contusion": {
+    "bleeding": 0,
+    "pain": 0.3,
+    "internal": [
+     0.01,
+     0.1
+    ]
+   },
+   "Crush": {
+    "bleeding": 0.05,
+    "pain": 0.8,
+    "limp": true,
+    "fracture": true,
+    "internal": [
+     0.2,
+     0.3
+    ]
+   },
+   "Cut": {
+    "bleeding": 0.01,
+    "pain": 0.1
+   },
+   "Laceration": {
+    "bleeding": 0.05,
+    "pain": 0.2
+   },
+   "VelocityWound": {
+    "bleeding": 0.2,
+    "pain": 0.9,
+    "limp": true,
+    "fracture": true,
+    "internal": [
+     0.45,
+     1.0
+    ],
+    "chest": {
+     "medium": [
+      0.25,
+      0,
+      0.5,
+      0.3
+     ],
+     "large": [
+      0.5,
+      0.5,
+      1,
+      0.9
+     ]
+    }
+   },
+   "PunctureWound": {
+    "bleeding": 0.05,
+    "pain": 0.4,
+    "limp": true,
+    "internal": [
+     0.3,
+     0.7
+    ],
+    "chest": {
+     "medium": [
+      0.25,
+      0,
+      0.5,
+      0.25
+     ],
+     "large": [
+      0.5,
+      0.3,
+      1,
+      0.8
+     ]
+    }
+   },
+   "ThermalBurn": {
+    "bleeding": 0,
+    "pain": 0.7
+   },
+   "ChemicalBurn": {
+    "bleeding": 0,
+    "pain": 0.8
+   }
+  },
+  "_internal": "chance for [medium, large]; + lin(partDamage 2..4 -> 0..0.5) capped 0.8; x setting internalBleedingChanceMultiplier",
+  "_chest": "[minDamage, minChance, maxDamage, maxChance] linear; x chestInjuryChance; hemothoraxChance (0.2) picks HTX",
+  "internalBleedShareByPart": {
+   "head": 0.6,
+   "torso": 0.6,
+   "leftarm": 0.3,
+   "rightarm": 0.3,
+   "leftleg": 0.45,
+   "rightleg": 0.45
+  },
+  "bandageTime": {
+   "_source": "damage/getBandageTime",
+   "perWound": [
+    4,
+    6,
+    8
+   ],
+   "cap": 8,
+   "etdMin": 10,
+   "medic": -2,
+   "self": 4,
+   "perExtraWound": -2,
+   "min": 2.25
+  }
+ },
+ "bandages": {
+  "fielddressing": {
+   "Abrasion": {
+    "minor": {
+     "effectiveness": 3.0,
+     "reopenChance": 0.3,
+     "reopenDelay": [
+      200.0,
+      1000.0
+     ]
+    },
+    "medium": {
+     "effectiveness": 2.5,
+     "reopenChance": 0.7,
+     "reopenDelay": [
+      200.0,
+      1000.0
+     ]
+    },
+    "large": {
+     "effectiveness": 2.0,
+     "reopenChance": 0.9,
+     "reopenDelay": [
+      200.0,
+      1000.0
+     ]
+    }
+   },
+   "Avulsion": {
+    "minor": {
+     "effectiveness": 1.0,
+     "reopenChance": 0.5,
+     "reopenDelay": [
+      120.0,
+      200.0
+     ]
+    },
+    "medium": {
+     "effectiveness": 0.9,
+     "reopenChance": 0.5,
+     "reopenDelay": [
+      120.0,
+      200.0
+     ]
+    },
+    "large": {
+     "effectiveness": 0.75,
+     "reopenChance": 0.5,
+     "reopenDelay": [
+      120.0,
+      200.0
+     ]
+    }
+   },
+   "Contusion": {
+    "minor": {
+     "effectiveness": 1.0,
+     "reopenChance": 0.0,
+     "reopenDelay": [
+      0.0,
+      0.0
+     ]
+    },
+    "medium": {
+     "effectiveness": 1.0,
+     "reopenChance": 0.0,
+     "reopenDelay": [
+      0.0,
+      0.0
+     ]
+    },
+    "large": {
+     "effectiveness": 1.0,
+     "reopenChance": 0.0,
+     "reopenDelay": [
+      0.0,
+      0.0
+     ]
+    }
+   },
+   "Crush": {
+    "minor": {
+     "effectiveness": 1.0,
+     "reopenChance": 0.2,
+     "reopenDelay": [
+      200.0,
+      1000.0
+     ]
+    },
+    "medium": {
+     "effectiveness": 0.7,
+     "reopenChance": 0.3,
+     "reopenDelay": [
+      200.0,
+      1000.0
+     ]
+    },
+    "large": {
+     "effectiveness": 0.6,
+     "reopenChance": 0.4,
+     "reopenDelay": [
+      200.0,
+      1000.0
+     ]
+    }
+   },
+   "Cut": {
+    "minor": {
+     "effectiveness": 4.0,
+     "reopenChance": 0.1,
+     "reopenDelay": [
+      300.0,
+      1000.0
+     ]
+    },
+    "medium": {
+     "effectiveness": 3.0,
+     "reopenChance": 0.3,
+     "reopenDelay": [
+      300.0,
+      1000.0
+     ]
+    },
+    "large": {
+     "effectiveness": 1.0,
+     "reopenChance": 0.5,
+     "reopenDelay": [
+      300.0,
+      1000.0
+     ]
+    }
+   },
+   "Laceration": {
+    "minor": {
+     "effectiveness": 0.95,
+     "reopenChance": 0.3,
+     "reopenDelay": [
+      100.0,
+      800.0
+     ]
+    },
+    "medium": {
+     "effectiveness": 0.7,
+     "reopenChance": 0.5,
+     "reopenDelay": [
+      100.0,
+      800.0
+     ]
+    },
+    "large": {
+     "effectiveness": 0.5,
+     "reopenChance": 0.6,
+     "reopenDelay": [
+      100.0,
+      800.0
+     ]
+    }
+   },
+   "VelocityWound": {
+    "minor": {
+     "effectiveness": 2.0,
+     "reopenChance": 0.7,
+     "reopenDelay": [
+      100.0,
+      500.0
+     ]
+    },
+    "medium": {
+     "effectiveness": 1.5,
+     "reopenChance": 0.7,
+     "reopenDelay": [
+      100.0,
+      500.0
+     ]
+    },
+    "large": {
+     "effectiveness": 1.0,
+     "reopenChance": 0.7,
+     "reopenDelay": [
+      100.0,
+      500.0
+     ]
+    }
+   },
+   "PunctureWound": {
+    "minor": {
+     "effectiveness": 2.0,
+     "reopenChance": 0.5,
+     "reopenDelay": [
+      200.0,
+      850.0
+     ]
+    },
+    "medium": {
+     "effectiveness": 1.3,
+     "reopenChance": 0.5,
+     "reopenDelay": [
+      200.0,
+      850.0
+     ]
+    },
+    "large": {
+     "effectiveness": 0.9,
+     "reopenChance": 0.5,
+     "reopenDelay": [
+      200.0,
+      850.0
+     ]
+    }
+   }
+  },
+  "packingbandage": {
+   "Abrasion": {
+    "minor": {
+     "effectiveness": 3.0,
+     "reopenChance": 0.6,
+     "reopenDelay": [
+      800.0,
+      1500.0
+     ]
+    },
+    "medium": {
+     "effectiveness": 2.5,
+     "reopenChance": 0.9,
+     "reopenDelay": [
+      800.0,
+      1500.0
+     ]
+    },
+    "large": {
+     "effectiveness": 2.0,
+     "reopenChance": 1.0,
+     "reopenDelay": [
+      800.0,
+      1500.0
+     ]
+    }
+   },
+   "Avulsion": {
+    "minor": {
+     "effectiveness": 1.0,
+     "reopenChance": 0.7,
+     "reopenDelay": [
+      1000.0,
+      1600.0
+     ]
+    },
+    "medium": {
+     "effectiveness": 0.9,
+     "reopenChance": 0.7,
+     "reopenDelay": [
+      1000.0,
+      1600.0
+     ]
+    },
+    "large": {
+     "effectiveness": 0.75,
+     "reopenChance": 0.7,
+     "reopenDelay": [
+      1000.0,
+      1600.0
+     ]
+    }
+   },
+   "Contusion": {
+    "minor": {
+     "effectiveness": 1.0,
+     "reopenChance": 0.0,
+     "reopenDelay": [
+      0.0,
+      0.0
+     ]
+    },
+    "medium": {
+     "effectiveness": 1.0,
+     "reopenChance": 0.0,
+     "reopenDelay": [
+      0.0,
+      0.0
+     ]
+    },
+    "large": {
+     "effectiveness": 1.0,
+     "reopenChance": 0.0,
+     "reopenDelay": [
+      0.0,
+      0.0
+     ]
+    }
+   },
+   "Crush": {
+    "minor": {
+     "effectiveness": 1.0,
+     "reopenChance": 0.6,
+     "reopenDelay": [
+      600.0,
+      1000.0
+     ]
+    },
+    "medium": {
+     "effectiveness": 0.7,
+     "reopenChance": 0.7,
+     "reopenDelay": [
+      600.0,
+      1000.0
+     ]
+    },
+    "large": {
+     "effectiveness": 0.6,
+     "reopenChance": 0.8,
+     "reopenDelay": [
+      600.0,
+      1000.0
+     ]
+    }
+   },
+   "Cut": {
+    "minor": {
+     "effectiveness": 4.0,
+     "reopenChance": 0.6,
+     "reopenDelay": [
+      700.0,
+      1000.0
+     ]
+    },
+    "medium": {
+     "effectiveness": 3.0,
+     "reopenChance": 0.7,
+     "reopenDelay": [
+      700.0,
+      1000.0
+     ]
+    },
+    "large": {
+     "effectiveness": 1.0,
+     "reopenChance": 0.8,
+     "reopenDelay": [
+      700.0,
+      1000.0
+     ]
+    }
+   },
+   "Laceration": {
+    "minor": {
+     "effectiveness": 0.95,
+     "reopenChance": 0.65,
+     "reopenDelay": [
+      500.0,
+      2000.0
+     ]
+    },
+    "medium": {
+     "effectiveness": 0.7,
+     "reopenChance": 0.8,
+     "reopenDelay": [
+      500.0,
+      2000.0
+     ]
+    },
+    "large": {
+     "effectiveness": 0.5,
+     "reopenChance": 0.9,
+     "reopenDelay": [
+      500.0,
+      2000.0
+     ]
+    }
+   },
+   "VelocityWound": {
+    "minor": {
+     "effectiveness": 2.0,
+     "reopenChance": 1.0,
+     "reopenDelay": [
+      800.0,
+      2000.0
+     ]
+    },
+    "medium": {
+     "effectiveness": 1.5,
+     "reopenChance": 1.0,
+     "reopenDelay": [
+      800.0,
+      2000.0
+     ]
+    },
+    "large": {
+     "effectiveness": 1.0,
+     "reopenChance": 1.0,
+     "reopenDelay": [
+      800.0,
+      2000.0
+     ]
+    }
+   },
+   "PunctureWound": {
+    "minor": {
+     "effectiveness": 2.0,
+     "reopenChance": 1.0,
+     "reopenDelay": [
+      1000.0,
+      3000.0
+     ]
+    },
+    "medium": {
+     "effectiveness": 1.3,
+     "reopenChance": 1.0,
+     "reopenDelay": [
+      1000.0,
+      3000.0
+     ]
+    },
+    "large": {
+     "effectiveness": 0.9,
+     "reopenChance": 1.0,
+     "reopenDelay": [
+      1000.0,
+      3000.0
+     ]
+    }
+   }
+  },
+  "elasticbandage": {
+   "Abrasion": {
+    "minor": {
+     "effectiveness": 4.0,
+     "reopenChance": 0.6,
+     "reopenDelay": [
+      80.0,
+      150.0
+     ]
+    },
+    "medium": {
+     "effectiveness": 3.0,
+     "reopenChance": 0.9,
+     "reopenDelay": [
+      80.0,
+      150.0
+     ]
+    },
+    "large": {
+     "effectiveness": 2.5,
+     "reopenChance": 1.0,
+     "reopenDelay": [
+      80.0,
+      150.0
+     ]
+    }
+   },
+   "Avulsion": {
+    "minor": {
+     "effectiveness": 2.0,
+     "reopenChance": 0.7,
+     "reopenDelay": [
+      100.0,
+      160.0
+     ]
+    },
+    "medium": {
+     "effectiveness": 1.4,
+     "reopenChance": 0.7,
+     "reopenDelay": [
+      100.0,
+      160.0
+     ]
+    },
+    "large": {
+     "effectiveness": 1.0,
+     "reopenChance": 0.7,
+     "reopenDelay": [
+      100.0,
+      160.0
+     ]
+    }
+   },
+   "Contusion": {
+    "minor": {
+     "effectiveness": 2.0,
+     "reopenChance": 0.0,
+     "reopenDelay": [
+      0.0,
+      0.0
+     ]
+    },
+    "medium": {
+     "effectiveness": 2.0,
+     "reopenChance": 0.0,
+     "reopenDelay": [
+      0.0,
+      0.0
+     ]
+    },
+    "large": {
+     "effectiveness": 2.0,
+     "reopenChance": 0.0,
+     "reopenDelay": [
+      0.0,
+      0.0
+     ]
+    }
+   },
+   "Crush": {
+    "minor": {
+     "effectiveness": 2.0,
+     "reopenChance": 0.6,
+     "reopenDelay": [
+      60.0,
+      100.0
+     ]
+    },
+    "medium": {
+     "effectiveness": 1.7,
+     "reopenChance": 0.7,
+     "reopenDelay": [
+      60.0,
+      100.0
+     ]
+    },
+    "large": {
+     "effectiveness": 1.6,
+     "reopenChance": 0.8,
+     "reopenDelay": [
+      60.0,
+      100.0
+     ]
+    }
+   },
+   "Cut": {
+    "minor": {
+     "effectiveness": 5.0,
+     "reopenChance": 0.6,
+     "reopenDelay": [
+      70.0,
+      100.0
+     ]
+    },
+    "medium": {
+     "effectiveness": 3.5,
+     "reopenChance": 0.7,
+     "reopenDelay": [
+      70.0,
+      100.0
+     ]
+    },
+    "large": {
+     "effectiveness": 2.0,
+     "reopenChance": 0.8,
+     "reopenDelay": [
+      70.0,
+      100.0
+     ]
+    }
+   },
+   "Laceration": {
+    "minor": {
+     "effectiveness": 2.0,
+     "reopenChance": 0.65,
+     "reopenDelay": [
+      50.0,
+      200.0
+     ]
+    },
+    "medium": {
+     "effectiveness": 1.5,
+     "reopenChance": 0.8,
+     "reopenDelay": [
+      50.0,
+      200.0
+     ]
+    },
+    "large": {
+     "effectiveness": 1.0,
+     "reopenChance": 0.9,
+     "reopenDelay": [
+      50.0,
+      200.0
+     ]
+    }
+   },
+   "VelocityWound": {
+    "minor": {
+     "effectiveness": 2.2,
+     "reopenChance": 1.0,
+     "reopenDelay": [
+      80.0,
+      200.0
+     ]
+    },
+    "medium": {
+     "effectiveness": 1.75,
+     "reopenChance": 1.0,
+     "reopenDelay": [
+      80.0,
+      200.0
+     ]
+    },
+    "large": {
+     "effectiveness": 1.5,
+     "reopenChance": 1.0,
+     "reopenDelay": [
+      80.0,
+      200.0
+     ]
+    }
+   },
+   "PunctureWound": {
+    "minor": {
+     "effectiveness": 2.5,
+     "reopenChance": 1.0,
+     "reopenDelay": [
+      100.0,
+      300.0
+     ]
+    },
+    "medium": {
+     "effectiveness": 2.0,
+     "reopenChance": 1.0,
+     "reopenDelay": [
+      100.0,
+      300.0
+     ]
+    },
+    "large": {
+     "effectiveness": 1.5,
+     "reopenChance": 1.0,
+     "reopenDelay": [
+      100.0,
+      300.0
+     ]
+    }
+   }
+  },
+  "quikclot": {
+   "Abrasion": {
+    "minor": {
+     "effectiveness": 2.0,
+     "reopenChance": 0.3,
+     "reopenDelay": [
+      800.0,
+      1500.0
+     ]
+    },
+    "medium": {
+     "effectiveness": 1.0,
+     "reopenChance": 0.4,
+     "reopenDelay": [
+      800.0,
+      1500.0
+     ]
+    },
+    "large": {
+     "effectiveness": 0.7,
+     "reopenChance": 0.5,
+     "reopenDelay": [
+      800.0,
+      1500.0
+     ]
+    }
+   },
+   "Avulsion": {
+    "minor": {
+     "effectiveness": 0.7,
+     "reopenChance": 0.2,
+     "reopenDelay": [
+      1000.0,
+      1600.0
+     ]
+    },
+    "medium": {
+     "effectiveness": 0.65,
+     "reopenChance": 0.2,
+     "reopenDelay": [
+      1000.0,
+      1600.0
+     ]
+    },
+    "large": {
+     "effectiveness": 0.5,
+     "reopenChance": 0.2,
+     "reopenDelay": [
+      1000.0,
+      1600.0
+     ]
+    }
+   },
+   "Contusion": {
+    "minor": {
+     "effectiveness": 1.0,
+     "reopenChance": 0.0,
+     "reopenDelay": [
+      0.0,
+      0.0
+     ]
+    },
+    "medium": {
+     "effectiveness": 1.0,
+     "reopenChance": 0.0,
+     "reopenDelay": [
+      0.0,
+      0.0
+     ]
+    },
+    "large": {
+     "effectiveness": 1.0,
+     "reopenChance": 0.0,
+     "reopenDelay": [
+      0.0,
+      0.0
+     ]
+    }
+   },
+   "Crush": {
+    "minor": {
+     "effectiveness": 0.6,
+     "reopenChance": 0.3,
+     "reopenDelay": [
+      600.0,
+      1000.0
+     ]
+    },
+    "medium": {
+     "effectiveness": 0.5,
+     "reopenChance": 0.5,
+     "reopenDelay": [
+      600.0,
+      1000.0
+     ]
+    },
+    "large": {
+     "effectiveness": 0.4,
+     "reopenChance": 0.5,
+     "reopenDelay": [
+      600.0,
+      1000.0
+     ]
+    }
+   },
+   "Cut": {
+    "minor": {
+     "effectiveness": 2.0,
+     "reopenChance": 0.2,
+     "reopenDelay": [
+      700.0,
+      1000.0
+     ]
+    },
+    "medium": {
+     "effectiveness": 1.0,
+     "reopenChance": 0.2,
+     "reopenDelay": [
+      700.0,
+      1000.0
+     ]
+    },
+    "large": {
+     "effectiveness": 0.6,
+     "reopenChance": 0.2,
+     "reopenDelay": [
+      700.0,
+      1000.0
+     ]
+    }
+   },
+   "Laceration": {
+    "minor": {
+     "effectiveness": 0.7,
+     "reopenChance": 0.4,
+     "reopenDelay": [
+      500.0,
+      2000.0
+     ]
+    },
+    "medium": {
+     "effectiveness": 0.7,
+     "reopenChance": 0.4,
+     "reopenDelay": [
+      500.0,
+      2000.0
+     ]
+    },
+    "large": {
+     "effectiveness": 0.5,
+     "reopenChance": 0.4,
+     "reopenDelay": [
+      500.0,
+      2000.0
+     ]
+    }
+   },
+   "VelocityWound": {
+    "minor": {
+     "effectiveness": 1.0,
+     "reopenChance": 0.5,
+     "reopenDelay": [
+      800.0,
+      2000.0
+     ]
+    },
+    "medium": {
+     "effectiveness": 0.75,
+     "reopenChance": 0.5,
+     "reopenDelay": [
+      800.0,
+      2000.0
+     ]
+    },
+    "large": {
+     "effectiveness": 0.5,
+     "reopenChance": 0.5,
+     "reopenDelay": [
+      800.0,
+      2000.0
+     ]
+    }
+   },
+   "PunctureWound": {
+    "minor": {
+     "effectiveness": 1.0,
+     "reopenChance": 0.5,
+     "reopenDelay": [
+      1000.0,
+      3000.0
+     ]
+    },
+    "medium": {
+     "effectiveness": 0.7,
+     "reopenChance": 0.5,
+     "reopenDelay": [
+      1000.0,
+      3000.0
+     ]
+    },
+    "large": {
+     "effectiveness": 0.4,
+     "reopenChance": 0.5,
+     "reopenDelay": [
+      1000.0,
+      3000.0
+     ]
+    }
+   }
+  },
+  "pressurebandage": {
+   "Abrasion": {
+    "minor": {
+     "effectiveness": 4.0,
+     "reopenChance": 0.6,
+     "reopenDelay": [
+      800.0,
+      1500.0
+     ]
+    },
+    "medium": {
+     "effectiveness": 3.0,
+     "reopenChance": 0.9,
+     "reopenDelay": [
+      800.0,
+      1500.0
+     ]
+    },
+    "large": {
+     "effectiveness": 2.5,
+     "reopenChance": 1.0,
+     "reopenDelay": [
+      800.0,
+      1500.0
+     ]
+    }
+   },
+   "Avulsion": {
+    "minor": {
+     "effectiveness": 2.0,
+     "reopenChance": 0.7,
+     "reopenDelay": [
+      1000.0,
+      1600.0
+     ]
+    },
+    "medium": {
+     "effectiveness": 1.4,
+     "reopenChance": 0.7,
+     "reopenDelay": [
+      1000.0,
+      1600.0
+     ]
+    },
+    "large": {
+     "effectiveness": 1.0,
+     "reopenChance": 0.7,
+     "reopenDelay": [
+      1000.0,
+      1600.0
+     ]
+    }
+   },
+   "Contusion": {
+    "minor": {
+     "effectiveness": 2.0,
+     "reopenChance": 0.0,
+     "reopenDelay": [
+      0.0,
+      0.0
+     ]
+    },
+    "medium": {
+     "effectiveness": 2.0,
+     "reopenChance": 0.0,
+     "reopenDelay": [
+      0.0,
+      0.0
+     ]
+    },
+    "large": {
+     "effectiveness": 2.0,
+     "reopenChance": 0.0,
+     "reopenDelay": [
+      0.0,
+      0.0
+     ]
+    }
+   },
+   "Crush": {
+    "minor": {
+     "effectiveness": 2.0,
+     "reopenChance": 0.6,
+     "reopenDelay": [
+      600.0,
+      1000.0
+     ]
+    },
+    "medium": {
+     "effectiveness": 1.7,
+     "reopenChance": 0.7,
+     "reopenDelay": [
+      600.0,
+      1000.0
+     ]
+    },
+    "large": {
+     "effectiveness": 1.6,
+     "reopenChance": 0.8,
+     "reopenDelay": [
+      600.0,
+      1000.0
+     ]
+    }
+   },
+   "Cut": {
+    "minor": {
+     "effectiveness": 5.0,
+     "reopenChance": 0.6,
+     "reopenDelay": [
+      700.0,
+      1000.0
+     ]
+    },
+    "medium": {
+     "effectiveness": 3.5,
+     "reopenChance": 0.7,
+     "reopenDelay": [
+      700.0,
+      1000.0
+     ]
+    },
+    "large": {
+     "effectiveness": 2.0,
+     "reopenChance": 0.8,
+     "reopenDelay": [
+      700.0,
+      1000.0
+     ]
+    }
+   },
+   "Laceration": {
+    "minor": {
+     "effectiveness": 2.0,
+     "reopenChance": 0.65,
+     "reopenDelay": [
+      500.0,
+      2000.0
+     ]
+    },
+    "medium": {
+     "effectiveness": 1.5,
+     "reopenChance": 0.8,
+     "reopenDelay": [
+      500.0,
+      2000.0
+     ]
+    },
+    "large": {
+     "effectiveness": 1.0,
+     "reopenChance": 0.9,
+     "reopenDelay": [
+      500.0,
+      2000.0
+     ]
+    }
+   },
+   "VelocityWound": {
+    "minor": {
+     "effectiveness": 2.2,
+     "reopenChance": 1.0,
+     "reopenDelay": [
+      800.0,
+      2000.0
+     ]
+    },
+    "medium": {
+     "effectiveness": 1.75,
+     "reopenChance": 1.0,
+     "reopenDelay": [
+      800.0,
+      2000.0
+     ]
+    },
+    "large": {
+     "effectiveness": 1.5,
+     "reopenChance": 1.0,
+     "reopenDelay": [
+      800.0,
+      2000.0
+     ]
+    }
+   },
+   "PunctureWound": {
+    "minor": {
+     "effectiveness": 2.5,
+     "reopenChance": 1.0,
+     "reopenDelay": [
+      1000.0,
+      3000.0
+     ]
+    },
+    "medium": {
+     "effectiveness": 2.0,
+     "reopenChance": 1.0,
+     "reopenDelay": [
+      1000.0,
+      3000.0
+     ]
+    },
+    "large": {
+     "effectiveness": 1.5,
+     "reopenChance": 1.0,
+     "reopenDelay": [
+      1000.0,
+      3000.0
+     ]
+    }
+   }
+  },
+  "emergencytraumadressing": {
+   "Abrasion": {
+    "minor": {
+     "effectiveness": 20.0,
+     "reopenChance": 0.48,
+     "reopenDelay": [
+      800.0,
+      1500.0
+     ]
+    },
+    "medium": {
+     "effectiveness": 15.0,
+     "reopenChance": 0.72,
+     "reopenDelay": [
+      800.0,
+      1500.0
+     ]
+    },
+    "large": {
+     "effectiveness": 12.5,
+     "reopenChance": 0.8,
+     "reopenDelay": [
+      800.0,
+      1500.0
+     ]
+    }
+   },
+   "Avulsion": {
+    "minor": {
+     "effectiveness": 10.0,
+     "reopenChance": 0.52,
+     "reopenDelay": [
+      1000.0,
+      1600.0
+     ]
+    },
+    "medium": {
+     "effectiveness": 7.0,
+     "reopenChance": 0.52,
+     "reopenDelay": [
+      1000.0,
+      1600.0
+     ]
+    },
+    "large": {
+     "effectiveness": 5.0,
+     "reopenChance": 0.52,
+     "reopenDelay": [
+      1000.0,
+      1600.0
+     ]
+    }
+   },
+   "Contusion": {
+    "minor": {
+     "effectiveness": 10.0,
+     "reopenChance": 0.0,
+     "reopenDelay": [
+      0.0,
+      0.0
+     ]
+    },
+    "medium": {
+     "effectiveness": 10.0,
+     "reopenChance": 0.0,
+     "reopenDelay": [
+      0.0,
+      0.0
+     ]
+    },
+    "large": {
+     "effectiveness": 10.0,
+     "reopenChance": 0.0,
+     "reopenDelay": [
+      0.0,
+      0.0
+     ]
+    }
+   },
+   "Crush": {
+    "minor": {
+     "effectiveness": 10.0,
+     "reopenChance": 0.48,
+     "reopenDelay": [
+      600.0,
+      1000.0
+     ]
+    },
+    "medium": {
+     "effectiveness": 8.5,
+     "reopenChance": 0.52,
+     "reopenDelay": [
+      600.0,
+      1000.0
+     ]
+    },
+    "large": {
+     "effectiveness": 8.0,
+     "reopenChance": 0.64,
+     "reopenDelay": [
+      600.0,
+      1000.0
+     ]
+    }
+   },
+   "Cut": {
+    "minor": {
+     "effectiveness": 25.0,
+     "reopenChance": 0.48,
+     "reopenDelay": [
+      700.0,
+      1000.0
+     ]
+    },
+    "medium": {
+     "effectiveness": 17.5,
+     "reopenChance": 0.52,
+     "reopenDelay": [
+      700.0,
+      1000.0
+     ]
+    },
+    "large": {
+     "effectiveness": 10.0,
+     "reopenChance": 0.64,
+     "reopenDelay": [
+      700.0,
+      1000.0
+     ]
+    }
+   },
+   "Laceration": {
+    "minor": {
+     "effectiveness": 10.0,
+     "reopenChance": 0.52,
+     "reopenDelay": [
+      500.0,
+      2000.0
+     ]
+    },
+    "medium": {
+     "effectiveness": 7.5,
+     "reopenChance": 0.64,
+     "reopenDelay": [
+      500.0,
+      2000.0
+     ]
+    },
+    "large": {
+     "effectiveness": 5.0,
+     "reopenChance": 0.72,
+     "reopenDelay": [
+      500.0,
+      2000.0
+     ]
+    }
+   },
+   "VelocityWound": {
+    "minor": {
+     "effectiveness": 11.0,
+     "reopenChance": 0.8,
+     "reopenDelay": [
+      800.0,
+      2000.0
+     ]
+    },
+    "medium": {
+     "effectiveness": 8.75,
+     "reopenChance": 0.8,
+     "reopenDelay": [
+      800.0,
+      2000.0
+     ]
+    },
+    "large": {
+     "effectiveness": 7.5,
+     "reopenChance": 0.8,
+     "reopenDelay": [
+      800.0,
+      2000.0
+     ]
+    }
+   },
+   "PunctureWound": {
+    "minor": {
+     "effectiveness": 12.5,
+     "reopenChance": 0.8,
+     "reopenDelay": [
+      1000.0,
+      3000.0
+     ]
+    },
+    "medium": {
+     "effectiveness": 10.0,
+     "reopenChance": 0.8,
+     "reopenDelay": [
+      1000.0,
+      3000.0
+     ]
+    },
+    "large": {
+     "effectiveness": 7.5,
+     "reopenChance": 0.8,
+     "reopenDelay": [
+      1000.0,
+      3000.0
+     ]
+    }
+   }
+  },
+  "elasticwrap": {
+   "Abrasion": {
+    "minor": {
+     "effectiveness": 0.0,
+     "reopenChance": 0.6,
+     "reopenDelay": [
+      800.0,
+      1500.0
+     ]
+    },
+    "medium": {
+     "effectiveness": 0.0,
+     "reopenChance": 0.6,
+     "reopenDelay": [
+      800.0,
+      1500.0
+     ]
+    },
+    "large": {
+     "effectiveness": 0.0,
+     "reopenChance": 0.6,
+     "reopenDelay": [
+      800.0,
+      1500.0
+     ]
+    }
+   },
+   "Avulsion": {
+    "minor": {
+     "effectiveness": 0.0,
+     "reopenChance": 0.6,
+     "reopenDelay": [
+      800.0,
+      1500.0
+     ]
+    },
+    "medium": {
+     "effectiveness": 0.0,
+     "reopenChance": 0.6,
+     "reopenDelay": [
+      800.0,
+      1500.0
+     ]
+    },
+    "large": {
+     "effectiveness": 0.0,
+     "reopenChance": 0.6,
+     "reopenDelay": [
+      800.0,
+      1500.0
+     ]
+    }
+   },
+   "Contusion": {
+    "minor": {
+     "effectiveness": 3.0,
+     "reopenChance": 0.0,
+     "reopenDelay": [
+      0.0,
+      0.0
+     ]
+    },
+    "medium": {
+     "effectiveness": 2.0,
+     "reopenChance": 0.0,
+     "reopenDelay": [
+      0.0,
+      0.0
+     ]
+    },
+    "large": {
+     "effectiveness": 1.0,
+     "reopenChance": 0.0,
+     "reopenDelay": [
+      0.0,
+      0.0
+     ]
+    }
+   },
+   "Crush": {
+    "minor": {
+     "effectiveness": 0.0,
+     "reopenChance": 0.6,
+     "reopenDelay": [
+      800.0,
+      1500.0
+     ]
+    },
+    "medium": {
+     "effectiveness": 0.0,
+     "reopenChance": 0.6,
+     "reopenDelay": [
+      800.0,
+      1500.0
+     ]
+    },
+    "large": {
+     "effectiveness": 0.0,
+     "reopenChance": 0.6,
+     "reopenDelay": [
+      800.0,
+      1500.0
+     ]
+    }
+   },
+   "Cut": {
+    "minor": {
+     "effectiveness": 0.0,
+     "reopenChance": 0.6,
+     "reopenDelay": [
+      800.0,
+      1500.0
+     ]
+    },
+    "medium": {
+     "effectiveness": 0.0,
+     "reopenChance": 0.6,
+     "reopenDelay": [
+      800.0,
+      1500.0
+     ]
+    },
+    "large": {
+     "effectiveness": 0.0,
+     "reopenChance": 0.6,
+     "reopenDelay": [
+      800.0,
+      1500.0
+     ]
+    }
+   },
+   "Laceration": {
+    "minor": {
+     "effectiveness": 0.0,
+     "reopenChance": 0.6,
+     "reopenDelay": [
+      800.0,
+      1500.0
+     ]
+    },
+    "medium": {
+     "effectiveness": 0.0,
+     "reopenChance": 0.6,
+     "reopenDelay": [
+      800.0,
+      1500.0
+     ]
+    },
+    "large": {
+     "effectiveness": 0.0,
+     "reopenChance": 0.6,
+     "reopenDelay": [
+      800.0,
+      1500.0
+     ]
+    }
+   },
+   "VelocityWound": {
+    "minor": {
+     "effectiveness": 0.0,
+     "reopenChance": 0.6,
+     "reopenDelay": [
+      800.0,
+      1500.0
+     ]
+    },
+    "medium": {
+     "effectiveness": 0.0,
+     "reopenChance": 0.6,
+     "reopenDelay": [
+      800.0,
+      1500.0
+     ]
+    },
+    "large": {
+     "effectiveness": 0.0,
+     "reopenChance": 0.6,
+     "reopenDelay": [
+      800.0,
+      1500.0
+     ]
+    }
+   },
+   "PunctureWound": {
+    "minor": {
+     "effectiveness": 0.0,
+     "reopenChance": 0.6,
+     "reopenDelay": [
+      800.0,
+      1500.0
+     ]
+    },
+    "medium": {
+     "effectiveness": 0.0,
+     "reopenChance": 0.6,
+     "reopenDelay": [
+      800.0,
+      1500.0
+     ]
+    },
+    "large": {
+     "effectiveness": 0.0,
+     "reopenChance": 0.6,
+     "reopenDelay": [
+      800.0,
+      1500.0
+     ]
+    }
+   }
+  }
+ },
+ "access": {
+  "_source": "circulation/getIVFlowRate, setIV, setIVComplication, ACM_main/script_macros.hpp",
+  "devices": {
+   "IV_16g": {
+    "flow": 1.0,
+    "sites": 3,
+    "limbs": true,
+    "insertTime": 6
+   },
+   "IV_14g": {
+    "flow": 1.5,
+    "sites": 3,
+    "limbs": true,
+    "insertTime": 8
+   },
+   "IO_EZ": {
+    "flow": 0.55,
+    "limbs": true,
+    "insertTime": 4,
+    "pain": 0.31
+   },
+   "IO_FAST1": {
+    "flow": 0.65,
+    "torso": true,
+    "insertTime": 4,
+    "pain": 0.31
+   }
+  },
+  "ivSuccess": {
+   "armSystolic": [
+    70,
+    90
+   ],
+   "legSystolic": [
+    60,
+    80
+   ],
+   "caWithCpr": {
+    "bv": [
+     6,
+     3
+    ],
+    "chance": [
+     0.7,
+     0
+    ]
+   },
+   "caNoCpr": {
+    "seconds": 120,
+    "chance": [
+     0.6,
+     0
+    ]
+   },
+   "dead": {
+    "seconds": 90,
+    "chance": [
+     0.5,
+     0
+    ]
+   },
+   "tourniquetPenalty": {
+    "seconds": 90,
+    "penalty": [
+     0.2,
+     0.9
+    ]
+   },
+   "doctorBonus": 0.1,
+   "nonMedicPenalty": 0.1
+  },
+  "complications": {
+   "14g": {
+    "damage": [
+     0,
+     6
+    ]
+   },
+   "16g": {
+    "damage": [
+     5,
+     10
+    ],
+    "maxChance": 0.5
+   },
+   "slowFlow": {
+    "16gDamage": 8,
+    "14gDamage": 3,
+    "flow": 0.9
+   },
+   "leak": {
+    "damage": 8,
+    "flow": 0.85,
+    "passRatio": 0.8
+   }
+  },
+  "fluidFactor": {
+   "Blood": 0.8,
+   "Plasma": 1.0,
+   "Saline": 1.2,
+   "FBTK": 1.2,
+   "FreshBlood": [
+    0.8,
+    1.2
+   ]
+  },
+  "cardiacArrestFlow": {
+   "ivNoCpr": {
+    "setting": "ACM_circulation_cardiacArrestBleedRate",
+    "default": 0.05
+   },
+   "ivCpr": 0.9,
+   "ioNoCpr": 0.9,
+   "ioCpr": 1.0
+  }
+ },
+ "blood": {
+  "_source": "ACM_main/script_macros.hpp BLOODTYPE_*; circulation/isBloodTypeCompatible, generateBloodType",
+  "types": [
+   "O+",
+   "O-",
+   "A+",
+   "A-",
+   "B+",
+   "B-",
+   "AB+",
+   "AB-"
+  ],
+  "defaultShare": {
+   "O+": 39,
+   "O-": 5,
+   "A+": 28,
+   "A-": 3,
+   "B+": 18,
+   "B-": 2,
+   "AB+": 4,
+   "AB-": 1
+  },
+  "compatible": {
+   "O+": [
+    "O+",
+    "O-"
+   ],
+   "O-": [
+    "O-"
+   ],
+   "A+": [
+    "A+",
+    "A-",
+    "O+",
+    "O-"
+   ],
+   "A-": [
+    "A-",
+    "O-"
+   ],
+   "B+": [
+    "B+",
+    "B-",
+    "O+",
+    "O-"
+   ],
+   "B-": [
+    "B-",
+    "O-"
+   ],
+   "AB+": [
+    "O+",
+    "O-",
+    "A+",
+    "A-",
+    "B+",
+    "B-",
+    "AB+",
+    "AB-"
+   ],
+   "AB-": [
+    "AB-",
+    "A-",
+    "B-",
+    "O-"
+   ]
+  },
+  "conversionPerSecond": {
+   "plasma": 0.003,
+   "saline": 0.0007,
+   "freshBloodMultiplier": 2
+  },
+  "plasmaOxygenShare": 0.3,
+  "plasmaPlateletsPerLitre": 1.6667,
+  "transfusedBloodHrPenaltyPer50ml": 1,
+  "calcium": {
+   "minDose": 900,
+   "unitsPerGram": 2,
+   "firstDoseBonus": 0.5,
+   "clearancePerUnitPerSecond": 0.005
+  },
+  "hemolytic": {
+   "delay": [
+    30,
+    60
+   ],
+   "severityVolume": [
+    0.1,
+    1.0
+   ],
+   "severityRange": [
+    1,
+    10
+   ],
+   "perSeverity": {
+    "hr": 15,
+    "rr": -5,
+    "resistance": -15,
+    "breathing": -0.05,
+    "painMin": 0.07
+   },
+   "clearPerSecond": 0.00125
+  }
+ },
+ "drugs": {
+  "Epinephrine": {
+   "unit": "mg",
+   "concentration": 1,
+   "vial": "ACM_Vial_Epinephrine",
+   "type": "Epinephrine",
+   "IV": {
+    "full": 1,
+    "time": [
+     5,
+     180,
+     300
+    ],
+    "hr": [
+     10,
+     20
+    ],
+    "rr": [
+     2,
+     8
+    ],
+    "breathing": [
+     0.01,
+     0.04
+    ],
+    "unstable": 4,
+    "cprFactor": 1.8
+   },
+   "IM": {
+    "full": 0.3,
+    "time": [
+     30,
+     240,
+     360
+    ],
+    "hr": [
+     2,
+     10
+    ],
+    "rr": [
+     1,
+     6
+    ],
+    "breathing": [
+     0,
+     0.01
+    ],
+    "unstable": 6,
+    "autoinjector": "ACE_epinephrine"
+   }
+  },
+  "Adenosine": {
+   "unit": "mg",
+   "concentration": 3,
+   "vial": "ACM_Vial_Adenosine",
+   "IV": {
+    "full": 6,
+    "time": [
+     60,
+     25,
+     100
+    ],
+    "hr": [
+     -5,
+     -24
+    ],
+    "unstable": 2,
+    "special": "induces asystole above 0.9 count; restarts in target rhythm below 0.5 (VT->sinus)"
+   }
+  },
+  "Amiodarone": {
+   "unit": "mg",
+   "concentration": 50,
+   "vial": "ACM_Vial_Amiodarone",
+   "type": "Amiodarone",
+   "IV": {
+    "full": 150,
+    "time": [
+     10,
+     480,
+     720
+    ],
+    "hr": [
+     -5,
+     -10
+    ],
+    "max": 2200,
+    "dev": 200,
+    "unstable": 900,
+    "special": "in VF/pVT every 12-16 s chance 0.4 (VF) / 0.5 (pVT) x (count/2)/0.9 of ROSC; adds to CPR medication factor"
+   }
+  },
+  "Atropine": {
+   "unit": "mg",
+   "concentration": 1,
+   "vial": "ACM_Vial_Atropine",
+   "type": "Atropine",
+   "IV": {
+    "full": 1,
+    "time": [
+     5,
+     600,
+     900
+    ],
+    "hr": [
+     10,
+     30
+    ],
+    "rr": [
+     2,
+     8
+    ],
+    "breathing": [
+     0.01,
+     0.04
+    ],
+    "max": 20,
+    "dev": 2,
+    "unstable": 10,
+    "belowOneMg": {
+     "hr": [
+      -18,
+      0
+     ]
+    }
+   },
+   "IM": {
+    "full": 2,
+    "time": [
+     30,
+     600,
+     900
+    ],
+    "hr": [
+     8,
+     15
+    ],
+    "rr": [
+     1,
+     4
+    ],
+    "breathing": [
+     0,
+     0.01
+    ],
+    "max": 20,
+    "dev": 2,
+    "unstable": 12,
+    "belowOneMg": {
+     "hr": [
+      -10,
+      0
+     ]
+    },
+    "autoinjector": "ACM_Autoinjector_ATNA"
+   },
+   "special": "count>=3: sarin buildup -2*count/3 per 20-30 s (half in CA), spasm mitigated; count>=4: may clear spasm"
+  },
+  "Lidocaine": {
+   "unit": "mg",
+   "concentration": 20,
+   "vial": "ACM_Vial_Lidocaine",
+   "IV": {
+    "full": 83,
+    "time": [
+     5,
+     360,
+     600
+    ],
+    "hr": [
+     -2,
+     -10
+    ],
+    "max": 270,
+    "dev": 50,
+    "unstable": 240,
+    "type": "Lidocaine"
+   },
+   "IM": {
+    "full": 100,
+    "time": [
+     10,
+     240,
+     600
+    ],
+    "max": 200,
+    "dev": 50,
+    "local": true,
+    "special": "local anesthetic per body part: IO pain (0.24 count -> 95 %), thoracostomy/realignment (>=0.7 none, <0.5 conscious knocked out for thoracostomy), IM injection pain (<0.5)"
+   }
+  },
+  "TXA": {
+   "unit": "mg",
+   "concentration": 100,
+   "vial": "ACM_Vial_TXA",
+   "type": "TXA",
+   "IV": {
+    "full": 1000,
+    "time": [
+     15,
+     600,
+     900
+    ],
+    "special": "bleeding x lin(0.5..2 count): ext ->0.9, internal/capillary ->0.85, hemothorax ->0.8; platelet loss x0.9; recovery x2; starts clotting loops"
+   }
+  },
+  "Morphine": {
+   "unit": "mg",
+   "concentration": 5,
+   "vial": "ACM_Vial_Morphine",
+   "type": "Opioid",
+   "weightBased": true,
+   "IV": {
+    "full": 8.3,
+    "min": 4.15,
+    "time": [
+     25,
+     900,
+     1300
+    ],
+    "pain": [
+     0.6,
+     0.85
+    ],
+    "painMax": 1,
+    "hr": [
+     -4,
+     -10
+    ],
+    "co2": [
+     -0.04,
+     -0.08
+    ],
+    "max": 12,
+    "dev": 3,
+    "unstable": 10,
+    "cprFactor": -0.6
+   },
+   "IM": {
+    "full": 8.3,
+    "min": 5.83,
+    "time": [
+     100,
+     1200,
+     1800
+    ],
+    "pain": [
+     0.5,
+     0.9
+    ],
+    "painMax": 0.95,
+    "hr": [
+     -2,
+     -6
+    ],
+    "co2": [
+     -0.06,
+     -0.07
+    ],
+    "max": 14,
+    "dev": 3,
+    "unstable": 15,
+    "autoinjector": "ACE_morphine",
+    "autoinjectorDose": 5,
+    "cprFactor": -0.3
+   }
+  },
+  "Fentanyl": {
+   "unit": "mcg",
+   "concentration": 50,
+   "vial": "ACM_Vial_Fentanyl",
+   "type": "Opioid",
+   "weightBased": true,
+   "IV": {
+    "full": 83,
+    "min": 41.5,
+    "time": [
+     10,
+     840,
+     960
+    ],
+    "pain": [
+     0.6,
+     1.0
+    ],
+    "hr": [
+     -2,
+     -5
+    ],
+    "co2": [
+     -0.06,
+     -0.07
+    ],
+    "breathing": [
+     -0.01,
+     -0.04
+    ],
+    "max": 150,
+    "dev": 50,
+    "unstable": 110,
+    "cprFactor": -0.6
+   },
+   "IM": {
+    "full": 83,
+    "min": 58.1,
+    "time": [
+     30,
+     900,
+     1200
+    ],
+    "pain": [
+     0.5,
+     0.99
+    ],
+    "hr": [
+     -0.5,
+     -3
+    ],
+    "co2": [
+     -0.05,
+     -0.06
+    ],
+    "breathing": [
+     -0.01,
+     -0.02
+    ],
+    "max": 180,
+    "dev": 75,
+    "unstable": 130,
+    "cprFactor": -0.3
+   },
+   "BUC": {
+    "time": [
+     90,
+     600,
+     900
+    ],
+    "pain": [
+     0.25,
+     0.95
+    ],
+    "hr": [
+     -0.5,
+     -2
+    ],
+    "max": 2,
+    "dev": 1,
+    "unstable": 2,
+    "item": "ACM_Lozenge_Fentanyl",
+    "absorbSeconds": 180
+   }
+  },
+  "Ketamine": {
+   "unit": "mg",
+   "concentration": 50,
+   "vial": "ACM_Vial_Ketamine",
+   "type": "Ketamine",
+   "weightBased": true,
+   "IV": {
+    "full": 16.6,
+    "min": 8.3,
+    "time": [
+     5,
+     540,
+     660
+    ],
+    "pain": [
+     0.5,
+     0.85
+    ],
+    "hr": [
+     -0.1,
+     -0.5
+    ],
+    "max": 250,
+    "dev": 50
+   },
+   "IM": {
+    "full": 62.25,
+    "min": 41.5,
+    "time": [
+     20,
+     600,
+     900
+    ],
+    "pain": [
+     0.4,
+     0.95
+    ],
+    "max": 500,
+    "dev": 100
+   }
+  },
+  "Ondansetron": {
+   "unit": "mg",
+   "concentration": 2,
+   "vial": "ACM_Vial_Ondansetron",
+   "IV": {
+    "full": 4,
+    "time": [
+     15,
+     600,
+     720
+    ],
+    "hr": [
+     -0.5,
+     -2
+    ],
+    "max": 8,
+    "dev": 8,
+    "unstable": 8
+   },
+   "IM": {
+    "full": 4,
+    "time": [
+     45,
+     720,
+     900
+    ],
+    "hr": [
+     -0.1,
+     -2
+    ],
+    "max": 8,
+    "dev": 8,
+    "unstable": 8
+   }
+  },
+  "CalciumChloride": {
+   "unit": "mg",
+   "concentration": 100,
+   "vial": "ACM_Vial_CalciumChloride",
+   "IV": {
+    "full": 1000,
+    "time": [
+     15,
+     300,
+     600
+    ],
+    "hr": [
+     1,
+     10
+    ],
+    "unstable": 4000
+   }
+  },
+  "Ertapenem": {
+   "unit": "mg",
+   "concentration": 312.5,
+   "vial": "ACM_Vial_Ertapenem",
+   "type": "Ertapenem",
+   "IV": {
+    "full": 1000,
+    "time": [
+     5,
+     600,
+     900
+    ]
+   },
+   "IM": {
+    "full": 1000,
+    "time": [
+     30,
+     900,
+     1200
+    ]
+   },
+   "special": "required (>=0.9 count) before casualty conversion when ACM_evacuation_requireAntibiotics"
+  },
+  "Esmolol": {
+   "unit": "mg",
+   "concentration": 10,
+   "vial": "ACM_Vial_Esmolol",
+   "weightBased": true,
+   "IV": {
+    "full": 41.5,
+    "min": 20.75,
+    "time": [
+     20,
+     240,
+     320
+    ],
+    "hr": [
+     -10,
+     -25
+    ],
+    "unstable": 45
+   }
+  },
+  "Midazolam": {
+   "unit": "mg",
+   "IM": {
+    "full": 10,
+    "time": [
+     30,
+     900,
+     1200
+    ],
+    "hr": [
+     -1,
+     -5
+    ],
+    "rr": [
+     -1,
+     -4
+    ],
+    "max": 30,
+    "dev": 10,
+    "unstable": 30,
+    "autoinjector": "ACM_Autoinjector_Midazolam"
+   },
+   "special": "stops sarin tremors at count >= 0.95"
+  },
+  "Dimercaprol": {
+   "unit": "mg",
+   "concentration": 100,
+   "vial": "ACM_Ampule_Dimercaprol",
+   "IM": {
+    "full": 249,
+    "time": [
+     30,
+     900,
+     1800
+    ],
+    "hr": [
+     10,
+     20
+    ],
+    "max": 600,
+    "dev": 50,
+    "unstable": 500
+   },
+   "special": "lewisite buildup -8*min(count,2) per 20-30 s (half in CA); item hidden in 1.4.8"
+  },
+  "Paracetamol": {
+   "PO": {
+    "time": [
+     240,
+     900,
+     3000
+    ],
+    "pain": [
+     0.35,
+     0.35
+    ],
+    "painMax": 0.45,
+    "weightBased": true
+   }
+  },
+  "Penthrox": {
+   "INHALE": {
+    "time": [
+     3,
+     90,
+     240
+    ],
+    "pain": [
+     0.5,
+     0.5
+    ],
+    "painMax": 0.7,
+    "hr": [
+     -0.1,
+     -0.5
+    ],
+    "breathing": [
+     -0.001,
+     -0.01
+    ],
+    "max": 5,
+    "dev": 1
+   }
+  },
+  "AmmoniaInhalant": {
+   "INHALE": {
+    "time": [
+     3,
+     6,
+     40
+    ],
+    "hr": [
+     5,
+     25
+    ],
+    "rr": [
+     3,
+     3
+    ],
+    "special": "wake chance lin(SpO2 80..99 -> 0.5..1) if stable vitals; 10 s cooldown"
+   }
+  },
+  "Naloxone": {
+   "INHALE": {
+    "time": [
+     3,
+     120,
+     360
+    ],
+    "special": "removes Overdose_Opioid and all Opioid-type adjustments"
+   }
+  }
+ },
+ "pharmacology": {
+  "_source": "core/ov/medicationLocal, onMedicationUsage, circulation/getMedicationEffect, handleOverdose, isOverdosed, getCardiacMedicationEffects",
+  "concentrationRatioClamp": {
+   "onset": [
+    0.5,
+    1.1
+   ],
+   "duration": [
+    0.5,
+    1.1
+   ]
+  },
+  "imAbsorptionByBloodVolume": [
+   4.5,
+   3.6,
+   1.0,
+   0.1
+  ],
+  "weightScaling": "full and min doses x bodyWeight / 83 when weightBased",
+  "overdoseDeviation": "random(lin(weight 75..100 -> dev/20 .. dev))",
+  "overdoseEffects": {
+   "Opioid": {
+    "hr": [
+     -10,
+     -20
+    ],
+    "rr": [
+     -40,
+     -50
+    ],
+    "co2": [
+     -0.9,
+     -1.0
+    ],
+    "breathing": [
+     -0.01,
+     -0.1
+    ],
+    "time": [
+     60,
+     240,
+     360
+    ]
+   },
+   "Penthrox": {
+    "hr": [
+     -10,
+     -20
+    ],
+    "rr": [
+     -40,
+     -50
+    ],
+    "co2": [
+     -0.9,
+     -1.0
+    ],
+    "breathing": [
+     -0.01,
+     -0.1
+    ],
+    "time": [
+     30,
+     120,
+     300
+    ]
+   },
+   "Ketamine": {
+    "hr": [
+     -20,
+     -40
+    ],
+    "co2": [
+     -0.9,
+     -1.0
+    ],
+    "breathing": [
+     -0.01,
+     -0.1
+    ],
+    "time": [
+     60,
+     240,
+     360
+    ]
+   },
+   "Lidocaine": {
+    "hr": [
+     -40,
+     -50
+    ],
+    "co2": [
+     -0.9,
+     -1.0
+    ],
+    "time": [
+     60,
+     240,
+     360
+    ]
+   },
+   "Amiodarone": {
+    "hr": [
+     -100,
+     -120
+    ],
+    "time": [
+     60,
+     300,
+     360
+    ]
+   }
+  },
+  "unstableLists": {
+   "lastHrBelow50": [
+    "Amiodarone_IV",
+    "Morphine",
+    "Morphine_IV",
+    "Fentanyl",
+    "Fentanyl_IV",
+    "Fentanyl_BUC",
+    "Midazolam",
+    "Lidocaine_IV",
+    "Ondansetron",
+    "Ondansetron_IV",
+    "Adenosine_IV",
+    "Esmolol_IV"
+   ],
+   "lastHrAboveMax": [
+    "Epinephrine",
+    "Epinephrine_IV",
+    "Atropine",
+    "Atropine_IV",
+    "Dimercaprol"
+   ]
+  },
+  "cprMedication": {
+   "epinephrineIV": {
+    "multiplier": 1.8,
+    "cap": 2
+   },
+   "amiodaroneIV": {
+    "cap": 2
+   },
+   "lidocaineIV": {
+    "cap": 1.5
+   },
+   "morphineIM": {
+    "multiplier": 0.3,
+    "cap": 0.5
+   },
+   "morphineIV": {
+    "multiplier": 0.6,
+    "cap": 0.8
+   },
+   "fentanylIM": {
+    "multiplier": 0.3,
+    "cap": 0.5
+   },
+   "fentanylIV": {
+    "multiplier": 0.6,
+    "cap": 0.8
+   },
+   "vfPvtRange": [
+    1,
+    2.2
+   ],
+   "asystole": "max(1, epinephrine) - opioids"
+  },
+  "tourniquetOcclusion": "drugs into a limb with a tourniquet are held until removal, except IV via IO in an arm"
+ },
+ "cpr": {
+  "_source": "circulation/beginCPR, handleCPR, AED_AdministerShock, handleCardiacArrest, handleReversibleCardiacArrest, attemptROSC",
+  "rollInterval": 5,
+  "minChanceToRoll": 0.1,
+  "skill": {
+   "doctor": 0.55,
+   "medic": 0.4,
+   "anyone": 0.2
+  },
+  "bloodFactor": [
+   3.6,
+   5.1
+  ],
+  "consistency": {
+   "t0": 65,
+   "t1": 120,
+   "f0": 0.1,
+   "f1": 1.0,
+   "unclamped": true,
+   "cap": 1.2,
+   "previousSession": "clamp(0.5..1.5, f(prevLength) * 30 / secondsSinceStopped)"
+  },
+  "rhythmFactor": {
+   "PVT": 0.9,
+   "VF": 0.85,
+   "Asystole": 1.2
+  },
+  "shockFactor": "clamp(0.8..1.7, 120 / secondsSinceLastShock)",
+  "pauseEndsRolls": true,
+  "asystoleSuccess": "converts to VF or PVT (50/50)",
+  "rosc": "circulation OK and blood volume > 4.2",
+  "aed": {
+   "analyzeSeconds": "4 + random 4 + 4*(1 - BV/7)",
+   "shockable": [
+    "VF",
+    "PVT",
+    "VT"
+   ],
+   "noRepeatSeconds": 60,
+   "chargeSeconds": 4.1,
+   "chargeTimeout": 30,
+   "shockOnBeatingHeart": "asystole + cardiac arrest",
+   "noPulseAfterShock": 60,
+   "padsTime": {
+    "default": 5,
+    "duringCpr": 10
+   },
+   "distanceLimit": {
+    "setting": "ACM_circulation_AEDDistanceLimit",
+    "default": 5
+   },
+   "directRosc": "only if shock-resistant (30 % per shock) and amiodarone effect > 1.9: chance = CPR(60..120 s -> 0..10) + 0.2 + 0.2*amio"
+  },
+  "rhythmEkg": {
+   "VF": [
+    150,
+    200
+   ],
+   "PVT": [
+    200,
+    240
+   ],
+   "Asystole": 0
+  },
+  "codeNotes": [
+   "rhythm deterioration never triggers (inverted time check)",
+   "pausing CPR ends the 5 s roll loop until CPR is restarted"
+  ]
+ },
+ "airway": {
+  "_source": "airway/getAirwayState, handleAirway, handleAirwayCollapse, handleAirwayObstruction_*, getSuctionTime",
+  "state": {
+   "reflexIntact": 0.88,
+   "reflexLost": 0.78,
+   "collapseFactor": "1 - collapse/3",
+   "recovery": 0.97,
+   "headTilt": 0.98,
+   "igel": 0.99,
+   "opaNpa": 0.95,
+   "surgical": 1.0,
+   "surgicalUnsecured": 0.75,
+   "obstructed": 0
+  },
+  "timeline": {
+   "reflexLoss": [
+    20,
+    45
+   ],
+   "collapseStartAfterReflex": [
+    240,
+    300
+   ],
+   "collapseInterval": [
+    30,
+    45
+   ],
+   "collapseChance": 0.3,
+   "vomitStartAfterReflex": [
+    60,
+    120
+   ],
+   "vomitInterval": [
+    10,
+    20
+   ],
+   "vomitChance": 0.4,
+   "vomitEpisodes": [
+    2,
+    4
+   ],
+   "vomitBaseChance": 0.3,
+   "vomitHeadDamageChance": 0.8,
+   "bloodInterval": [
+    5,
+    10
+   ],
+   "bloodChance": [
+    0.05,
+    0.5,
+    0,
+    0.5
+   ]
+  },
+  "suction": {
+   "uncheckedSeconds": 12,
+   "checkedWindow": 45,
+   "perLevel": 1.25,
+   "min": 3,
+   "max": 8,
+   "accuvacMax": 6
+  },
+  "knockout": [
+   15,
+   35
+  ]
+ },
+ "breathing": {
+  "_source": "breathing/getBreathingState, handlePneumothorax, handleHemothorax, treatments",
+  "ptx": {
+   "maxLevel": 4,
+   "interval": [
+    40,
+    80
+   ],
+   "chance": "40 + 15*breathingState (%) x setting",
+   "breathingPerLevel": 0.1,
+   "bpPerLevel": -8,
+   "hrPerLevel": -5,
+   "tension": {
+    "breathing": 0.1,
+    "bp": -35,
+    "hr": -35,
+    "deviation": [
+     200,
+     300
+    ]
+   }
+  },
+  "htx": {
+   "startLevel": [
+    5,
+    10
+   ],
+   "maxLevel": 10,
+   "bleedPerLevel": 0.006,
+   "clotInterval": [
+    10,
+    20
+   ],
+   "hardcoreInterval": [
+    15,
+    30
+   ],
+   "clotChance": "max(0.25*platelets/4, 0.5*min(TXA,1.2))"
+  },
+  "bvm": {
+   "squeezeInterval": 6,
+   "firstSqueezeCounts": false,
+   "gain": 1.3,
+   "gainCA": 1.2,
+   "oxygen": 1.6,
+   "lasting": 35,
+   "tank": {
+    "item": "ACM_OxygenTank_425",
+    "breaths": 283
+   }
+  },
+  "ncdOnNonTension": "PTX level 3 if no chest seal",
+  "chestTubeUnsealSeconds": [
+   60,
+   120
+  ]
+ },
+ "disability": {
+  "_source": "disability/handleFracture, splintLocal, handleTourniquetEffects, core/ov/updateDamageEffects",
+  "fracture": {
+   "mild": 3,
+   "severe": 5,
+   "complex": 7,
+   "refractureInterval": 30,
+   "refractureChance": {
+    "leg": 0.25,
+    "arm": 0.1
+   },
+   "painChance": 0.3
+  },
+  "splintFallOff": {
+   "setting": "ACM_disability_splintFallOffTime",
+   "default": 60,
+   "extra": [
+    0,
+    60
+   ]
+  },
+  "tourniquet": {
+   "painAfter": 120,
+   "painPerSecond": 0.001,
+   "necrosisPer5s": 0.01,
+   "recoveryPer5s": 0.1,
+   "legEffects": {
+    "0.1": "blockSprint",
+    "0.5": "forceWalk",
+    "0.9": "limp"
+   }
+  },
+  "wake": {
+   "shake": [
+    90,
+    99,
+    0.3,
+    0.7
+   ],
+   "slap": [
+    80,
+    99,
+    0.05,
+    0.4
+   ],
+   "ammonia": [
+    80,
+    99,
+    0.5,
+    1.0
+   ]
+  }
+ },
+ "cbrn": {
+  "_source": "ACM_cbrn/ACM_CBRN_Hazards.hpp, initHazardUnit, effect*.sqf",
+  "agents": {
+   "CS": {
+    "inhale": 0.5,
+    "skin": 0,
+    "elim": -0.5,
+    "thresholds": [
+     0,
+     50
+    ],
+    "pos": [
+     1,
+     0.5
+    ],
+    "neg": [
+     1,
+     1
+    ]
+   },
+   "Chlorine": {
+    "inhale": 1,
+    "skin": 0.35,
+    "elim": -0.25,
+    "thresholds": [
+     0,
+     25,
+     50,
+     70
+    ],
+    "pos": [
+     1,
+     1,
+     1,
+     0.5
+    ],
+    "neg": [
+     1,
+     0.5,
+     0.3,
+     0.2
+    ]
+   },
+   "Sarin": {
+    "inhale": 1.5,
+    "skin": 0.5,
+    "elim": -0.15,
+    "thresholds": [
+     0,
+     25,
+     50,
+     70
+    ],
+    "pos": [
+     1,
+     1,
+     1,
+     0.5
+    ],
+    "neg": [
+     1,
+     0.5,
+     0.25,
+     0.1
+    ]
+   },
+   "Lewisite": {
+    "inhale": 1,
+    "skin": 1.5,
+    "elim": -0.15,
+    "thresholds": [
+     0,
+     25,
+     70
+    ],
+    "pos": [
+     1,
+     1,
+     0.5
+    ],
+    "neg": [
+     1,
+     0.5,
+     0.3
+    ]
+   }
+  },
+  "_bands": "band = thresholds[firstIndex(>buildup) - 1]; above the last threshold the modifier is 1 (code)",
+  "filterSeconds": 600,
+  "inflammation": {
+   "mild": 15,
+   "serious": 40,
+   "severe": 70
+  },
+  "lungDamageMild": 20
+ },
+ "settings": [
+  {
+   "module": "airway",
+   "variable": "ACM_airway_enable",
+   "type": "checkbox",
+   "name": "Enable Airway",
+   "category": null,
+   "default": true
+  },
+  {
+   "module": "airway",
+   "variable": "ACM_airway_airwayCollapseChance",
+   "type": "slider",
+   "name": "Airway Collapse Chance Multiplier",
+   "category": null,
+   "min": 0.0,
+   "max": 2.0,
+   "default": 1.0,
+   "percent": false
+  },
+  {
+   "module": "airway",
+   "variable": "ACM_airway_airwayObstructionBloodChance",
+   "type": "slider",
+   "name": "Airway Obstruction (Blood) Chance Multiplier",
+   "category": null,
+   "min": 0.0,
+   "max": 2.0,
+   "default": 1.0,
+   "percent": false
+  },
+  {
+   "module": "airway",
+   "variable": "ACM_airway_airwayObstructionVomitChance",
+   "type": "slider",
+   "name": "Airway Obstruction (Vomit) Chance Multiplier",
+   "category": null,
+   "min": 0.0,
+   "max": 2.0,
+   "default": 1.0,
+   "percent": false
+  },
+  {
+   "module": "airway",
+   "variable": "ACM_airway_treatmentTimeRecoveryPosition",
+   "type": "slider",
+   "name": "Establish Recovery Position Time",
+   "category": "Airway Management",
+   "min": 1.0,
+   "max": 30.0,
+   "default": 8.0,
+   "percent": false
+  },
+  {
+   "module": "airway",
+   "variable": "ACM_airway_allowSuctionBag",
+   "type": "list",
+   "name": "Allow Suction Bag",
+   "category": "Airway Management",
+   "options": [
+    "anyone",
+    "medic",
+    "doctor"
+   ],
+   "default": "anyone"
+  },
+  {
+   "module": "airway",
+   "variable": "ACM_airway_allowACCUVAC",
+   "type": "list",
+   "name": "Allow ACCUVAC",
+   "category": "Airway Management",
+   "options": [
+    "anyone",
+    "medic",
+    "doctor"
+   ],
+   "default": "medic"
+  },
+  {
+   "module": "airway",
+   "variable": "ACM_airway_allowSurgicalAirway",
+   "type": "list",
+   "name": "Allow Surgical Airway",
+   "category": "Airway Management",
+   "options": [
+    "anyone",
+    "medic",
+    "doctor"
+   ],
+   "default": "medic"
+  },
+  {
+   "module": "airway",
+   "variable": "ACM_airway_treatmentTimeOPA",
+   "type": "slider",
+   "name": "OPA Time",
+   "category": "Airway Adjunct",
+   "min": 1.0,
+   "max": 30.0,
+   "default": 3.0,
+   "percent": false
+  },
+  {
+   "module": "airway",
+   "variable": "ACM_airway_treatmentTimeNPA",
+   "type": "slider",
+   "name": "NPA Time",
+   "category": "Airway Adjunct",
+   "min": 1.0,
+   "max": 30.0,
+   "default": 5.0,
+   "percent": false
+  },
+  {
+   "module": "airway",
+   "variable": "ACM_airway_treatmentTimeSGA",
+   "type": "slider",
+   "name": "i-gel Time",
+   "category": "Airway Adjunct",
+   "min": 1.0,
+   "max": 30.0,
+   "default": 7.0,
+   "percent": false
+  },
+  {
+   "module": "airway",
+   "variable": "ACM_airway_allowOPA",
+   "type": "list",
+   "name": "Allow OPA",
+   "category": "Airway Adjunct",
+   "options": [
+    "anyone",
+    "medic",
+    "doctor"
+   ],
+   "default": "anyone"
+  },
+  {
+   "module": "airway",
+   "variable": "ACM_airway_allowNPA",
+   "type": "list",
+   "name": "Allow NPA",
+   "category": "Airway Adjunct",
+   "options": [
+    "anyone",
+    "medic",
+    "doctor"
+   ],
+   "default": "anyone"
+  },
+  {
+   "module": "airway",
+   "variable": "ACM_airway_allowSGA",
+   "type": "list",
+   "name": "Allow i-gel",
+   "category": "Airway Adjunct",
+   "options": [
+    "anyone",
+    "medic",
+    "doctor"
+   ],
+   "default": "medic"
+  },
+  {
+   "module": "airway",
+   "variable": "ACM_airway_airwayAdjunctReusable",
+   "type": "checkbox",
+   "name": "Airway Adjuncts Reusable",
+   "category": "Airway Adjunct",
+   "default": false
+  },
+  {
+   "module": "breathing",
+   "variable": "ACM_breathing_altitudeAffectOxygen",
+   "type": "checkbox",
+   "name": "Altitude Affect Oxygen",
+   "category": null,
+   "default": false
+  },
+  {
+   "module": "breathing",
+   "variable": "ACM_breathing_showCyanosisSeverity",
+   "type": "checkbox",
+   "name": "Show Cyanosis Severity",
+   "category": null,
+   "default": true
+  },
+  {
+   "module": "breathing",
+   "variable": "ACM_breathing_pneumothoraxEnabled",
+   "type": "checkbox",
+   "name": "Enable Pneumothorax",
+   "category": "Pneumothorax",
+   "default": true
+  },
+  {
+   "module": "breathing",
+   "variable": "ACM_breathing_chestInjuryChance",
+   "type": "slider",
+   "name": "Chest Injury Severity Multiplier",
+   "category": "Pneumothorax",
+   "min": 0.0,
+   "max": 2.0,
+   "default": 1.0,
+   "percent": false
+  },
+  {
+   "module": "breathing",
+   "variable": "ACM_breathing_pneumothoraxDeteriorateChance",
+   "type": "slider",
+   "name": "Pneumothorax Deterioration Multiplier",
+   "category": "Pneumothorax",
+   "min": 0.0,
+   "max": 2.0,
+   "default": 1.0,
+   "percent": false
+  },
+  {
+   "module": "breathing",
+   "variable": "ACM_breathing_hemothoraxChance",
+   "type": "slider",
+   "name": "Hemothorax Chance",
+   "category": "Pneumothorax",
+   "min": 0.0,
+   "max": 1.0,
+   "default": 0.2,
+   "percent": true
+  },
+  {
+   "module": "breathing",
+   "variable": "ACM_breathing_Hardcore_ChestInjury",
+   "type": "checkbox",
+   "name": "[HARDCORE] Chest Injuries",
+   "category": "Pneumothorax",
+   "default": false
+  },
+  {
+   "module": "breathing",
+   "variable": "ACM_breathing_Hardcore_HemothoraxBleeding",
+   "type": "checkbox",
+   "name": "[HARDCORE] Hemothorax Bleeding",
+   "category": "Pneumothorax",
+   "default": false
+  },
+  {
+   "module": "breathing",
+   "variable": "ACM_breathing_allowInspectChest",
+   "type": "list",
+   "name": "Allow Inspect Chest",
+   "category": "Diagnosis",
+   "options": [
+    "anyone",
+    "medic",
+    "doctor"
+   ],
+   "default": "anyone"
+  },
+  {
+   "module": "breathing",
+   "variable": "ACM_breathing_treatmentTimeInspectChest",
+   "type": "slider",
+   "name": "Inspect Chest Time",
+   "category": "Diagnosis",
+   "min": 1.0,
+   "max": 30.0,
+   "default": 6.0,
+   "percent": false
+  },
+  {
+   "module": "breathing",
+   "variable": "ACM_breathing_allowNCD",
+   "type": "list",
+   "name": "Allow NCD Kit",
+   "category": "Treatment",
+   "options": [
+    "anyone",
+    "medic",
+    "doctor"
+   ],
+   "default": "medic"
+  },
+  {
+   "module": "breathing",
+   "variable": "ACM_breathing_allowThoracostomy",
+   "type": "list",
+   "name": "Allow Thoracostomy",
+   "category": "Treatment",
+   "options": [
+    "anyone",
+    "medic",
+    "doctor"
+   ],
+   "default": "medic"
+  },
+  {
+   "module": "breathing",
+   "variable": "ACM_breathing_locationThoracostomy",
+   "type": "list",
+   "name": "Locations Thoracostomy",
+   "category": "Treatment",
+   "options": [
+    "anywhere",
+    "vehicle",
+    "facility",
+    "vehicle_or_facility",
+    "disabled"
+   ],
+   "default": "anywhere"
+  },
+  {
+   "module": "cbrn",
+   "variable": "ACM_cbrn_enable",
+   "type": "checkbox",
+   "name": "Enable CBRN",
+   "category": null,
+   "default": false
+  },
+  {
+   "module": "cbrn",
+   "variable": "ACM_cbrn_customPPEList_gasmask",
+   "type": "editbox",
+   "name": "Gas Mask List",
+   "category": null,
+   "default": ""
+  },
+  {
+   "module": "cbrn",
+   "variable": "ACM_cbrn_customPPEList_suit",
+   "type": "editbox",
+   "name": "CBRN Suit List",
+   "category": null,
+   "default": ""
+  },
+  {
+   "module": "cbrn",
+   "variable": "ACM_cbrn_customVehicleList_CBRN",
+   "type": "editbox",
+   "name": "CBRN Protected Vehicle List",
+   "category": null,
+   "default": ""
+  },
+  {
+   "module": "cbrn",
+   "variable": "ACM_cbrn_customVehicleList_sealed",
+   "type": "editbox",
+   "name": "Sealed Vehicle List",
+   "category": null,
+   "default": ""
+  },
+  {
+   "module": "cbrn",
+   "variable": "ACM_cbrn_allowATNAAutoinjector",
+   "type": "list",
+   "name": "Allow ATNA Autoinjector",
+   "category": "Autoinjectors",
+   "options": [
+    "anyone",
+    "medic",
+    "doctor"
+   ],
+   "default": "anyone"
+  },
+  {
+   "module": "cbrn",
+   "variable": "ACM_cbrn_allowMidazolamAutoinjector",
+   "type": "list",
+   "name": "Allow Midazolam Autoinjector",
+   "category": "Autoinjectors",
+   "options": [
+    "anyone",
+    "medic",
+    "doctor"
+   ],
+   "default": "anyone"
+  },
+  {
+   "module": "cbrn",
+   "variable": "ACM_cbrn_chemicalAffectAI",
+   "type": "checkbox",
+   "name": "Chemical Agents Affect AI",
+   "category": "Chemical",
+   "default": true
+  },
+  {
+   "module": "cbrn",
+   "variable": "ACM_cbrn_chemicalAffectAISkill",
+   "type": "checkbox",
+   "name": "Chemical Agents Affect AI Skill",
+   "category": "Chemical",
+   "default": true
+  },
+  {
+   "module": "cbrn",
+   "variable": "ACM_cbrn_CSCauseBlindness",
+   "type": "checkbox",
+   "name": "CS Exposure Cause Blindness",
+   "category": "Chemical - CS Gas",
+   "default": true
+  },
+  {
+   "module": "cbrn",
+   "variable": "ACM_cbrn_chlorineCauseBlindness",
+   "type": "checkbox",
+   "name": "Chlorine Exposure Cause Blindness",
+   "category": "Chemical - Chlorine Gas",
+   "default": true
+  },
+  {
+   "module": "cbrn",
+   "variable": "ACM_cbrn_sarinIsColorless",
+   "type": "checkbox",
+   "name": "Colorless Sarin Gas",
+   "category": "Chemical - Sarin Gas",
+   "default": true
+  },
+  {
+   "module": "cbrn",
+   "variable": "ACM_cbrn_lewisiteCauseBlindness",
+   "type": "checkbox",
+   "name": "Lewisite Exposure Cause Blindness",
+   "category": "Chemical - Lewisite",
+   "default": true
+  },
+  {
+   "module": "cbrn",
+   "variable": "ACM_cbrn_lewisiteIsColorless",
+   "type": "checkbox",
+   "name": "Colorless Lewisite",
+   "category": "Chemical - Lewisite",
+   "default": true
+  },
+  {
+   "module": "circulation",
+   "variable": "ACM_circulation_cardiacArrestBleedRate",
+   "type": "slider",
+   "name": "Cardiac Arrest Bleed Rate",
+   "category": null,
+   "min": 0.01,
+   "max": 1.0,
+   "default": 0.05,
+   "percent": false
+  },
+  {
+   "module": "circulation",
+   "variable": "ACM_circulation_coagulationClotting",
+   "type": "checkbox",
+   "name": "Enable Clotting",
+   "category": "Coagulation",
+   "default": true
+  },
+  {
+   "module": "circulation",
+   "variable": "ACM_circulation_coagulationClottingAffectAI",
+   "type": "checkbox",
+   "name": "Clotting for AI",
+   "category": "Coagulation",
+   "default": true
+  },
+  {
+   "module": "circulation",
+   "variable": "ACM_circulation_cardiacArrestChance",
+   "type": "slider",
+   "name": "Critical Damage Cardiac Arrest Chance",
+   "category": "Cardiac Arrest",
+   "min": 0.0,
+   "max": 1.0,
+   "default": 0.1,
+   "percent": true
+  },
+  {
+   "module": "circulation",
+   "variable": "ACM_circulation_cardiacArrestDeteriorationRate",
+   "type": "slider",
+   "name": "Rhythm Deterioration Multiplier",
+   "category": "Cardiac Arrest",
+   "min": 0.0,
+   "max": 2.0,
+   "default": 1.0,
+   "percent": false
+  },
+  {
+   "module": "circulation",
+   "variable": "ACM_circulation_Hardcore_PostCardiacArrest",
+   "type": "checkbox",
+   "name": "[HARDCORE] Post Cardiac Arrest Complications",
+   "category": "Cardiac Arrest",
+   "default": false
+  },
+  {
+   "module": "circulation",
+   "variable": "ACM_circulation_allowAED",
+   "type": "list",
+   "name": "Allow AED",
+   "category": "Defibrillator",
+   "options": [
+    "anyone",
+    "medic",
+    "doctor"
+   ],
+   "default": "anyone"
+  },
+  {
+   "module": "circulation",
+   "variable": "ACM_circulation_AEDDistanceLimit",
+   "type": "slider",
+   "name": "AED Distance Limit",
+   "category": "Defibrillator",
+   "min": 3.0,
+   "max": 8.0,
+   "default": 5.0,
+   "percent": false
+  },
+  {
+   "module": "circulation",
+   "variable": "ACM_circulation_CPREffectiveness",
+   "type": "slider",
+   "name": "CPR Effectiveness Multiplier",
+   "category": "CPR",
+   "min": 0.1,
+   "max": 4.0,
+   "default": 1.0,
+   "percent": false
+  },
+  {
+   "module": "circulation",
+   "variable": "ACM_circulation_IVComplications",
+   "type": "checkbox",
+   "name": "Enable IV Complications",
+   "category": "IV/IO",
+   "default": true
+  },
+  {
+   "module": "circulation",
+   "variable": "ACM_circulation_IVComplicationsDeteriorate",
+   "type": "checkbox",
+   "name": "Enable IV Complication Deterioration",
+   "category": "IV/IO",
+   "default": true
+  },
+  {
+   "module": "circulation",
+   "variable": "ACM_circulation_allowIV",
+   "type": "list",
+   "name": "Allow IV",
+   "category": "IV/IO",
+   "options": [
+    "anyone",
+    "medic",
+    "doctor"
+   ],
+   "default": "medic"
+  },
+  {
+   "module": "circulation",
+   "variable": "ACM_circulation_allowIO",
+   "type": "list",
+   "name": "Allow IO",
+   "category": "IV/IO",
+   "options": [
+    "anyone",
+    "medic",
+    "doctor"
+   ],
+   "default": "medic"
+  },
+  {
+   "module": "circulation",
+   "variable": "ACM_circulation_treatmentTimeIV_16",
+   "type": "slider",
+   "name": "16g IV Time",
+   "category": "IV/IO",
+   "min": 1.0,
+   "max": 30.0,
+   "default": 6.0,
+   "percent": false
+  },
+  {
+   "module": "circulation",
+   "variable": "ACM_circulation_treatmentTimeIV_14",
+   "type": "slider",
+   "name": "14g IV Time",
+   "category": "IV/IO",
+   "min": 1.0,
+   "max": 30.0,
+   "default": 8.0,
+   "percent": false
+  },
+  {
+   "module": "circulation",
+   "variable": "ACM_circulation_treatmentTimeIO_EZ",
+   "type": "slider",
+   "name": "EZ-IO Time",
+   "category": "IV/IO",
+   "min": 1.0,
+   "max": 30.0,
+   "default": 4.0,
+   "percent": false
+  },
+  {
+   "module": "circulation",
+   "variable": "ACM_circulation_treatmentTimeIO_FAST1",
+   "type": "slider",
+   "name": "FAST1 IO Time",
+   "category": "IV/IO",
+   "min": 1.0,
+   "max": 30.0,
+   "default": 4.0,
+   "percent": false
+  },
+  {
+   "module": "circulation",
+   "variable": "ACM_circulation_selfIV",
+   "type": "list",
+   "name": "Allow Self IV",
+   "category": "IV/IO",
+   "options": [
+    false,
+    true
+   ],
+   "default": false
+  },
+  {
+   "module": "circulation",
+   "variable": "ACM_circulation_selfIO",
+   "type": "list",
+   "name": "Allow Self IO",
+   "category": "IV/IO",
+   "options": [
+    false,
+    true
+   ],
+   "default": false
+  },
+  {
+   "module": "circulation",
+   "variable": "ACM_circulation_reusableSyringe",
+   "type": "checkbox",
+   "name": "Reusable Syringes",
+   "category": "Medication",
+   "default": true
+  },
+  {
+   "module": "circulation",
+   "variable": "ACM_circulation_allowSyringe",
+   "type": "list",
+   "name": "Allow Syringe",
+   "category": "Medication",
+   "options": [
+    "anyone",
+    "medic",
+    "doctor"
+   ],
+   "default": "medic"
+  },
+  {
+   "module": "circulation",
+   "variable": "ACM_circulation_allowAmmoniaInhalant",
+   "type": "list",
+   "name": "Allow Ammonia Inhalant",
+   "category": "Medication",
+   "options": [
+    "anyone",
+    "medic",
+    "doctor"
+   ],
+   "default": "medic"
+  },
+  {
+   "module": "circulation",
+   "variable": "ACM_circulation_allowFentanylLozenge",
+   "type": "list",
+   "name": "Allow Fentanyl Lozenge",
+   "category": "Medication",
+   "options": [
+    "anyone",
+    "medic",
+    "doctor"
+   ],
+   "default": "medic"
+  },
+  {
+   "module": "circulation",
+   "variable": "ACM_circulation_customBloodTypeList_enable",
+   "type": "checkbox",
+   "name": "Use Custom List",
+   "category": "Blood Types",
+   "default": false
+  },
+  {
+   "module": "core",
+   "variable": "ACM_core_Dogtag_ShowWeight",
+   "type": "checkbox",
+   "name": "Dogtag list weight",
+   "category": null,
+   "default": true
+  },
+  {
+   "module": "core",
+   "variable": "ACM_core_ignoreIncompatibleAddonWarning",
+   "type": "checkbox",
+   "name": "Ignore Incompatible Addon Warning",
+   "category": null,
+   "default": false
+  },
+  {
+   "module": "core",
+   "variable": "ACM_core_MedicAI_AllowIntermediateTreatment",
+   "type": "checkbox",
+   "name": "Medic AI Allow Intermediate Treatment",
+   "category": null,
+   "default": true
+  },
+  {
+   "module": "core",
+   "variable": "ACM_core_treatmentTimeTakeOffTourniquet",
+   "type": "slider",
+   "name": "Take Off Tourniquet Time",
+   "category": "Items",
+   "min": 1.0,
+   "max": 30.0,
+   "default": 4.0,
+   "percent": false
+  },
+  {
+   "module": "core",
+   "variable": "ACM_core_treatmentTimeWrap",
+   "type": "slider",
+   "name": "Wrap Time (unused in 1.4.8)",
+   "category": "Items",
+   "min": 1.0,
+   "max": 30.0,
+   "default": 4.0,
+   "percent": false
+  },
+  {
+   "module": "core",
+   "variable": "ACM_core_allowWrap",
+   "type": "list",
+   "name": "Allow Wrapping",
+   "category": "Items",
+   "options": [
+    "anyone",
+    "medic",
+    "doctor"
+   ],
+   "default": "medic"
+  },
+  {
+   "module": "core",
+   "variable": "ACM_core_wrappedWoundReopenChance",
+   "type": "slider",
+   "name": "Wrapped Wound Reopen Chance Multiplier",
+   "category": "Items",
+   "min": 0.5,
+   "max": 2.0,
+   "default": 1.0,
+   "percent": false
+  },
+  {
+   "module": "core",
+   "variable": "ACM_core_treatmentTimeWrappedStitch",
+   "type": "slider",
+   "name": "Wrapped Stitch Time",
+   "category": "Items",
+   "min": 1.0,
+   "max": 30.0,
+   "default": 2.0,
+   "percent": false
+  },
+  {
+   "module": "core",
+   "variable": "ACM_core_treatmentTimeSutureStitch",
+   "type": "slider",
+   "name": "Suture Stitch Time Multiplier",
+   "category": "Items",
+   "min": 0.1,
+   "max": 1.0,
+   "default": 0.5,
+   "percent": false
+  },
+  {
+   "module": "damage",
+   "variable": "ACM_damage_enable",
+   "type": "checkbox",
+   "name": "Enable Damage Addon",
+   "category": null,
+   "default": true
+  },
+  {
+   "module": "damage",
+   "variable": "ACM_damage_headTraumaDeathThreshold",
+   "type": "slider",
+   "name": "Head Trauma Death Threshold",
+   "category": "Thresholds",
+   "min": 0.0,
+   "max": 40.0,
+   "default": 9.0,
+   "percent": false
+  },
+  {
+   "module": "damage",
+   "variable": "ACM_damage_bodyTraumaDeathThreshold",
+   "type": "slider",
+   "name": "Torso Trauma Death Threshold",
+   "category": "Thresholds",
+   "min": 0.0,
+   "max": 40.0,
+   "default": 12.0,
+   "percent": false
+  },
+  {
+   "module": "damage",
+   "variable": "ACM_damage_headTraumaCardiacArrestThreshold",
+   "type": "slider",
+   "name": "Head Trauma Cardiac Arrest Threshold",
+   "category": "Thresholds",
+   "min": 0.0,
+   "max": 40.0,
+   "default": 8.0,
+   "percent": false
+  },
+  {
+   "module": "damage",
+   "variable": "ACM_damage_bodyTraumaCardiacArrestThreshold",
+   "type": "slider",
+   "name": "Torso Trauma Cardiac Arrest Threshold",
+   "category": "Thresholds",
+   "min": 0.0,
+   "max": 40.0,
+   "default": 11.0,
+   "percent": false
+  },
+  {
+   "module": "damage",
+   "variable": "ACM_damage_internalBleedingChanceMultiplier",
+   "type": "slider",
+   "name": "Internal Bleeding Chance Multiplier",
+   "category": "Internal Bleeding",
+   "min": 0.1,
+   "max": 2.0,
+   "default": 1.0,
+   "percent": false
+  },
+  {
+   "module": "damage",
+   "variable": "ACM_damage_Hardcore_InternalBleeding",
+   "type": "checkbox",
+   "name": "[HARDCORE] Internal Bleeding",
+   "category": "Internal Bleeding",
+   "default": false
+  },
+  {
+   "module": "damage",
+   "variable": "ACM_damage_headTraumaDeathThresholdAI",
+   "type": "slider",
+   "name": "AI Head Trauma Death Threshold",
+   "category": "AI Units",
+   "min": 0.0,
+   "max": 40.0,
+   "default": 4.0,
+   "percent": false
+  },
+  {
+   "module": "damage",
+   "variable": "ACM_damage_bodyTraumaDeathThresholdAI",
+   "type": "slider",
+   "name": "AI Torso Trauma Death Threshold",
+   "category": "AI Units",
+   "min": 0.0,
+   "max": 40.0,
+   "default": 7.0,
+   "percent": false
+  },
+  {
+   "module": "damage",
+   "variable": "ACM_damage_headTraumaCardiacArrestThresholdAI",
+   "type": "slider",
+   "name": "AI Head Trauma Cardiac Arrest Threshold",
+   "category": "AI Units",
+   "min": 0.0,
+   "max": 40.0,
+   "default": 2.0,
+   "percent": false
+  },
+  {
+   "module": "damage",
+   "variable": "ACM_damage_bodyTraumaCardiacArrestThresholdAI",
+   "type": "slider",
+   "name": "AI Torso Trauma Cardiac Arrest Threshold",
+   "category": "AI Units",
+   "min": 0.0,
+   "max": 40.0,
+   "default": 5.0,
+   "percent": false
+  },
+  {
+   "module": "damage",
+   "variable": "ACM_damage_AIStayDownChance",
+   "type": "slider",
+   "name": "AI Stay Down Chance",
+   "category": "AI Units",
+   "min": 0.0,
+   "max": 1.0,
+   "default": 1.0,
+   "percent": true
+  },
+  {
+   "module": "disability",
+   "variable": "ACM_disability_tourniquetImpactLimbs",
+   "type": "checkbox",
+   "name": "Tourniquet Impact Limbs",
+   "category": null,
+   "default": true
+  },
+  {
+   "module": "disability",
+   "variable": "ACM_disability_enableFractureSeverity",
+   "type": "checkbox",
+   "name": "Enable Fracture Severity",
+   "category": "Fracture Management",
+   "default": true
+  },
+  {
+   "module": "disability",
+   "variable": "ACM_disability_allowInspectForFracture",
+   "type": "list",
+   "name": "Allow Inspecting For Fracture",
+   "category": "Fracture Management",
+   "options": [
+    "anyone",
+    "medic",
+    "doctor"
+   ],
+   "default": "medic"
+  },
+  {
+   "module": "disability",
+   "variable": "ACM_disability_allowFractureRealignment",
+   "type": "list",
+   "name": "Allow Performing Fracture Realignment",
+   "category": "Fracture Management",
+   "options": [
+    "anyone",
+    "medic",
+    "doctor"
+   ],
+   "default": "medic"
+  },
+  {
+   "module": "disability",
+   "variable": "ACM_disability_Hardcore_ComplexFracture",
+   "type": "checkbox",
+   "name": "[HARDCORE] Complex Fractures",
+   "category": "Fracture Management",
+   "default": false
+  },
+  {
+   "module": "disability",
+   "variable": "ACM_disability_treatmentTimeSAMSplint",
+   "type": "slider",
+   "name": "SAM Splint Time",
+   "category": "Fracture Management",
+   "min": 1.0,
+   "max": 30.0,
+   "default": 3.0,
+   "percent": false
+  },
+  {
+   "module": "disability",
+   "variable": "ACM_disability_treatmentTimeWrapSplint",
+   "type": "slider",
+   "name": "Wrap Splint Time",
+   "category": "Fracture Management",
+   "min": 1.0,
+   "max": 30.0,
+   "default": 5.0,
+   "percent": false
+  },
+  {
+   "module": "disability",
+   "variable": "ACM_disability_splintFallOffTime",
+   "type": "slider",
+   "name": "Splint minimum fall off time",
+   "category": "Fracture Management",
+   "min": 1.0,
+   "max": 300.0,
+   "default": 60.0,
+   "percent": false
+  },
+  {
+   "module": "evacuation",
+   "variable": "ACM_evacuation_enable",
+   "type": "checkbox",
+   "name": "Enable Evacuation Addon",
+   "category": null,
+   "default": true
+  },
+  {
+   "module": "evacuation",
+   "variable": "ACM_evacuation_clearCasualtyLoadout",
+   "type": "checkbox",
+   "name": "Clear Casualty Loadout",
+   "category": null,
+   "default": false
+  },
+  {
+   "module": "evacuation",
+   "variable": "ACM_evacuation_requireAntibiotics",
+   "type": "checkbox",
+   "name": "Require Antibiotics",
+   "category": null,
+   "default": true
+  },
+  {
+   "module": "evacuation",
+   "variable": "ACM_evacuation_ticketCountRespawn",
+   "type": "slider",
+   "name": "Respawn Ticket Count",
+   "category": "Tickets",
+   "min": 1.0,
+   "max": 1000.0,
+   "default": 20.0,
+   "percent": false
+  },
+  {
+   "module": "evacuation",
+   "variable": "ACM_evacuation_ticketCountCasualty",
+   "type": "slider",
+   "name": "Casualty Ticket Count",
+   "category": "Tickets",
+   "min": 1.0,
+   "max": 20.0,
+   "default": 5.0,
+   "percent": false
+  },
+  {
+   "module": "evacuation",
+   "variable": "ACM_evacuation_convertedCasualtyDeathPenalty",
+   "type": "slider",
+   "name": "Converted Casualty Death Ticket Penalty",
+   "category": "Tickets",
+   "min": 1.0,
+   "max": 100.0,
+   "default": 1.0,
+   "percent": false
+  },
+  {
+   "module": "evacuation",
+   "variable": "ACM_evacuation_allowConvert",
+   "type": "list",
+   "name": "Allow Converting Casualties",
+   "category": "Casualty Conversion",
+   "options": [
+    "anyone",
+    "medic",
+    "doctor"
+   ],
+   "default": "doctor"
+  },
+  {
+   "module": "evacuation",
+   "variable": "ACM_evacuation_locationConvert",
+   "type": "list",
+   "name": "Converting Casualty Location",
+   "category": "Casualty Conversion",
+   "options": [
+    "anywhere",
+    "vehicle",
+    "facility",
+    "vehicle_or_facility",
+    "disabled"
+   ],
+   "default": "anywhere"
+  },
+  {
+   "module": "gui",
+   "variable": "ACM_gui_showInactiveStatuses",
+   "type": "checkbox",
+   "name": "Show inactive vitals statuses",
+   "category": null,
+   "default": false
+  },
+  {
+   "module": "gui",
+   "variable": "ACM_gui_showExactPainAmount",
+   "type": "checkbox",
+   "name": "Show Pain Amount",
+   "category": null,
+   "default": true
+  },
+  {
+   "module": "gui",
+   "variable": "ACM_gui_showFracture",
+   "type": "checkbox",
+   "name": "Show Fracture",
+   "category": null,
+   "default": true
+  },
+  {
+   "module": "gui",
+   "variable": "ACM_gui_showActionItemIcons",
+   "type": "checkbox",
+   "name": "Show Action Item Icons",
+   "category": null,
+   "default": true
+  },
+  {
+   "module": "gui",
+   "variable": "ACM_gui_overlayBodyPart",
+   "type": "checkbox",
+   "name": "Show overlay for selected body part",
+   "category": null,
+   "default": false
+  },
+  {
+   "module": "gui",
+   "variable": "ACM_gui_showPatientSideLabels",
+   "type": "checkbox",
+   "name": "Show patient side labels",
+   "category": null,
+   "default": false
+  }
+ ],
+ "treatments": [
+  {
+   "class": "basicbandage",
+   "name": "Bandage",
+   "category": "bandage",
+   "items": [
+    "ACE_fieldDressing",
+    "ACE_packingBandage",
+    "ACE_elasticBandage",
+    "ACE_quikclot"
+   ],
+   "time": {
+    "computed": "ace_medical_treatment_fnc_getBandageTime"
+   },
+   "trainingLevel": "anyone",
+   "bodyParts": [
+    "all"
+   ],
+   "selfAllowed": true,
+   "consumesItem": true,
+   "conditionExcerpt": "ace_medical_treatment_fnc_canBandage"
+  },
+  {
+   "class": "fielddressing",
+   "name": "Field Dressing",
+   "category": "bandage",
+   "items": [
+    "ACE_fieldDressing"
+   ],
+   "time": {
+    "computed": "ace_medical_treatment_fnc_getBandageTime"
+   },
+   "trainingLevel": "anyone",
+   "bodyParts": [
+    "all"
+   ],
+   "selfAllowed": true,
+   "consumesItem": true,
+   "conditionExcerpt": "ace_medical_treatment_fnc_canBandage"
+  },
+  {
+   "class": "packingbandage",
+   "name": "Packing Bandage",
+   "category": "bandage",
+   "items": [
+    "ACE_packingBandage"
+   ],
+   "time": {
+    "computed": "ace_medical_treatment_fnc_getBandageTime"
+   },
+   "trainingLevel": "anyone",
+   "bodyParts": [
+    "all"
+   ],
+   "selfAllowed": true,
+   "consumesItem": true,
+   "conditionExcerpt": "ace_medical_treatment_fnc_canBandage"
+  },
+  {
+   "class": "elasticbandage",
+   "name": "Elastic Bandage",
+   "category": "bandage",
+   "items": [
+    "ACE_elasticBandage"
+   ],
+   "time": {
+    "computed": "ace_medical_treatment_fnc_getBandageTime"
+   },
+   "trainingLevel": "anyone",
+   "bodyParts": [
+    "all"
+   ],
+   "selfAllowed": true,
+   "consumesItem": true,
+   "conditionExcerpt": "ace_medical_treatment_fnc_canBandage"
+  },
+  {
+   "class": "quikclot",
+   "name": "QuikClot",
+   "category": "bandage",
+   "items": [
+    "ACE_quikclot"
+   ],
+   "time": {
+    "computed": "ace_medical_treatment_fnc_getBandageTime"
+   },
+   "trainingLevel": "anyone",
+   "bodyParts": [
+    "all"
+   ],
+   "selfAllowed": true,
+   "consumesItem": true,
+   "conditionExcerpt": "ace_medical_treatment_fnc_canBandage"
+  },
+  {
+   "class": "applytourniquet",
+   "name": "Apply Tourniquet",
+   "category": "bandage",
+   "items": [
+    "ACE_tourniquet"
+   ],
+   "time": {
+    "aceSetting": "ace_medical_treatment_treatmentTimeTourniquet"
+   },
+   "trainingLevel": "anyone",
+   "bodyParts": [
+    "leftarm",
+    "rightarm",
+    "leftleg",
+    "rightleg"
+   ],
+   "selfAllowed": true,
+   "consumesItem": true,
+   "conditionExcerpt": "!([_patient, _bodyPart] call ace_medical_treatment_fnc_hasTourniquetAppliedTo)"
+  },
+  {
+   "class": "removetourniquet",
+   "name": "Remove Tourniquet",
+   "category": "bandage",
+   "items": [],
+   "time": {
+    "setting": "ACM_core_treatmentTimeTakeOffTourniquet",
+    "default": 4.0
+   },
+   "trainingLevel": "anyone",
+   "bodyParts": [
+    "leftarm",
+    "rightarm",
+    "leftleg",
+    "rightleg"
+   ],
+   "selfAllowed": true,
+   "consumesItem": true,
+   "conditionExcerpt": "[_patient, _bodyPart] call ace_medical_treatment_fnc_hasTourniquetAppliedTo"
+  },
+  {
+   "class": "splint",
+   "name": "Apply Splint",
+   "category": "bandage",
+   "items": [
+    "ACE_splint"
+   ],
+   "time": {
+    "aceSetting": "ace_medical_treatment_treatmentTimeSplint"
+   },
+   "trainingLevel": {
+    "aceSetting": "ace_medical_treatment_medicSplint"
+   },
+   "bodyParts": [
+    "leftarm",
+    "rightarm",
+    "leftleg",
+    "rightleg"
+   ],
+   "selfAllowed": true,
+   "consumesItem": true,
+   "conditionExcerpt": "ace_medical_treatment_fnc_canSplint"
+  },
+  {
+   "class": "morphine",
+   "name": "Use Morphine Autoinjector",
+   "category": "medication",
+   "items": [
+    "ACE_morphine"
+   ],
+   "time": {
+    "aceSetting": "ace_medical_treatment_treatmentTimeAutoinjector"
+   },
+   "trainingLevel": {
+    "aceSetting": "ace_medical_treatment_medicMorphine"
+   },
+   "bodyParts": [
+    "leftarm",
+    "rightarm",
+    "leftleg",
+    "rightleg"
+   ],
+   "selfAllowed": true,
+   "consumesItem": true,
+   "conditionExcerpt": ""
+  },
+  {
+   "class": "adenosine",
+   "name": "Use Adenosine Autoinjector",
+   "category": "medication",
+   "items": [
+    "ACE_adenosine"
+   ],
+   "time": {
+    "aceSetting": "ace_medical_treatment_treatmentTimeAutoinjector"
+   },
+   "trainingLevel": {
+    "aceSetting": "ace_medical_treatment_medicAdenosine"
+   },
+   "bodyParts": [
+    "leftarm",
+    "rightarm",
+    "leftleg",
+    "rightleg"
+   ],
+   "selfAllowed": true,
+   "consumesItem": true,
+   "conditionExcerpt": "ace_medical_treatment_advancedMedication"
+  },
+  {
+   "class": "epinephrine",
+   "name": "Use Epinephrine Autoinjector",
+   "category": "medication",
+   "items": [
+    "ACE_epinephrine"
+   ],
+   "time": {
+    "aceSetting": "ace_medical_treatment_treatmentTimeAutoinjector"
+   },
+   "trainingLevel": {
+    "aceSetting": "ace_medical_treatment_medicEpinephrine"
+   },
+   "bodyParts": [
+    "leftarm",
+    "rightarm",
+    "leftleg",
+    "rightleg"
+   ],
+   "selfAllowed": true,
+   "consumesItem": true,
+   "conditionExcerpt": ""
+  },
+  {
+   "class": "painkillers",
+   "name": "Administer Painkillers",
+   "category": "medication",
+   "items": [
+    "ACE_painkillers"
+   ],
+   "time": 4.0,
+   "trainingLevel": "anyone",
+   "bodyParts": [
+    "head"
+   ],
+   "selfAllowed": true,
+   "consumesItem": true,
+   "conditionExcerpt": ""
+  },
+  {
+   "class": "diagnose",
+   "name": "Diagnose",
+   "category": "examine",
+   "items": [],
+   "time": 2.5,
+   "trainingLevel": "anyone",
+   "bodyParts": [
+    "head",
+    "body"
+   ],
+   "selfAllowed": true,
+   "consumesItem": false,
+   "conditionExcerpt": "ace_medical_treatment_advancedDiagnose == 0"
+  },
+  {
+   "class": "checkpulse",
+   "name": "Feel Pulse",
+   "category": "examine",
+   "items": [],
+   "time": 0.001,
+   "trainingLevel": "anyone",
+   "bodyParts": [
+    "head",
+    "leftarm",
+    "rightarm",
+    "leftleg",
+    "rightleg"
+   ],
+   "selfAllowed": true,
+   "consumesItem": false,
+   "conditionExcerpt": "true"
+  },
+  {
+   "class": "checkbloodpressure",
+   "name": "Check Capillary Refill Time",
+   "category": "examine",
+   "items": [],
+   "time": 4.0,
+   "trainingLevel": "anyone",
+   "bodyParts": [
+    "body",
+    "leftarm",
+    "rightarm"
+   ],
+   "selfAllowed": true,
+   "consumesItem": false,
+   "conditionExcerpt": "true"
+  },
+  {
+   "class": "checkresponse",
+   "name": "Response",
+   "category": "examine",
+   "items": [],
+   "time": 2.5,
+   "trainingLevel": "anyone",
+   "bodyParts": [
+    "head"
+   ],
+   "selfAllowed": false,
+   "consumesItem": false,
+   "conditionExcerpt": "true"
+  },
+  {
+   "class": "bodybag",
+   "name": "Place body in black bodybag",
+   "category": "advanced",
+   "items": [
+    "ACE_bodyBag"
+   ],
+   "time": {
+    "aceSetting": "ace_medical_treatment_treatmentTimeBodyBag"
+   },
+   "trainingLevel": "anyone",
+   "bodyParts": [
+    "all"
+   ],
+   "selfAllowed": false,
+   "consumesItem": true,
+   "conditionExcerpt": "ace_medical_treatment_fnc_canPlaceInBodyBag"
+  },
+  {
+   "class": "bodybagblue",
+   "name": "Place body in blue bodybag",
+   "category": "advanced",
+   "items": [
+    "ACE_bodyBag_blue"
+   ],
+   "time": {
+    "aceSetting": "ace_medical_treatment_treatmentTimeBodyBag"
+   },
+   "trainingLevel": "anyone",
+   "bodyParts": [
+    "all"
+   ],
+   "selfAllowed": false,
+   "consumesItem": true,
+   "conditionExcerpt": "ace_medical_treatment_fnc_canPlaceInBodyBag"
+  },
+  {
+   "class": "bodybagwhite",
+   "name": "Place body in white bodybag",
+   "category": "advanced",
+   "items": [
+    "ACE_bodyBag_white"
+   ],
+   "time": {
+    "aceSetting": "ace_medical_treatment_treatmentTimeBodyBag"
+   },
+   "trainingLevel": "anyone",
+   "bodyParts": [
+    "all"
+   ],
+   "selfAllowed": false,
+   "consumesItem": true,
+   "conditionExcerpt": "ace_medical_treatment_fnc_canPlaceInBodyBag"
+  },
+  {
+   "class": "grave",
+   "name": "Dig grave for body",
+   "category": "advanced",
+   "items": [],
+   "time": {
+    "aceSetting": "ace_medical_treatment_treatmentTimeGrave"
+   },
+   "trainingLevel": "anyone",
+   "bodyParts": [
+    "all"
+   ],
+   "selfAllowed": false,
+   "consumesItem": false,
+   "conditionExcerpt": "ace_medical_treatment_fnc_canDigGrave"
+  },
+  {
+   "class": "cpr",
+   "name": "Begin CPR",
+   "category": "advanced",
+   "items": [],
+   "time": 0.01,
+   "trainingLevel": "anyone",
+   "bodyParts": [
+    "body"
+   ],
+   "selfAllowed": false,
+   "consumesItem": false,
+   "conditionExcerpt": "[_medic, _patient] call ace_medical_treatment_fnc_canCPR && ((_patient getVariable [\"ACM_airway_AirwayItem_Oral\", ''] == 'SGA') || !([_patient] call ACM_core_fn"
+  },
+  {
+   "class": "surgicalkit",
+   "name": "Use Surgical Kit",
+   "category": "advanced",
+   "items": [
+    "ACE_surgicalKit"
+   ],
+   "time": {
+    "computed": "ace_medical_treatment_fnc_getStitchTime"
+   },
+   "trainingLevel": {
+    "aceSetting": "ace_medical_treatment_medicSurgicalKit"
+   },
+   "bodyParts": [
+    "all"
+   ],
+   "selfAllowed": {
+    "aceSetting": "ace_medical_treatment_allowSelfStitch"
+   },
+   "consumesItem": {
+    "aceSetting": "ace_medical_treatment_consumeSurgicalKit"
+   },
+   "conditionExcerpt": "ace_medical_treatment_fnc_canStitch"
+  },
+  {
+   "class": "personalaidkit",
+   "name": "Use Personal Aid Kit",
+   "category": "advanced",
+   "items": [
+    "ACE_personalAidKit"
+   ],
+   "time": {
+    "computed": "ace_medical_treatment_fnc_getHealTime"
+   },
+   "trainingLevel": {
+    "aceSetting": "ace_medical_treatment_medicPAK"
+   },
+   "bodyParts": [
+    "all"
+   ],
+   "selfAllowed": {
+    "aceSetting": "ace_medical_treatment_allowSelfPAK"
+   },
+   "consumesItem": {
+    "aceSetting": "ace_medical_treatment_consumePAK"
+   },
+   "conditionExcerpt": "_patient call ace_medical_status_fnc_isInStableCondition"
+  },
+  {
+   "class": "atna_autoinjector",
+   "name": "Use ATNA Autoinjector",
+   "category": "medication",
+   "items": [
+    "ACM_Autoinjector_ATNA"
+   ],
+   "time": {
+    "aceSetting": "ace_medical_treatment_treatmentTimeAutoinjector"
+   },
+   "trainingLevel": {
+    "computed": "ACM_core_allowATNAAutoinjector"
+   },
+   "bodyParts": [
+    "leftarm",
+    "rightarm",
+    "leftleg",
+    "rightleg"
+   ],
+   "selfAllowed": true,
+   "consumesItem": true,
+   "conditionExcerpt": ""
+  },
+  {
+   "class": "midazolam_autoinjector",
+   "name": "Use Midazolam Autoinjector",
+   "category": "medication",
+   "items": [
+    "ACM_Autoinjector_Midazolam"
+   ],
+   "time": {
+    "aceSetting": "ace_medical_treatment_treatmentTimeAutoinjector"
+   },
+   "trainingLevel": {
+    "computed": "ACM_core_allowMidazolamAutoinjector"
+   },
+   "bodyParts": [
+    "leftarm",
+    "rightarm",
+    "leftleg",
+    "rightleg"
+   ],
+   "selfAllowed": true,
+   "consumesItem": true,
+   "conditionExcerpt": ""
+  },
+  {
+   "class": "measurebloodpressure",
+   "name": "Measure Blood Pressure",
+   "category": "examine",
+   "items": [],
+   "time": 0.01,
+   "trainingLevel": "anyone",
+   "bodyParts": [
+    "leftarm",
+    "rightarm"
+   ],
+   "selfAllowed": true,
+   "consumesItem": false,
+   "conditionExcerpt": "[_patient, _bodyPart] call ACM_circulation_fnc_hasPressureCuff"
+  },
+  {
+   "class": "measurebloodpressurestethoscope",
+   "name": "Measure Blood Pressure (Stethoscope)",
+   "category": "examine",
+   "items": [
+    "ACM_Stethoscope"
+   ],
+   "time": 0.01,
+   "trainingLevel": "anyone",
+   "bodyParts": [
+    "leftarm",
+    "rightarm"
+   ],
+   "selfAllowed": true,
+   "consumesItem": false,
+   "conditionExcerpt": "[_patient, _bodyPart] call ACM_circulation_fnc_hasPressureCuff"
+  },
+  {
+   "class": "checkdogtags",
+   "name": "Check Dog Tag",
+   "category": "examine",
+   "items": [],
+   "time": 2.0,
+   "trainingLevel": "anyone",
+   "bodyParts": [
+    "head"
+   ],
+   "selfAllowed": true,
+   "consumesItem": false,
+   "conditionExcerpt": "ACM_core_fnc_canCheckDogtag"
+  },
+  {
+   "class": "pressurebandage",
+   "name": "Pressure Bandage",
+   "category": "bandage",
+   "items": [
+    "ACM_PressureBandage"
+   ],
+   "time": {
+    "computed": "ACM_damage_fnc_getBandageTime"
+   },
+   "trainingLevel": "anyone",
+   "bodyParts": [
+    "all"
+   ],
+   "selfAllowed": true,
+   "consumesItem": true,
+   "conditionExcerpt": "ace_medical_treatment_fnc_canBandage"
+  },
+  {
+   "class": "emergencytraumadressing",
+   "name": "Emergency Trauma Dressing",
+   "category": "bandage",
+   "items": [
+    "ACM_EmergencyTraumaDressing"
+   ],
+   "time": {
+    "computed": "ACM_damage_fnc_getBandageTime"
+   },
+   "trainingLevel": "anyone",
+   "bodyParts": [
+    "all"
+   ],
+   "selfAllowed": false,
+   "consumesItem": true,
+   "conditionExcerpt": "ace_medical_treatment_fnc_canBandage"
+  },
+  {
+   "class": "elasticwrap",
+   "name": "Wrap Bruises",
+   "category": "bandage",
+   "items": [
+    "ACM_ElasticWrap"
+   ],
+   "time": {
+    "computed": "ACM_damage_fnc_getBruiseWrapTime"
+   },
+   "trainingLevel": {
+    "setting": "ACM_core_allowWrap",
+    "default": "medic"
+   },
+   "bodyParts": [
+    "all"
+   ],
+   "selfAllowed": true,
+   "consumesItem": true,
+   "conditionExcerpt": "[_medic, _patient, _bodyPart, 2] call ACM_damage_fnc_canWrap"
+  },
+  {
+   "class": "elasticwrapbandages",
+   "name": "Wrap Bandaged Wounds",
+   "category": "bandage",
+   "items": [
+    "ACM_ElasticWrap"
+   ],
+   "time": {
+    "computed": "[_medic, _patient, _bodyPart, 0] call ACM_damage_fnc_getWrapTime"
+   },
+   "trainingLevel": {
+    "setting": "ACM_core_allowWrap",
+    "default": "medic"
+   },
+   "bodyParts": [
+    "all"
+   ],
+   "selfAllowed": true,
+   "consumesItem": true,
+   "conditionExcerpt": "[_medic, _patient, _bodyPart] call ACM_damage_fnc_canWrap"
+  },
+  {
+   "class": "elasticwrapclots",
+   "name": "Wrap Clotted Wounds",
+   "category": "bandage",
+   "items": [
+    "ACM_ElasticWrap"
+   ],
+   "time": {
+    "computed": "[_medic, _patient, _bodyPart, 1] call ACM_damage_fnc_getWrapTime"
+   },
+   "trainingLevel": {
+    "setting": "ACM_core_allowWrap",
+    "default": "medic"
+   },
+   "bodyParts": [
+    "all"
+   ],
+   "selfAllowed": true,
+   "consumesItem": true,
+   "conditionExcerpt": "[_medic, _patient, _bodyPart, 1] call ACM_damage_fnc_canWrap"
+  },
+  {
+   "class": "elasticwrapsplint",
+   "name": "Wrap SAM Splint",
+   "category": "bandage",
+   "items": [
+    "ACM_ElasticWrap"
+   ],
+   "time": {
+    "computed": "ACM_disability_fnc_getSplintWrapTime"
+   },
+   "trainingLevel": {
+    "setting": "ACM_core_allowWrap",
+    "default": "medic"
+   },
+   "bodyParts": [
+    "leftarm",
+    "rightarm",
+    "leftleg",
+    "rightleg"
+   ],
+   "selfAllowed": true,
+   "consumesItem": true,
+   "conditionExcerpt": "ACM_disability_fnc_canWrapSplint"
+  },
+  {
+   "class": "stitchairwayincision",
+   "name": "Stitch Airway Incision",
+   "category": "airway",
+   "items": [
+    "ACE_surgicalKit"
+   ],
+   "time": {
+    "computed": "[_medic, _patient] call ACM_airway_fnc_getStitchAirwayIncisionTime"
+   },
+   "trainingLevel": {
+    "aceSetting": "ace_medical_treatment_medicSurgicalKit"
+   },
+   "bodyParts": [
+    "head"
+   ],
+   "selfAllowed": false,
+   "consumesItem": {
+    "aceSetting": "ace_medical_treatment_consumeSurgicalKit"
+   },
+   "conditionExcerpt": "[_medic, _patient] call ACM_airway_fnc_canStitchAirwayIncision"
+  },
+  {
+   "class": "stitchairwayincision_suture",
+   "name": "Stitch Airway Incision (Suture)",
+   "category": "airway",
+   "items": [
+    "ACE_surgicalKit"
+   ],
+   "time": {
+    "computed": "[_medic, _patient, true] call ACM_airway_fnc_getStitchAirwayIncisionTime"
+   },
+   "trainingLevel": {
+    "aceSetting": "ace_medical_treatment_medicSurgicalKit"
+   },
+   "bodyParts": [
+    "head"
+   ],
+   "selfAllowed": false,
+   "consumesItem": {
+    "aceSetting": "ace_medical_treatment_consumeSurgicalKit"
+   },
+   "conditionExcerpt": "[_medic, _patient, true] call ACM_airway_fnc_canStitchAirwayIncision"
+  },
+  {
+   "class": "surgicalairway_securestrap",
+   "name": "Secure Surgical Airway Strap",
+   "category": "airway",
+   "items": [],
+   "time": 5.0,
+   "trainingLevel": "anyone",
+   "bodyParts": [
+    "head"
+   ],
+   "selfAllowed": false,
+   "consumesItem": false,
+   "conditionExcerpt": "[_medic, _patient] call ACM_airway_fnc_canSecureSurgicalAirway"
+  },
+  {
+   "class": "inspectforfracture",
+   "name": "Inspect For Fracture",
+   "category": "examine",
+   "items": [],
+   "time": 6.0,
+   "trainingLevel": {
+    "setting": "ACM_disability_allowInspectForFracture",
+    "default": "medic"
+   },
+   "bodyParts": [
+    "leftarm",
+    "rightarm",
+    "leftleg",
+    "rightleg"
+   ],
+   "selfAllowed": true,
+   "consumesItem": false,
+   "conditionExcerpt": "ACM_disability_fnc_canInspectForFracture"
+  },
+  {
+   "class": "fracturerealignment",
+   "name": "Perform Fracture Realignment",
+   "category": "bandage",
+   "items": [],
+   "time": 3.0,
+   "trainingLevel": {
+    "setting": "ACM_disability_allowFractureRealignment",
+    "default": "medic"
+   },
+   "bodyParts": [
+    "leftarm",
+    "rightarm",
+    "leftleg",
+    "rightleg"
+   ],
+   "selfAllowed": true,
+   "consumesItem": false,
+   "conditionExcerpt": "ACM_disability_fnc_canPerformFractureRealignment"
+  },
+  {
+   "class": "applysamsplint",
+   "name": "Apply SAM Splint",
+   "category": "bandage",
+   "items": [
+    "ACM_SAMSplint"
+   ],
+   "time": {
+    "setting": "ACM_disability_treatmentTimeSAMSplint",
+    "default": 3.0
+   },
+   "trainingLevel": {
+    "aceSetting": "ace_medical_treatment_medicSplint"
+   },
+   "bodyParts": [
+    "leftarm",
+    "rightarm",
+    "leftleg",
+    "rightleg"
+   ],
+   "selfAllowed": true,
+   "consumesItem": true,
+   "conditionExcerpt": "ACM_disability_fnc_canApplySplint"
+  },
+  {
+   "class": "removesamsplint",
+   "name": "Remove SAM Splint",
+   "category": "bandage",
+   "items": [],
+   "time": 3.0,
+   "trainingLevel": {
+    "aceSetting": "ace_medical_treatment_medicSplint"
+   },
+   "bodyParts": [
+    "leftarm",
+    "rightarm",
+    "leftleg",
+    "rightleg"
+   ],
+   "selfAllowed": true,
+   "consumesItem": true,
+   "conditionExcerpt": "ACM_disability_fnc_canRemoveSplint"
+  },
+  {
+   "class": "surgicalkit_suture",
+   "name": "Use Surgical Kit With Sutures",
+   "category": "advanced",
+   "items": [
+    "ACE_surgicalKit"
+   ],
+   "time": {
+    "computed": "[_patient, _bodyPart, 0, true] call ACM_damage_fnc_getStitchTime"
+   },
+   "trainingLevel": {
+    "aceSetting": "ace_medical_treatment_medicSurgicalKit"
+   },
+   "bodyParts": [
+    "all"
+   ],
+   "selfAllowed": {
+    "aceSetting": "ace_medical_treatment_allowSelfStitch"
+   },
+   "consumesItem": {
+    "aceSetting": "ace_medical_treatment_consumeSurgicalKit"
+   },
+   "conditionExcerpt": "[_medic, _patient, _bodyPart, 0, true] call ACM_damage_fnc_canStitch"
+  },
+  {
+   "class": "stitchwrappedwounds",
+   "name": "Use Surgical Kit (Wrapped)",
+   "category": "advanced",
+   "items": [
+    "ACE_surgicalKit"
+   ],
+   "time": {
+    "computed": "[_patient, _bodyPart, 1] call ACM_damage_fnc_getStitchTime"
+   },
+   "trainingLevel": {
+    "aceSetting": "ace_medical_treatment_medicSurgicalKit"
+   },
+   "bodyParts": [
+    "all"
+   ],
+   "selfAllowed": {
+    "aceSetting": "ace_medical_treatment_allowSelfStitch"
+   },
+   "consumesItem": {
+    "aceSetting": "ace_medical_treatment_consumeSurgicalKit"
+   },
+   "conditionExcerpt": "[_medic, _patient, _bodyPart, 1] call ACM_damage_fnc_canStitch"
+  },
+  {
+   "class": "stitchwrappedwounds_suture",
+   "name": "Use Surgical Kit With Sutures (Wrapped)",
+   "category": "advanced",
+   "items": [
+    "ACE_surgicalKit"
+   ],
+   "time": {
+    "computed": "[_patient, _bodyPart, 1, true] call ACM_damage_fnc_getStitchTime"
+   },
+   "trainingLevel": {
+    "aceSetting": "ace_medical_treatment_medicSurgicalKit"
+   },
+   "bodyParts": [
+    "all"
+   ],
+   "selfAllowed": {
+    "aceSetting": "ace_medical_treatment_allowSelfStitch"
+   },
+   "consumesItem": {
+    "aceSetting": "ace_medical_treatment_consumeSurgicalKit"
+   },
+   "conditionExcerpt": "[_medic, _patient, _bodyPart, 1, true] call ACM_damage_fnc_canStitch"
+  },
+  {
+   "class": "stitchclottedwounds",
+   "name": "Use Surgical Kit (Clotted)",
+   "category": "advanced",
+   "items": [
+    "ACE_surgicalKit"
+   ],
+   "time": {
+    "computed": "[_patient, _bodyPart, 2] call ACM_damage_fnc_getStitchTime"
+   },
+   "trainingLevel": {
+    "aceSetting": "ace_medical_treatment_medicSurgicalKit"
+   },
+   "bodyParts": [
+    "all"
+   ],
+   "selfAllowed": {
+    "aceSetting": "ace_medical_treatment_allowSelfStitch"
+   },
+   "consumesItem": {
+    "aceSetting": "ace_medical_treatment_consumeSurgicalKit"
+   },
+   "conditionExcerpt": "[_medic, _patient, _bodyPart, 2] call ACM_damage_fnc_canStitch"
+  },
+  {
+   "class": "stitchclottedwounds_suture",
+   "name": "Use Surgical Kit With Sutures (Clotted)",
+   "category": "advanced",
+   "items": [
+    "ACE_surgicalKit"
+   ],
+   "time": {
+    "computed": "[_patient, _bodyPart, 2, true] call ACM_damage_fnc_getStitchTime"
+   },
+   "trainingLevel": {
+    "aceSetting": "ace_medical_treatment_medicSurgicalKit"
+   },
+   "bodyParts": [
+    "all"
+   ],
+   "selfAllowed": {
+    "aceSetting": "ace_medical_treatment_allowSelfStitch"
+   },
+   "consumesItem": {
+    "aceSetting": "ace_medical_treatment_consumeSurgicalKit"
+   },
+   "conditionExcerpt": "[_medic, _patient, _bodyPart, 2, true] call ACM_damage_fnc_canStitch"
+  },
+  {
+   "class": "opentransfusionmenu",
+   "name": "Transfuse Fluids",
+   "category": "advanced",
+   "items": [],
+   "time": 0.001,
+   "trainingLevel": "anyone",
+   "bodyParts": [
+    "all"
+   ],
+   "selfAllowed": true,
+   "consumesItem": false,
+   "conditionExcerpt": "[_patient, _bodyPart, 0, -1] call ACM_circulation_fnc_hasIV || [_patient, _bodyPart, 0] call ACM_circulation_fnc_hasIO"
+  },
+  {
+   "class": "inspectiv_upper",
+   "name": "Inspect IV Catheter (Upper)",
+   "category": "examine",
+   "items": [],
+   "time": 4.0,
+   "trainingLevel": {
+    "setting": "ACM_circulation_allowIV",
+    "default": "medic"
+   },
+   "bodyParts": [
+    "leftarm",
+    "rightarm",
+    "leftleg",
+    "rightleg"
+   ],
+   "selfAllowed": true,
+   "consumesItem": false,
+   "conditionExcerpt": "([_patient, _bodyPart, 0, 0] call ACM_circulation_fnc_hasIV)"
+  },
+  {
+   "class": "inspectiv_middle",
+   "name": "Inspect IV Catheter (Middle)",
+   "category": "examine",
+   "items": [],
+   "time": 4.0,
+   "trainingLevel": {
+    "setting": "ACM_circulation_allowIV",
+    "default": "medic"
+   },
+   "bodyParts": [
+    "leftarm",
+    "rightarm",
+    "leftleg",
+    "rightleg"
+   ],
+   "selfAllowed": true,
+   "consumesItem": false,
+   "conditionExcerpt": "([_patient, _bodyPart, 0, 1] call ACM_circulation_fnc_hasIV)"
+  },
+  {
+   "class": "inspectiv_lower",
+   "name": "Inspect IV Catheter (Lower)",
+   "category": "examine",
+   "items": [],
+   "time": 4.0,
+   "trainingLevel": {
+    "setting": "ACM_circulation_allowIV",
+    "default": "medic"
+   },
+   "bodyParts": [
+    "leftarm",
+    "rightarm",
+    "leftleg",
+    "rightleg"
+   ],
+   "selfAllowed": true,
+   "consumesItem": false,
+   "conditionExcerpt": "([_patient, _bodyPart, 0, 2] call ACM_circulation_fnc_hasIV)"
+  },
+  {
+   "class": "insertiv_16_upper",
+   "name": "Insert 16g IV (Upper)",
+   "category": "advanced",
+   "items": [
+    "ACM_IV_16g"
+   ],
+   "time": {
+    "setting": "ACM_circulation_treatmentTimeIV_16",
+    "default": 6.0
+   },
+   "trainingLevel": {
+    "setting": "ACM_circulation_allowIV",
+    "default": "medic"
+   },
+   "bodyParts": [
+    "leftarm",
+    "rightarm",
+    "leftleg",
+    "rightleg"
+   ],
+   "selfAllowed": {
+    "setting": "ACM_circulation_selfIV",
+    "default": false
+   },
+   "consumesItem": true,
+   "conditionExcerpt": "[_patient, _bodyPart, 0, 0] call ACM_circulation_fnc_canInsertIV"
+  },
+  {
+   "class": "removeiv_16_upper",
+   "name": "Remove 16g IV (Upper)",
+   "category": "advanced",
+   "items": [],
+   "time": 3.0,
+   "trainingLevel": "anyone",
+   "bodyParts": [
+    "leftarm",
+    "rightarm",
+    "leftleg",
+    "rightleg"
+   ],
+   "selfAllowed": true,
+   "consumesItem": false,
+   "conditionExcerpt": "[_patient, _bodyPart, 1, 0] call ACM_circulation_fnc_hasIV"
+  },
+  {
+   "class": "insertiv_16_middle",
+   "name": "Insert 16g IV (Middle)",
+   "category": "advanced",
+   "items": [
+    "ACM_IV_16g"
+   ],
+   "time": {
+    "setting": "ACM_circulation_treatmentTimeIV_16",
+    "default": 6.0
+   },
+   "trainingLevel": {
+    "setting": "ACM_circulation_allowIV",
+    "default": "medic"
+   },
+   "bodyParts": [
+    "leftarm",
+    "rightarm",
+    "leftleg",
+    "rightleg"
+   ],
+   "selfAllowed": {
+    "setting": "ACM_circulation_selfIV",
+    "default": false
+   },
+   "consumesItem": true,
+   "conditionExcerpt": "[_patient, _bodyPart, 0, 1] call ACM_circulation_fnc_canInsertIV"
+  },
+  {
+   "class": "removeiv_16_middle",
+   "name": "Remove 16g IV (Middle)",
+   "category": "advanced",
+   "items": [],
+   "time": 3.0,
+   "trainingLevel": "anyone",
+   "bodyParts": [
+    "leftarm",
+    "rightarm",
+    "leftleg",
+    "rightleg"
+   ],
+   "selfAllowed": true,
+   "consumesItem": false,
+   "conditionExcerpt": "[_patient, _bodyPart, 1, 1] call ACM_circulation_fnc_hasIV"
+  },
+  {
+   "class": "insertiv_16_lower",
+   "name": "Insert 16g IV (Lower)",
+   "category": "advanced",
+   "items": [
+    "ACM_IV_16g"
+   ],
+   "time": {
+    "setting": "ACM_circulation_treatmentTimeIV_16",
+    "default": 6.0
+   },
+   "trainingLevel": {
+    "setting": "ACM_circulation_allowIV",
+    "default": "medic"
+   },
+   "bodyParts": [
+    "leftarm",
+    "rightarm",
+    "leftleg",
+    "rightleg"
+   ],
+   "selfAllowed": {
+    "setting": "ACM_circulation_selfIV",
+    "default": false
+   },
+   "consumesItem": true,
+   "conditionExcerpt": "[_patient, _bodyPart, 0, 2] call ACM_circulation_fnc_canInsertIV"
+  },
+  {
+   "class": "removeiv_16_lower",
+   "name": "Remove 16g IV (Lower)",
+   "category": "advanced",
+   "items": [],
+   "time": 3.0,
+   "trainingLevel": "anyone",
+   "bodyParts": [
+    "leftarm",
+    "rightarm",
+    "leftleg",
+    "rightleg"
+   ],
+   "selfAllowed": true,
+   "consumesItem": false,
+   "conditionExcerpt": "[_patient, _bodyPart, 1, 2] call ACM_circulation_fnc_hasIV"
+  },
+  {
+   "class": "insertiv_14_upper",
+   "name": "Insert 14g IV (Upper)",
+   "category": "advanced",
+   "items": [
+    "ACM_IV_14g"
+   ],
+   "time": {
+    "setting": "ACM_circulation_treatmentTimeIV_14",
+    "default": 8.0
+   },
+   "trainingLevel": {
+    "setting": "ACM_circulation_allowIV",
+    "default": "medic"
+   },
+   "bodyParts": [
+    "leftarm",
+    "rightarm",
+    "leftleg",
+    "rightleg"
+   ],
+   "selfAllowed": {
+    "setting": "ACM_circulation_selfIV",
+    "default": false
+   },
+   "consumesItem": true,
+   "conditionExcerpt": "[_patient, _bodyPart, 0, 0] call ACM_circulation_fnc_canInsertIV"
+  },
+  {
+   "class": "removeiv_14_upper",
+   "name": "Remove 14g IV (Upper)",
+   "category": "advanced",
+   "items": [],
+   "time": 3.0,
+   "trainingLevel": "anyone",
+   "bodyParts": [
+    "leftarm",
+    "rightarm",
+    "leftleg",
+    "rightleg"
+   ],
+   "selfAllowed": false,
+   "consumesItem": false,
+   "conditionExcerpt": "[_patient, _bodyPart, 2, 0] call ACM_circulation_fnc_hasIV"
+  },
+  {
+   "class": "insertiv_14_middle",
+   "name": "Insert 14g IV (Middle)",
+   "category": "advanced",
+   "items": [
+    "ACM_IV_14g"
+   ],
+   "time": {
+    "setting": "ACM_circulation_treatmentTimeIV_14",
+    "default": 8.0
+   },
+   "trainingLevel": {
+    "setting": "ACM_circulation_allowIV",
+    "default": "medic"
+   },
+   "bodyParts": [
+    "leftarm",
+    "rightarm",
+    "leftleg",
+    "rightleg"
+   ],
+   "selfAllowed": {
+    "setting": "ACM_circulation_selfIV",
+    "default": false
+   },
+   "consumesItem": true,
+   "conditionExcerpt": "[_patient, _bodyPart, 0, 1] call ACM_circulation_fnc_canInsertIV"
+  },
+  {
+   "class": "removeiv_14_middle",
+   "name": "Remove 14g IV (Middle)",
+   "category": "advanced",
+   "items": [],
+   "time": 3.0,
+   "trainingLevel": "anyone",
+   "bodyParts": [
+    "leftarm",
+    "rightarm",
+    "leftleg",
+    "rightleg"
+   ],
+   "selfAllowed": false,
+   "consumesItem": false,
+   "conditionExcerpt": "[_patient, _bodyPart, 2, 1] call ACM_circulation_fnc_hasIV"
+  },
+  {
+   "class": "insertiv_14_lower",
+   "name": "Insert 14g IV (Lower)",
+   "category": "advanced",
+   "items": [
+    "ACM_IV_14g"
+   ],
+   "time": {
+    "setting": "ACM_circulation_treatmentTimeIV_14",
+    "default": 8.0
+   },
+   "trainingLevel": {
+    "setting": "ACM_circulation_allowIV",
+    "default": "medic"
+   },
+   "bodyParts": [
+    "leftarm",
+    "rightarm",
+    "leftleg",
+    "rightleg"
+   ],
+   "selfAllowed": {
+    "setting": "ACM_circulation_selfIV",
+    "default": false
+   },
+   "consumesItem": true,
+   "conditionExcerpt": "[_patient, _bodyPart, 0, 2] call ACM_circulation_fnc_canInsertIV"
+  },
+  {
+   "class": "removeiv_14_lower",
+   "name": "Remove 14g IV (Lower)",
+   "category": "advanced",
+   "items": [],
+   "time": 3.0,
+   "trainingLevel": "anyone",
+   "bodyParts": [
+    "leftarm",
+    "rightarm",
+    "leftleg",
+    "rightleg"
+   ],
+   "selfAllowed": false,
+   "consumesItem": false,
+   "conditionExcerpt": "[_patient, _bodyPart, 2, 2] call ACM_circulation_fnc_hasIV"
+  },
+  {
+   "class": "insertio_fast1",
+   "name": "Insert FAST1 IO",
+   "category": "advanced",
+   "items": [
+    "ACM_IO_FAST"
+   ],
+   "time": {
+    "setting": "ACM_circulation_treatmentTimeIO_FAST1",
+    "default": 4.0
+   },
+   "trainingLevel": {
+    "setting": "ACM_circulation_allowIO",
+    "default": "medic"
+   },
+   "bodyParts": [
+    "body"
+   ],
+   "selfAllowed": {
+    "setting": "ACM_circulation_selfIO",
+    "default": false
+   },
+   "consumesItem": true,
+   "conditionExcerpt": "!([_patient, _bodyPart] call ACM_circulation_fnc_hasIO)"
+  },
+  {
+   "class": "removeio_fast1",
+   "name": "Remove FAST1 IO",
+   "category": "advanced",
+   "items": [],
+   "time": 3.5,
+   "trainingLevel": "anyone",
+   "bodyParts": [
+    "body"
+   ],
+   "selfAllowed": false,
+   "consumesItem": false,
+   "conditionExcerpt": "[_patient, _bodyPart, 4] call ACM_circulation_fnc_hasIO"
+  },
+  {
+   "class": "insertio_ez",
+   "name": "Insert EZ-IO",
+   "category": "advanced",
+   "items": [
+    "ACM_IO_EZ"
+   ],
+   "time": {
+    "setting": "ACM_circulation_treatmentTimeIO_EZ",
+    "default": 4.0
+   },
+   "trainingLevel": {
+    "setting": "ACM_circulation_allowIO",
+    "default": "medic"
+   },
+   "bodyParts": [
+    "leftarm",
+    "rightarm",
+    "leftleg",
+    "rightleg"
+   ],
+   "selfAllowed": {
+    "setting": "ACM_circulation_selfIO",
+    "default": false
+   },
+   "consumesItem": true,
+   "conditionExcerpt": "!([_patient, _bodyPart] call ACM_circulation_fnc_hasIO)"
+  },
+  {
+   "class": "removeio_ez",
+   "name": "Remove EZ-IO",
+   "category": "advanced",
+   "items": [],
+   "time": 3.5,
+   "trainingLevel": "anyone",
+   "bodyParts": [
+    "leftarm",
+    "rightarm",
+    "leftleg",
+    "rightleg"
+   ],
+   "selfAllowed": false,
+   "consumesItem": false,
+   "conditionExcerpt": "[_patient, _bodyPart, 3] call ACM_circulation_fnc_hasIO"
+  },
+  {
+   "class": "paracetamol",
+   "name": "Use Paracetamol",
+   "category": "medication",
+   "items": [
+    "ACM_Paracetamol_SinglePack",
+    "ACM_Paracetamol_DoublePack",
+    "ACM_Paracetamol"
+   ],
+   "time": 4.0,
+   "trainingLevel": "anyone",
+   "bodyParts": [
+    "head"
+   ],
+   "selfAllowed": true,
+   "consumesItem": true,
+   "conditionExcerpt": "[_patient] call ace_common_fnc_isAwake && !(alive (_patient getVariable [\"ACM_breathing_BVM_Medic\", objNull]))"
+  },
+  {
+   "class": "penthrox",
+   "name": "Use Penthrox Inhaler",
+   "category": "medication",
+   "items": [
+    "ACM_Inhaler_Penthrox"
+   ],
+   "time": 4.0,
+   "trainingLevel": "anyone",
+   "bodyParts": [
+    "head"
+   ],
+   "selfAllowed": true,
+   "consumesItem": true,
+   "conditionExcerpt": "[_patient] call ace_common_fnc_isAwake && !(alive (_patient getVariable [\"ACM_breathing_BVM_Medic\", objNull]))"
+  },
+  {
+   "class": "ammoniainhalant",
+   "name": "Use Ammonia Inhalant",
+   "category": "medication",
+   "items": [
+    "ACM_AmmoniaInhalant"
+   ],
+   "time": 3.0,
+   "trainingLevel": {
+    "setting": "ACM_circulation_allowAmmoniaInhalant",
+    "default": "medic"
+   },
+   "bodyParts": [
+    "head"
+   ],
+   "selfAllowed": true,
+   "consumesItem": true,
+   "conditionExcerpt": "!(alive (_patient getVariable [\"ACM_breathing_BVM_Medic\", objNull]))"
+  },
+  {
+   "class": "naloxone",
+   "name": "Use Naloxone Spray",
+   "category": "medication",
+   "items": [
+    "ACM_Spray_Naloxone"
+   ],
+   "time": 4.0,
+   "trainingLevel": "anyone",
+   "bodyParts": [
+    "head"
+   ],
+   "selfAllowed": true,
+   "consumesItem": true,
+   "conditionExcerpt": "!(alive (_patient getVariable [\"ACM_breathing_BVM_Medic\", objNull]))"
+  },
+  {
+   "class": "fentanyllozenge",
+   "name": "Give Fentanyl Lozenge",
+   "category": "medication",
+   "items": [
+    "ACM_Lozenge_Fentanyl"
+   ],
+   "time": 4.0,
+   "trainingLevel": {
+    "setting": "ACM_circulation_allowFentanylLozenge",
+    "default": "medic"
+   },
+   "bodyParts": [
+    "head"
+   ],
+   "selfAllowed": false,
+   "consumesItem": true,
+   "conditionExcerpt": "_patient call ace_common_fnc_isAwake && ((_patient getVariable [\"ACM_circulation_LozengeItem\", '']) == '') && ((_patient getVariable [\"ACM_core_Lying_State\", fa"
+  },
+  {
+   "class": "removefentanyllozenge",
+   "name": "Remove Fentanyl Lozenge",
+   "category": "medication",
+   "items": [],
+   "time": 2.0,
+   "trainingLevel": "anyone",
+   "bodyParts": [
+    "head"
+   ],
+   "selfAllowed": true,
+   "consumesItem": false,
+   "conditionExcerpt": "(_patient getVariable [\"ACM_circulation_LozengeItem\", '']) == 'Fentanyl'"
+  },
+  {
+   "class": "shakeawake",
+   "name": "Attempt To Shake Awake",
+   "category": "medication",
+   "items": [],
+   "time": 1.5,
+   "trainingLevel": "anyone",
+   "bodyParts": [
+    "body",
+    "leftarm",
+    "rightarm"
+   ],
+   "selfAllowed": false,
+   "consumesItem": false,
+   "conditionExcerpt": "!([_patient] call ace_common_fnc_isAwake)"
+  },
+  {
+   "class": "slapawake",
+   "name": "Attempt To Slap Awake",
+   "category": "medication",
+   "items": [],
+   "time": 3.0,
+   "trainingLevel": "anyone",
+   "bodyParts": [
+    "head"
+   ],
+   "selfAllowed": false,
+   "consumesItem": false,
+   "conditionExcerpt": "!([_patient] call ace_common_fnc_isAwake) && !(alive (_patient getVariable [\"ACM_breathing_BVM_Medic\", objNull]))"
+  },
+  {
+   "class": "washeyes",
+   "name": "Wash Eyes",
+   "category": "medication",
+   "items": [
+    "ACE_WaterBottle",
+    "ACE_WaterBottle_Half",
+    "ACE_Canteen",
+    "ACE_Canteen_Half"
+   ],
+   "time": 3.0,
+   "trainingLevel": "anyone",
+   "bodyParts": [
+    "head"
+   ],
+   "selfAllowed": true,
+   "consumesItem": true,
+   "conditionExcerpt": "_patient call ACM_CBRN_fnc_canWashEyes"
+  },
+  {
+   "class": "checkairway",
+   "name": "Check Airway",
+   "category": "airway",
+   "items": [],
+   "time": 2.5,
+   "trainingLevel": "anyone",
+   "bodyParts": [
+    "head"
+   ],
+   "selfAllowed": false,
+   "consumesItem": false,
+   "conditionExcerpt": "ACM_airway_enable && !(_patient call ace_common_fnc_isAwake) && !(alive (_patient getVariable [\"ACM_breathing_BVM_Medic\", objNull]))"
+  },
+  {
+   "class": "headturn",
+   "name": "Perform Head Turning",
+   "category": "airway",
+   "items": [],
+   "time": 5.0,
+   "trainingLevel": "anyone",
+   "bodyParts": [
+    "head"
+   ],
+   "selfAllowed": false,
+   "consumesItem": false,
+   "conditionExcerpt": "ACM_airway_enable && !(_patient call ace_common_fnc_isAwake) && (_patient getVariable [\"ACM_airway_AirwayItem_Oral\", ''] == '') && !(alive (_patient getVariable"
+  },
+  {
+   "class": "beginheadtiltchinlift",
+   "name": "Perform Head Tilt-Chin Lift",
+   "category": "airway",
+   "items": [],
+   "time": 0.001,
+   "trainingLevel": "anyone",
+   "bodyParts": [
+    "head"
+   ],
+   "selfAllowed": false,
+   "consumesItem": false,
+   "conditionExcerpt": "ACM_airway_enable && !(_patient call ace_common_fnc_isAwake) && !(_patient getVariable [\"ACM_airway_HeadTilt_State\", false]) && (_patient getVariable [\"ACM_airw"
+  },
+  {
+   "class": "recoveryposition",
+   "name": "Establish Recovery Position",
+   "category": "airway",
+   "items": [],
+   "time": {
+    "setting": "ACM_airway_treatmentTimeRecoveryPosition",
+    "default": 8.0
+   },
+   "trainingLevel": "anyone",
+   "bodyParts": [
+    "body"
+   ],
+   "selfAllowed": false,
+   "consumesItem": false,
+   "conditionExcerpt": "ACM_airway_enable && !([_patient] call ACM_core_fnc_cprActive) && !(_patient call ace_common_fnc_isAwake) && (_patient getVariable [\"ACM_airway_AirwayItem_Oral\""
+  },
+  {
+   "class": "cancelrecoveryposition",
+   "name": "Cancel Recovery Position",
+   "category": "airway",
+   "items": [],
+   "time": 1.0,
+   "trainingLevel": "anyone",
+   "bodyParts": [
+    "body"
+   ],
+   "selfAllowed": false,
+   "consumesItem": false,
+   "conditionExcerpt": "ACM_airway_enable && !(_patient call ace_common_fnc_isAwake) && (_patient getVariable [\"ACM_airway_RecoveryPosition_State\", false])"
+  },
+  {
+   "class": "usesuctionbag",
+   "name": "Use Suction Bag",
+   "category": "airway",
+   "items": [
+    "ACM_SuctionBag"
+   ],
+   "time": {
+    "computed": "[_patient] call ACM_airway_fnc_getSuctionTime"
+   },
+   "trainingLevel": {
+    "setting": "ACM_airway_allowSuctionBag",
+    "default": "anyone"
+   },
+   "bodyParts": [
+    "head"
+   ],
+   "selfAllowed": false,
+   "consumesItem": true,
+   "conditionExcerpt": "ACM_airway_enable && !(_patient call ace_common_fnc_isAwake) && !(alive (_patient getVariable [\"ACM_breathing_BVM_Medic\", objNull]))"
+  },
+  {
+   "class": "useaccuvac",
+   "name": "Use ACCUVAC",
+   "category": "airway",
+   "items": [
+    "ACM_ACCUVAC"
+   ],
+   "time": {
+    "computed": "[_patient] call ACM_airway_fnc_getSuctionTime"
+   },
+   "trainingLevel": {
+    "setting": "ACM_airway_allowACCUVAC",
+    "default": "medic"
+   },
+   "bodyParts": [
+    "head"
+   ],
+   "selfAllowed": false,
+   "consumesItem": false,
+   "conditionExcerpt": "ACM_airway_enable && !(_patient call ace_common_fnc_isAwake) && !(alive (_patient getVariable [\"ACM_breathing_BVM_Medic\", objNull]))"
+  },
+  {
+   "class": "insertopa",
+   "name": "Insert OPA",
+   "category": "airway",
+   "items": [
+    "ACM_OPA"
+   ],
+   "time": {
+    "setting": "ACM_airway_treatmentTimeOPA",
+    "default": 3.0
+   },
+   "trainingLevel": {
+    "setting": "ACM_airway_allowOPA",
+    "default": "anyone"
+   },
+   "bodyParts": [
+    "head"
+   ],
+   "selfAllowed": false,
+   "consumesItem": true,
+   "conditionExcerpt": "ACM_airway_enable && !(_patient call ace_common_fnc_isAwake) && (_patient getVariable [\"ACM_airway_AirwayItem_Oral\", ''] == '') && !(alive (_patient getVariable"
+  },
+  {
+   "class": "insertnpa",
+   "name": "Insert NPA",
+   "category": "airway",
+   "items": [
+    "ACM_NPA"
+   ],
+   "time": {
+    "setting": "ACM_airway_treatmentTimeNPA",
+    "default": 5.0
+   },
+   "trainingLevel": {
+    "setting": "ACM_airway_allowNPA",
+    "default": "anyone"
+   },
+   "bodyParts": [
+    "head"
+   ],
+   "selfAllowed": false,
+   "consumesItem": true,
+   "conditionExcerpt": "ACM_airway_enable && !(_patient call ace_common_fnc_isAwake) && (_patient getVariable [\"ACM_airway_AirwayItem_Nasal\", ''] == '') && !(alive (_patient getVariabl"
+  },
+  {
+   "class": "insertigel",
+   "name": "Insert i-gel",
+   "category": "airway",
+   "items": [
+    "ACM_IGel"
+   ],
+   "time": {
+    "setting": "ACM_airway_treatmentTimeSGA",
+    "default": 7.0
+   },
+   "trainingLevel": {
+    "setting": "ACM_airway_allowSGA",
+    "default": "medic"
+   },
+   "bodyParts": [
+    "head"
+   ],
+   "selfAllowed": false,
+   "consumesItem": true,
+   "conditionExcerpt": "ACM_airway_enable && !(_patient call ace_common_fnc_isAwake) && (_patient getVariable [\"ACM_airway_AirwayItem_Oral\", ''] == '') && !(alive (_patient getVariable"
+  },
+  {
+   "class": "removeopa",
+   "name": "Remove OPA",
+   "category": "airway",
+   "items": [],
+   "time": 1.5,
+   "trainingLevel": "anyone",
+   "bodyParts": [
+    "head"
+   ],
+   "selfAllowed": false,
+   "consumesItem": false,
+   "conditionExcerpt": "ACM_airway_enable && (_patient getVariable [\"ACM_airway_AirwayItem_Oral\", ''] == 'OPA') && !(alive (_patient getVariable [\"ACM_breathing_BVM_Medic\", objNull]))"
+  },
+  {
+   "class": "removenpa",
+   "name": "Remove NPA",
+   "category": "airway",
+   "items": [],
+   "time": 1.5,
+   "trainingLevel": "anyone",
+   "bodyParts": [
+    "head"
+   ],
+   "selfAllowed": false,
+   "consumesItem": false,
+   "conditionExcerpt": "ACM_airway_enable && (_patient getVariable [\"ACM_airway_AirwayItem_Nasal\", ''] == 'NPA') && !(alive (_patient getVariable [\"ACM_breathing_BVM_Medic\", objNull]))"
+  },
+  {
+   "class": "removeigel",
+   "name": "Remove i-gel",
+   "category": "airway",
+   "items": [],
+   "time": 2.0,
+   "trainingLevel": "anyone",
+   "bodyParts": [
+    "head"
+   ],
+   "selfAllowed": false,
+   "consumesItem": false,
+   "conditionExcerpt": "ACM_airway_enable && (_patient getVariable [\"ACM_airway_AirwayItem_Oral\", ''] == 'SGA') && !(alive (_patient getVariable [\"ACM_breathing_BVM_Medic\", objNull]))"
+  },
+  {
+   "class": "establishsurgicalairway",
+   "name": "Establish Surgical Airway",
+   "category": "airway",
+   "items": [
+    "ACM_CricKit"
+   ],
+   "time": 0.001,
+   "trainingLevel": {
+    "setting": "ACM_airway_allowSurgicalAirway",
+    "default": "medic"
+   },
+   "bodyParts": [
+    "head"
+   ],
+   "selfAllowed": false,
+   "consumesItem": true,
+   "conditionExcerpt": "ACM_airway_enable && [_medic, _patient] call ACM_airway_fnc_canEstablishSurgicalAirway"
+  },
+  {
+   "class": "checkbreathing",
+   "name": "Check Breathing",
+   "category": "airway",
+   "items": [],
+   "time": 3.0,
+   "trainingLevel": "anyone",
+   "bodyParts": [
+    "head"
+   ],
+   "selfAllowed": false,
+   "consumesItem": false,
+   "conditionExcerpt": "!(alive (_patient getVariable [\"ACM_breathing_BVM_Medic\", objNull]))"
+  },
+  {
+   "class": "inspectchest",
+   "name": "Inspect Chest",
+   "category": "airway",
+   "items": [],
+   "time": {
+    "setting": "ACM_breathing_treatmentTimeInspectChest",
+    "default": 6.0
+   },
+   "trainingLevel": {
+    "setting": "ACM_breathing_allowInspectChest",
+    "default": "anyone"
+   },
+   "bodyParts": [
+    "body"
+   ],
+   "selfAllowed": false,
+   "consumesItem": false,
+   "conditionExcerpt": "ACM_breathing_pneumothoraxEnabled && !(_patient call ace_common_fnc_isAwake) && !([_patient] call ACM_core_fnc_cprActive) && (isNull objectParent _patient)"
+  },
+  {
+   "class": "usestethoscope",
+   "name": "Inspect Chest With Stethoscope",
+   "category": "airway",
+   "items": [
+    "ACM_Stethoscope"
+   ],
+   "time": 0.001,
+   "trainingLevel": "anyone",
+   "bodyParts": [
+    "body"
+   ],
+   "selfAllowed": false,
+   "consumesItem": false,
+   "conditionExcerpt": "!([_patient] call ACM_core_fnc_cprActive)"
+  },
+  {
+   "class": "usebvm",
+   "name": "Use BVM",
+   "category": "airway",
+   "items": [
+    "ACM_BVM",
+    "ACM_PocketBVM"
+   ],
+   "time": 0.001,
+   "trainingLevel": "anyone",
+   "bodyParts": [
+    "head"
+   ],
+   "selfAllowed": false,
+   "consumesItem": false,
+   "conditionExcerpt": "[_medic, _patient] call ACM_breathing_fnc_canUseBVM"
+  },
+  {
+   "class": "usebvm_oxygen",
+   "name": "Use BVM with Oxygen",
+   "category": "airway",
+   "items": [
+    "ACM_BVM"
+   ],
+   "time": 0.001,
+   "trainingLevel": "anyone",
+   "bodyParts": [
+    "head"
+   ],
+   "selfAllowed": false,
+   "consumesItem": false,
+   "conditionExcerpt": "[_medic, _patient] call ACM_breathing_fnc_canUseBVM"
+  },
+  {
+   "class": "usebvm_vehicleoxygen",
+   "name": "Use BVM with Oxygen (Vehicle)",
+   "category": "airway",
+   "items": [
+    "ACM_BVM"
+   ],
+   "time": 0.001,
+   "trainingLevel": "anyone",
+   "bodyParts": [
+    "head"
+   ],
+   "selfAllowed": false,
+   "consumesItem": false,
+   "conditionExcerpt": "[_medic, _patient] call ACM_breathing_fnc_canUseBVM"
+  },
+  {
+   "class": "usebvm_portableoxygen",
+   "name": "Use BVM with Oxygen (Portable)",
+   "category": "airway",
+   "items": [
+    "ACM_BVM"
+   ],
+   "time": 0.001,
+   "trainingLevel": "anyone",
+   "bodyParts": [
+    "head"
+   ],
+   "selfAllowed": false,
+   "consumesItem": false,
+   "conditionExcerpt": "[_medic, _patient] call ACM_breathing_fnc_canUseBVM && ('ACM_OxygenTank_425' in ([_medic, 2] call ace_common_fnc_uniqueItems))"
+  },
+  {
+   "class": "applychestseal",
+   "name": "Apply Chest Seal",
+   "category": "airway",
+   "items": [
+    "ACM_ChestSeal"
+   ],
+   "time": 5.0,
+   "trainingLevel": "anyone",
+   "bodyParts": [
+    "body"
+   ],
+   "selfAllowed": true,
+   "consumesItem": true,
+   "conditionExcerpt": "ACM_breathing_pneumothoraxEnabled && !([_patient] call ACM_core_fnc_cprActive) && !(_patient getVariable [\"ACM_breathing_ChestSeal_State\", false]) && _patient g"
+  },
+  {
+   "class": "performncd",
+   "name": "Perform Needle-Chest-Decompression",
+   "category": "airway",
+   "items": [
+    "ACM_NCDKit"
+   ],
+   "time": 5.0,
+   "trainingLevel": {
+    "setting": "ACM_breathing_allowNCD",
+    "default": "medic"
+   },
+   "bodyParts": [
+    "body"
+   ],
+   "selfAllowed": false,
+   "consumesItem": true,
+   "conditionExcerpt": "ACM_breathing_pneumothoraxEnabled && !([_patient] call ACM_core_fnc_cprActive) && !([_patient] call ACM_core_fnc_bvmActive) && _patient getVariable [\"ACM_breath"
+  },
+  {
+   "class": "performthoracostomy",
+   "name": "Perform Thoracostomy",
+   "category": "airway",
+   "items": [
+    "ACE_surgicalKit"
+   ],
+   "time": 5.0,
+   "trainingLevel": {
+    "setting": "ACM_breathing_allowThoracostomy",
+    "default": "medic"
+   },
+   "bodyParts": [
+    "body"
+   ],
+   "selfAllowed": false,
+   "consumesItem": false,
+   "conditionExcerpt": "ACM_breathing_pneumothoraxEnabled && !([_patient] call ACM_core_fnc_cprActive) && !([_patient] call ACM_core_fnc_bvmActive) && (_patient getVariable [\"ACM_breat"
+  },
+  {
+   "class": "performthoracostomy_kit",
+   "name": "Perform Thoracostomy (Kit)",
+   "category": "airway",
+   "items": [
+    "ACM_ThoracostomyKit"
+   ],
+   "time": 5.0,
+   "trainingLevel": {
+    "setting": "ACM_breathing_allowThoracostomy",
+    "default": "medic"
+   },
+   "bodyParts": [
+    "body"
+   ],
+   "selfAllowed": false,
+   "consumesItem": true,
+   "conditionExcerpt": "ACM_breathing_pneumothoraxEnabled && !([_patient] call ACM_core_fnc_cprActive) && !([_patient] call ACM_core_fnc_bvmActive) && (_patient getVariable [\"ACM_breat"
+  },
+  {
+   "class": "insertchesttube",
+   "name": "Insert Chest Tube",
+   "category": "airway",
+   "items": [
+    "ACM_ChestTubeKit"
+   ],
+   "time": 5.0,
+   "trainingLevel": {
+    "setting": "ACM_breathing_allowThoracostomy",
+    "default": "medic"
+   },
+   "bodyParts": [
+    "body"
+   ],
+   "selfAllowed": false,
+   "consumesItem": true,
+   "conditionExcerpt": "ACM_breathing_pneumothoraxEnabled && !([_patient] call ACM_core_fnc_cprActive) && !([_patient] call ACM_core_fnc_bvmActive) && (_patient getVariable [\"ACM_breat"
+  },
+  {
+   "class": "resealchesttube",
+   "name": "Re-Seal Chest Tube",
+   "category": "airway",
+   "items": [],
+   "time": 5.0,
+   "trainingLevel": {
+    "setting": "ACM_breathing_allowThoracostomy",
+    "default": "medic"
+   },
+   "bodyParts": [
+    "body"
+   ],
+   "selfAllowed": false,
+   "consumesItem": false,
+   "conditionExcerpt": "ACM_breathing_pneumothoraxEnabled && !([_patient] call ACM_core_fnc_cprActive) && !([_patient] call ACM_core_fnc_bvmActive) && (_patient getVariable [\"ACM_breat"
+  },
+  {
+   "class": "drainfluid_accuvac",
+   "name": "Drain Fluid (ACCUVAC)",
+   "category": "airway",
+   "items": [
+    "ACM_ACCUVAC"
+   ],
+   "time": 5.0,
+   "trainingLevel": {
+    "setting": "ACM_breathing_allowThoracostomy",
+    "default": "medic"
+   },
+   "bodyParts": [
+    "body"
+   ],
+   "selfAllowed": false,
+   "consumesItem": false,
+   "conditionExcerpt": "ACM_breathing_pneumothoraxEnabled && !([_patient] call ACM_core_fnc_cprActive) && !([_patient] call ACM_core_fnc_bvmActive) && (_patient getVariable [\"ACM_breat"
+  },
+  {
+   "class": "drainfluid_suctionbag",
+   "name": "Drain Fluid (Suction Bag)",
+   "category": "airway",
+   "items": [
+    "ACM_SuctionBag"
+   ],
+   "time": 8.0,
+   "trainingLevel": {
+    "setting": "ACM_breathing_allowThoracostomy",
+    "default": "medic"
+   },
+   "bodyParts": [
+    "body"
+   ],
+   "selfAllowed": false,
+   "consumesItem": true,
+   "conditionExcerpt": "ACM_breathing_pneumothoraxEnabled && !([_patient] call ACM_core_fnc_cprActive) && !([_patient] call ACM_core_fnc_bvmActive) && (_patient getVariable [\"ACM_breat"
+  },
+  {
+   "class": "closeincision",
+   "name": "Close Thoracostomy Incision",
+   "category": "airway",
+   "items": [],
+   "time": 5.0,
+   "trainingLevel": {
+    "setting": "ACM_breathing_allowThoracostomy",
+    "default": "medic"
+   },
+   "bodyParts": [
+    "body"
+   ],
+   "selfAllowed": false,
+   "consumesItem": false,
+   "conditionExcerpt": "([_medic, _patient, ['ACE_surgicalKit']] call ace_medical_treatment_fnc_hasItem || (_patient getVariable [\"ACM_breathing_Thoracostomy_UsedKit\", false])) && !([_"
+  },
+  {
+   "class": "placepulseoximeter",
+   "name": "Place Pulse Oximeter",
+   "category": "examine",
+   "items": [
+    "ACM_PulseOximeter"
+   ],
+   "time": 2.0,
+   "trainingLevel": "anyone",
+   "bodyParts": [
+    "leftarm",
+    "rightarm"
+   ],
+   "selfAllowed": true,
+   "consumesItem": true,
+   "conditionExcerpt": "ACM_breathing_fnc_canPlacePulseOximeter"
+  },
+  {
+   "class": "removepulseoximeter",
+   "name": "Remove Pulse Oximeter",
+   "category": "examine",
+   "items": [],
+   "time": 1.0,
+   "trainingLevel": "anyone",
+   "bodyParts": [
+    "leftarm",
+    "rightarm"
+   ],
+   "selfAllowed": true,
+   "consumesItem": false,
+   "conditionExcerpt": "ACM_breathing_fnc_canPlacePulseOximeter"
+  },
+  {
+   "class": "pressurecuff_attach",
+   "name": "Attach Pressure Cuff",
+   "category": "examine",
+   "items": [
+    "ACM_PressureCuff"
+   ],
+   "time": 4.0,
+   "trainingLevel": "anyone",
+   "bodyParts": [
+    "leftarm",
+    "rightarm"
+   ],
+   "selfAllowed": true,
+   "consumesItem": true,
+   "conditionExcerpt": "!([_patient, _bodyPart, 3] call ACM_circulation_fnc_hasAED) && !([_patient, _bodyPart] call ACM_circulation_fnc_hasPressureCuff) && !([_patient, _bodyPart, 0, 0"
+  },
+  {
+   "class": "pressurecuff_remove",
+   "name": "Remove Pressure Cuff",
+   "category": "examine",
+   "items": [],
+   "time": 2.0,
+   "trainingLevel": "anyone",
+   "bodyParts": [
+    "leftarm",
+    "rightarm"
+   ],
+   "selfAllowed": true,
+   "consumesItem": false,
+   "conditionExcerpt": "[_patient, _bodyPart] call ACM_circulation_fnc_hasPressureCuff"
+  },
+  {
+   "class": "aed_viewmonitor",
+   "name": "View AED Monitor",
+   "category": "examine",
+   "items": [],
+   "time": 0.01,
+   "trainingLevel": {
+    "setting": "ACM_circulation_allowAED",
+    "default": "anyone"
+   },
+   "bodyParts": [
+    "all"
+   ],
+   "selfAllowed": false,
+   "consumesItem": false,
+   "conditionExcerpt": "([_patient, _bodyPart] call ACM_circulation_fnc_hasAED)"
+  },
+  {
+   "class": "aed_applypads",
+   "name": "Apply AED Pads",
+   "category": "advanced",
+   "items": [],
+   "time": {
+    "computed": "ACM_circulation_fnc_getApplyPadsTime"
+   },
+   "trainingLevel": {
+    "setting": "ACM_circulation_allowAED",
+    "default": "anyone"
+   },
+   "bodyParts": [
+    "body"
+   ],
+   "selfAllowed": false,
+   "consumesItem": false,
+   "conditionExcerpt": "!([_patient, _bodyPart, 1] call ACM_circulation_fnc_hasAED) && ([_medic, _patient] call ACM_circulation_fnc_canConnectAED)"
+  },
+  {
+   "class": "aed_removepads",
+   "name": "Remove AED Pads",
+   "category": "advanced",
+   "items": [],
+   "time": 1.0,
+   "trainingLevel": {
+    "setting": "ACM_circulation_allowAED",
+    "default": "anyone"
+   },
+   "bodyParts": [
+    "body"
+   ],
+   "selfAllowed": true,
+   "consumesItem": false,
+   "conditionExcerpt": "[_patient, _bodyPart, 1] call ACM_circulation_fnc_hasAED"
+  },
+  {
+   "class": "aed_connectpulseoximeter",
+   "name": "Connect AED Pulse Oximeter",
+   "category": "examine",
+   "items": [],
+   "time": 2.0,
+   "trainingLevel": {
+    "setting": "ACM_circulation_allowAED",
+    "default": "anyone"
+   },
+   "bodyParts": [
+    "leftarm",
+    "rightarm"
+   ],
+   "selfAllowed": false,
+   "consumesItem": false,
+   "conditionExcerpt": "!([_patient, '', 2] call ACM_circulation_fnc_hasAED) && ([_medic, _patient] call ACM_circulation_fnc_canConnectAED)"
+  },
+  {
+   "class": "aed_disconnectpulseoximeter",
+   "name": "Disconnect AED Pulse Oximeter",
+   "category": "examine",
+   "items": [],
+   "time": 1.0,
+   "trainingLevel": {
+    "setting": "ACM_circulation_allowAED",
+    "default": "anyone"
+   },
+   "bodyParts": [
+    "leftarm",
+    "rightarm"
+   ],
+   "selfAllowed": true,
+   "consumesItem": false,
+   "conditionExcerpt": "[_patient, _bodyPart, 2] call ACM_circulation_fnc_hasAED"
+  },
+  {
+   "class": "aed_connectpressurecuff",
+   "name": "Connect AED Pressure Cuff",
+   "category": "examine",
+   "items": [],
+   "time": 3.0,
+   "trainingLevel": {
+    "setting": "ACM_circulation_allowAED",
+    "default": "anyone"
+   },
+   "bodyParts": [
+    "leftarm",
+    "rightarm"
+   ],
+   "selfAllowed": false,
+   "consumesItem": false,
+   "conditionExcerpt": "!([_patient, '', 3] call ACM_circulation_fnc_hasAED) && !([_patient, _bodyPart] call ACM_circulation_fnc_hasPressureCuff) && ([_medic, _patient] call ACM_circul"
+  },
+  {
+   "class": "aed_disconnectpressurecuff",
+   "name": "Disconnect AED Pressure Cuff",
+   "category": "examine",
+   "items": [],
+   "time": 1.0,
+   "trainingLevel": {
+    "setting": "ACM_circulation_allowAED",
+    "default": "anyone"
+   },
+   "bodyParts": [
+    "leftarm",
+    "rightarm"
+   ],
+   "selfAllowed": true,
+   "consumesItem": false,
+   "conditionExcerpt": "[_patient, _bodyPart, 3] call ACM_circulation_fnc_hasAED"
+  },
+  {
+   "class": "aed_connectcapnograph",
+   "name": "Connect AED Capnograph",
+   "category": "examine",
+   "items": [],
+   "time": 3.0,
+   "trainingLevel": {
+    "setting": "ACM_circulation_allowAED",
+    "default": "anyone"
+   },
+   "bodyParts": [
+    "head"
+   ],
+   "selfAllowed": false,
+   "consumesItem": false,
+   "conditionExcerpt": "!([_patient, _bodyPart, 4] call ACM_circulation_fnc_hasAED) && ([_medic, _patient] call ACM_circulation_fnc_canConnectAED)"
+  },
+  {
+   "class": "aed_disconnectcapnograph",
+   "name": "Disconnect AED Capnograph",
+   "category": "examine",
+   "items": [],
+   "time": 1.0,
+   "trainingLevel": {
+    "setting": "ACM_circulation_allowAED",
+    "default": "anyone"
+   },
+   "bodyParts": [
+    "head"
+   ],
+   "selfAllowed": true,
+   "consumesItem": false,
+   "conditionExcerpt": "[_patient, _bodyPart, 4] call ACM_circulation_fnc_hasAED"
+  },
+  {
+   "class": "aed_analyzerhythm",
+   "name": "Analyze Rhythm",
+   "category": "examine",
+   "items": [],
+   "time": 0.01,
+   "trainingLevel": {
+    "setting": "ACM_circulation_allowAED",
+    "default": "anyone"
+   },
+   "bodyParts": [
+    "body"
+   ],
+   "selfAllowed": false,
+   "consumesItem": false,
+   "conditionExcerpt": "[_medic, _patient] call ACM_circulation_fnc_AED_CanAnalyzeRhythm"
+  },
+  {
+   "class": "aed_manualcharge",
+   "name": "Charge AED",
+   "category": "advanced",
+   "items": [],
+   "time": 0.01,
+   "trainingLevel": {
+    "setting": "ACM_circulation_allowAED",
+    "default": "anyone"
+   },
+   "bodyParts": [
+    "body"
+   ],
+   "selfAllowed": false,
+   "consumesItem": false,
+   "conditionExcerpt": "[_medic, _patient] call ACM_circulation_fnc_AED_CanManualCharge"
+  },
+  {
+   "class": "aed_shock",
+   "name": "Administer Shock",
+   "category": "advanced",
+   "items": [],
+   "time": 0.01,
+   "trainingLevel": {
+    "setting": "ACM_circulation_allowAED",
+    "default": "anyone"
+   },
+   "bodyParts": [
+    "body"
+   ],
+   "selfAllowed": false,
+   "consumesItem": false,
+   "conditionExcerpt": "[_medic, _patient] call ACM_circulation_fnc_AED_CanAdministerShock"
+  },
+  {
+   "class": "aed_cancelcharge",
+   "name": "Cancel Charge",
+   "category": "advanced",
+   "items": [],
+   "time": 0.01,
+   "trainingLevel": {
+    "setting": "ACM_circulation_allowAED",
+    "default": "anyone"
+   },
+   "bodyParts": [
+    "body"
+   ],
+   "selfAllowed": false,
+   "consumesItem": false,
+   "conditionExcerpt": "[_medic, _patient] call ACM_circulation_fnc_AED_CanCancelCharge"
+  },
+  {
+   "class": "aed_measurebp",
+   "name": "Measure Blood Pressure (AED)",
+   "category": "examine",
+   "items": [],
+   "time": 0.01,
+   "trainingLevel": {
+    "setting": "ACM_circulation_allowAED",
+    "default": "anyone"
+   },
+   "bodyParts": [
+    "leftarm",
+    "rightarm",
+    "body"
+   ],
+   "selfAllowed": false,
+   "consumesItem": false,
+   "conditionExcerpt": "ACM_circulation_fnc_AED_CanMeasureBP"
+  }
+ ],
+ "items": [
+  {
+   "class": "acm_opa",
+   "kind": "weapons",
+   "name": "OPA",
+   "mass": 1.0,
+   "count": null,
+   "description": "Used to keep airway open through the oral route"
+  },
+  {
+   "class": "acm_igel",
+   "kind": "weapons",
+   "name": "i-gel",
+   "mass": 2.0,
+   "count": null,
+   "description": "Used to secure airway for prolonged time"
+  },
+  {
+   "class": "acm_npa",
+   "kind": "weapons",
+   "name": "NPA",
+   "mass": 1.4,
+   "count": null,
+   "description": "Used to keep airway open through nasal route"
+  },
+  {
+   "class": "acm_suctionbag",
+   "kind": "weapons",
+   "name": "Emergency Disposable Suction Bag",
+   "mass": 2.0,
+   "count": null,
+   "description": "Single-use bag used to clear airway obstructions"
+  },
+  {
+   "class": "acm_accuvac",
+   "kind": "weapons",
+   "name": "ACCUVAC",
+   "mass": 20.0,
+   "count": null,
+   "description": "Device used to clear airway obstructions"
+  },
+  {
+   "class": "acm_crickit",
+   "kind": "weapons",
+   "name": "Cric Kit",
+   "mass": 2.5,
+   "count": null,
+   "description": "Single-use kit used to establish emergency surgical airway"
+  },
+  {
+   "class": "acm_chestseal",
+   "kind": "weapons",
+   "name": "Chest Seal",
+   "mass": 2.0,
+   "count": null,
+   "description": "Used to manage penetrating chest injuries"
+  },
+  {
+   "class": "acm_pulseoximeter",
+   "kind": "weapons",
+   "name": "Pulse Oximeter",
+   "mass": 1.0,
+   "count": null,
+   "description": "Used to measure patient vitals"
+  },
+  {
+   "class": "acm_stethoscope",
+   "kind": "weapons",
+   "name": "Stethoscope",
+   "mass": 2.0,
+   "count": null,
+   "description": "Used to listen to breathing and heart sounds of patient"
+  },
+  {
+   "class": "acm_ncdkit",
+   "kind": "weapons",
+   "name": "NCD Kit",
+   "mass": 1.0,
+   "count": null,
+   "description": "Single-use needle used to decompress tension-pneumothorax"
+  },
+  {
+   "class": "acm_chesttubekit",
+   "kind": "weapons",
+   "name": "Chest Tube Kit",
+   "mass": 4.0,
+   "count": null,
+   "description": "Single-use kit used to insert a chest tube for removal of fluid from the pleural space"
+  },
+  {
+   "class": "acm_thoracostomykit",
+   "kind": "weapons",
+   "name": "Thoracostomy Kit",
+   "mass": 4.0,
+   "count": null,
+   "description": "Single-use kit used to prepare patient for chest tube insertion"
+  },
+  {
+   "class": "acm_pocketbvm",
+   "kind": "weapons",
+   "name": "Pocket BVM",
+   "mass": 5.0,
+   "count": null,
+   "description": "Compact version of Bag-Valve-Mask"
+  },
+  {
+   "class": "acm_bvm",
+   "kind": "weapons",
+   "name": "Bag-Valve-Mask",
+   "mass": 12.0,
+   "count": null,
+   "description": "Used to ventilate patient that is not breathing, may be connected to oxygen"
+  },
+  {
+   "class": "acm_aed",
+   "kind": "weapons",
+   "name": "Automated External Defibrillator",
+   "mass": 40.0,
+   "count": null,
+   "description": "Device used to monitor patient vitals and treat cardiac arrest"
+  },
+  {
+   "class": "acm_pressurecuff",
+   "kind": "weapons",
+   "name": "Pressure Cuff",
+   "mass": 4.0,
+   "count": null,
+   "description": "Used to measure blood pressure"
+  },
+  {
+   "class": "acm_iv_16g",
+   "kind": "weapons",
+   "name": "16g IV",
+   "mass": 0.2,
+   "count": null,
+   "description": "Used to gain intravenous access to transfuse fluids in case of blood loss"
+  },
+  {
+   "class": "acm_iv_14g",
+   "kind": "weapons",
+   "name": "14g IV",
+   "mass": 0.5,
+   "count": null,
+   "description": "Used to gain intravenous access to rapidly transfuse fluids in case of blood loss"
+  },
+  {
+   "class": "acm_io_fast",
+   "kind": "weapons",
+   "name": "FAST1 IO",
+   "mass": 0.3,
+   "count": null,
+   "description": "Used to gain intraosseous access to transfuse fluids in case of severe injury, allows access on the sternum"
+  },
+  {
+   "class": "acm_io_ez",
+   "kind": "weapons",
+   "name": "EZ-IO",
+   "mass": 0.2,
+   "count": null,
+   "description": "Used to gain intraosseous access to transfuse fluids in case of severe injury, allows access on the extremities"
+  },
+  {
+   "class": "acm_syringe_10",
+   "kind": "weapons",
+   "name": null,
+   "mass": 0.9,
+   "count": null,
+   "description": "__EVAL"
+  },
+  {
+   "class": "acm_syringe_5",
+   "kind": "weapons",
+   "name": null,
+   "mass": 0.7,
+   "count": null,
+   "description": "__EVAL"
+  },
+  {
+   "class": "acm_syringe_3",
+   "kind": "weapons",
+   "name": null,
+   "mass": 0.6,
+   "count": null,
+   "description": "__EVAL"
+  },
+  {
+   "class": "acm_syringe_1",
+   "kind": "weapons",
+   "name": null,
+   "mass": 0.5,
+   "count": null,
+   "description": "__EVAL"
+  },
+  {
+   "class": "acm_vial_epinephrine",
+   "kind": "weapons",
+   "name": "Epinephrine Vial (1mg/1ml)",
+   "mass": 0.2,
+   "count": null,
+   "description": "Used to treat cardiac arrest"
+  },
+  {
+   "class": "acm_vial_adenosine",
+   "kind": "weapons",
+   "name": "Adenosine Vial (12mg/4ml)",
+   "mass": null,
+   "count": null,
+   "description": "Used to treat certain heart arrhythmias"
+  },
+  {
+   "class": "acm_vial_morphine",
+   "kind": "weapons",
+   "name": "Morphine Vial (10mg/2ml)",
+   "mass": null,
+   "count": null,
+   "description": "Used to manage moderate to severe pain experiences"
+  },
+  {
+   "class": "acm_vial_ketamine",
+   "kind": "weapons",
+   "name": "Ketamine Vial (500mg/10ml)",
+   "mass": 0.2,
+   "count": null,
+   "description": "Used to manage moderate to severe pain, alternative to opioid analgesics"
+  },
+  {
+   "class": "acm_vial_lidocaine",
+   "kind": "weapons",
+   "name": "Lidocaine Vial (100mg/5ml)",
+   "mass": 0.2,
+   "count": null,
+   "description": "Used as local anesthetic for painful surgical procedures, and to treat irregular heart rhythms"
+  },
+  {
+   "class": "acm_vial_txa",
+   "kind": "weapons",
+   "name": "TXA Vial (1g/10ml)",
+   "mass": null,
+   "count": null,
+   "description": "Used to manage catastrophic bleeding by preventing clot dissolvement"
+  },
+  {
+   "class": "acm_vial_amiodarone",
+   "kind": "weapons",
+   "name": "Amiodarone Vial (150mg/3ml)",
+   "mass": null,
+   "count": null,
+   "description": "Used to treat irregular heart rhythms"
+  },
+  {
+   "class": "acm_vial_atropine",
+   "kind": "weapons",
+   "name": "Atropine Vial (1mg/1ml)",
+   "mass": null,
+   "count": null,
+   "description": "Used to treat nerve agent exposure and increase heart rate"
+  },
+  {
+   "class": "acm_vial_fentanyl",
+   "kind": "weapons",
+   "name": "Fentanyl Vial (100mcg/2ml)",
+   "mass": null,
+   "count": null,
+   "description": "Used to manage acute severe pain"
+  },
+  {
+   "class": "acm_vial_ondansetron",
+   "kind": "weapons",
+   "name": "Ondansetron Vial (4mg/2ml)",
+   "mass": null,
+   "count": null,
+   "description": "Used to manage nausea and vomiting"
+  },
+  {
+   "class": "acm_vial_calciumchloride",
+   "kind": "weapons",
+   "name": "Calcium Chloride Vial (1g/10ml)",
+   "mass": null,
+   "count": null,
+   "description": "Used to manage low calcium after blood transfusion"
+  },
+  {
+   "class": "acm_vial_ertapenem",
+   "kind": "weapons",
+   "name": "Ertapenem Vial (1g/3.2ml)",
+   "mass": null,
+   "count": null,
+   "description": "Used to manage infections from open wounds, required before evacuation of casualty"
+  },
+  {
+   "class": "acm_vial_esmolol",
+   "kind": "weapons",
+   "name": "Esmolol Vial (100mg/10ml)",
+   "mass": null,
+   "count": null,
+   "description": "Used to lower heart rate for a short time"
+  },
+  {
+   "class": "acm_spray_naloxone",
+   "kind": "weapons",
+   "name": "Naloxone Nasal Spray",
+   "mass": null,
+   "count": null,
+   "description": "Used to rapidly reverse opioid overdose"
+  },
+  {
+   "class": "acm_lozenge_fentanyl",
+   "kind": "weapons",
+   "name": "Fentanyl Lozenge",
+   "mass": null,
+   "count": null,
+   "description": "Used to manage acute severe pain, via oral transmucosal route"
+  },
+  {
+   "class": "acm_fieldbloodtransfusionkit_500",
+   "kind": "weapons",
+   "name": null,
+   "mass": 1.0,
+   "count": null,
+   "description": "Used to transfuse fresh blood in emergency"
+  },
+  {
+   "class": "acm_fieldbloodtransfusionkit_250",
+   "kind": "weapons",
+   "name": null,
+   "mass": 0.5,
+   "count": null,
+   "description": "Used to transfuse fresh blood in emergency"
+  },
+  {
+   "class": "acm_bloodbag_o_1000",
+   "kind": "weapons",
+   "name": null,
+   "mass": null,
+   "count": null,
+   "description": "Used to replenish lost blood volume"
+  },
+  {
+   "class": "acm_bloodbag_on_1000",
+   "kind": "weapons",
+   "name": null,
+   "mass": null,
+   "count": null,
+   "description": "Used to replenish lost blood volume"
+  },
+  {
+   "class": "acm_bloodbag_a_1000",
+   "kind": "weapons",
+   "name": null,
+   "mass": null,
+   "count": null,
+   "description": "Used to replenish lost blood volume"
+  },
+  {
+   "class": "acm_bloodbag_an_1000",
+   "kind": "weapons",
+   "name": null,
+   "mass": null,
+   "count": null,
+   "description": "Used to replenish lost blood volume"
+  },
+  {
+   "class": "acm_bloodbag_b_1000",
+   "kind": "weapons",
+   "name": null,
+   "mass": null,
+   "count": null,
+   "description": "Used to replenish lost blood volume"
+  },
+  {
+   "class": "acm_bloodbag_bn_1000",
+   "kind": "weapons",
+   "name": null,
+   "mass": null,
+   "count": null,
+   "description": "Used to replenish lost blood volume"
+  },
+  {
+   "class": "acm_bloodbag_ab_1000",
+   "kind": "weapons",
+   "name": null,
+   "mass": null,
+   "count": null,
+   "description": "Used to replenish lost blood volume"
+  },
+  {
+   "class": "acm_bloodbag_abn_1000",
+   "kind": "weapons",
+   "name": null,
+   "mass": null,
+   "count": null,
+   "description": "Used to replenish lost blood volume"
+  },
+  {
+   "class": "acm_bloodbag_o_500",
+   "kind": "weapons",
+   "name": null,
+   "mass": null,
+   "count": null,
+   "description": "Used to replenish lost blood volume"
+  },
+  {
+   "class": "acm_bloodbag_on_500",
+   "kind": "weapons",
+   "name": null,
+   "mass": null,
+   "count": null,
+   "description": "Used to replenish lost blood volume"
+  },
+  {
+   "class": "acm_bloodbag_a_500",
+   "kind": "weapons",
+   "name": null,
+   "mass": null,
+   "count": null,
+   "description": "Used to replenish lost blood volume"
+  },
+  {
+   "class": "acm_bloodbag_an_500",
+   "kind": "weapons",
+   "name": null,
+   "mass": null,
+   "count": null,
+   "description": "Used to replenish lost blood volume"
+  },
+  {
+   "class": "acm_bloodbag_b_500",
+   "kind": "weapons",
+   "name": null,
+   "mass": null,
+   "count": null,
+   "description": "Used to replenish lost blood volume"
+  },
+  {
+   "class": "acm_bloodbag_bn_500",
+   "kind": "weapons",
+   "name": null,
+   "mass": null,
+   "count": null,
+   "description": "Used to replenish lost blood volume"
+  },
+  {
+   "class": "acm_bloodbag_ab_500",
+   "kind": "weapons",
+   "name": null,
+   "mass": null,
+   "count": null,
+   "description": "Used to replenish lost blood volume"
+  },
+  {
+   "class": "acm_bloodbag_abn_500",
+   "kind": "weapons",
+   "name": null,
+   "mass": null,
+   "count": null,
+   "description": "Used to replenish lost blood volume"
+  },
+  {
+   "class": "acm_bloodbag_o_250",
+   "kind": "weapons",
+   "name": null,
+   "mass": null,
+   "count": null,
+   "description": "Used to replenish lost blood volume"
+  },
+  {
+   "class": "acm_bloodbag_on_250",
+   "kind": "weapons",
+   "name": null,
+   "mass": null,
+   "count": null,
+   "description": "Used to replenish lost blood volume"
+  },
+  {
+   "class": "acm_bloodbag_a_250",
+   "kind": "weapons",
+   "name": null,
+   "mass": null,
+   "count": null,
+   "description": "Used to replenish lost blood volume"
+  },
+  {
+   "class": "acm_bloodbag_an_250",
+   "kind": "weapons",
+   "name": null,
+   "mass": null,
+   "count": null,
+   "description": "Used to replenish lost blood volume"
+  },
+  {
+   "class": "acm_bloodbag_b_250",
+   "kind": "weapons",
+   "name": null,
+   "mass": null,
+   "count": null,
+   "description": "Used to replenish lost blood volume"
+  },
+  {
+   "class": "acm_bloodbag_bn_250",
+   "kind": "weapons",
+   "name": null,
+   "mass": null,
+   "count": null,
+   "description": "Used to replenish lost blood volume"
+  },
+  {
+   "class": "acm_bloodbag_ab_250",
+   "kind": "weapons",
+   "name": null,
+   "mass": null,
+   "count": null,
+   "description": "Used to replenish lost blood volume"
+  },
+  {
+   "class": "acm_bloodbag_abn_250",
+   "kind": "weapons",
+   "name": null,
+   "mass": null,
+   "count": null,
+   "description": "Used to replenish lost blood volume"
+  },
+  {
+   "class": "acm_pressurebandage",
+   "kind": "weapons",
+   "name": "Pressure Bandage",
+   "mass": 0.6,
+   "count": null,
+   "description": "Standard issue bandage"
+  },
+  {
+   "class": "acm_emergencytraumadressing",
+   "kind": "weapons",
+   "name": "Emergency Trauma Dressing",
+   "mass": 2.0,
+   "count": null,
+   "description": "Trauma dressing with large surface area"
+  },
+  {
+   "class": "acm_elasticwrap",
+   "kind": "weapons",
+   "name": "Elastic Wrap",
+   "mass": 0.3,
+   "count": null,
+   "description": "Used to wrap bandages, clotted wounds and bruises"
+  },
+  {
+   "class": "acm_samsplint",
+   "kind": "weapons",
+   "name": "SAM Splint",
+   "mass": 0.5,
+   "count": null,
+   "description": "Re-usable splint used to immobilize fracture, should be wrapped to keep fracture stable"
+  },
+  {
+   "class": "acm_oxygentank_425",
+   "kind": "magazines",
+   "name": "Portable Oxygen Tank (425L)",
+   "mass": 20.0,
+   "count": 283,
+   "description": "Used with BVM to provide supplementary oxygen to patients"
+  },
+  {
+   "class": "acm_paracetamol",
+   "kind": "magazines",
+   "name": "Paracetamol",
+   "mass": 0.3,
+   "count": 10,
+   "description": "Used to combat mild to moderate pain"
+  },
+  {
+   "class": "acm_ammoniainhalant",
+   "kind": "magazines",
+   "name": "Ammonia Inhalant",
+   "mass": 0.3,
+   "count": 8,
+   "description": "Used to wake up patients who've fainted"
+  },
+  {
+   "class": "acm_inhaler_penthrox",
+   "kind": "magazines",
+   "name": "Penthrox Inhaler",
+   "mass": 0.3,
+   "count": 8,
+   "description": "Used to rapidly manage acute pain for a short time"
+  }
+ ]
+}

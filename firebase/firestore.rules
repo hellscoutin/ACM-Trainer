@@ -1,0 +1,67 @@
+rules_version = '2';
+// Firestore security rules for the ACM Trainer (design: docs/TRAINER-design.md, section 7).
+// Instructors are Discord-signed-in users listed in /instructors/{uid}.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function isInstructor() { return signedIn() && exists(/databases/$(database)/documents/instructors/$(request.auth.uid)); }
+    function isDiscordUser() { return signedIn() && request.auth.token.get('provider', '') == 'discord'; }
+
+    // Allow-list of instructors: managed by hand in the Firebase console.
+    match /instructors/{uid} {
+      allow read: if signedIn() && request.auth.uid == uid;
+      allow write: if false;
+    }
+
+    // Shared scenarios: anyone can read, instructors edit.
+    match /scenarios/{id} {
+      allow read: if true;
+      allow write: if isInstructor();
+    }
+
+    match /sessions/{sessionId} {
+      allow read: if signedIn();
+      allow create: if isInstructor() && request.resource.data.instructor == request.auth.uid;
+      allow update, delete: if isInstructor() && resource.data.instructor == request.auth.uid;
+
+      // A trainee writes only their own run, only while the session is open.
+      match /runs/{runId} {
+        allow read: if signedIn() && (resource == null || resource.data.uid == request.auth.uid
+                      || get(/databases/$(database)/documents/sessions/$(sessionId)).data.instructor == request.auth.uid);
+        allow create: if signedIn() && request.resource.data.uid == request.auth.uid
+                      && get(/databases/$(database)/documents/sessions/$(sessionId)).data.status == 'open';
+        allow update: if signedIn() && resource.data.uid == request.auth.uid
+                      && get(/databases/$(database)/documents/sessions/$(sessionId)).data.status == 'open';
+        allow delete: if false;
+      }
+
+      // Instructor commands; trainees in the session read them.
+      match /commands/{cmdId} {
+        allow read: if signedIn();
+        allow create: if isInstructor()
+                      && get(/databases/$(database)/documents/sessions/$(sessionId)).data.instructor == request.auth.uid;
+        allow update, delete: if false;
+      }
+    }
+
+    // Final results: append-only. Session results are written by the trainee; instructors read all.
+    match /results/{resultId} {
+      allow read: if isInstructor() || (signedIn() && resource.data.uid == request.auth.uid);
+      allow create: if signedIn() && request.resource.data.uid == request.auth.uid;
+      allow update, delete: if false;
+    }
+
+    // Practice history: Discord-signed-in users only, private to the user.
+    match /history/{uid}/runs/{runId} {
+      allow read, create: if isDiscordUser() && request.auth.uid == uid;
+      allow update, delete: if false;
+    }
+
+    // Trainee records (qualifications): instructors write, the trainee reads their own.
+    match /trainees/{uid} {
+      allow read: if isInstructor() || (signedIn() && request.auth.uid == uid);
+      allow write: if isInstructor();
+    }
+  }
+}
