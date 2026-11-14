@@ -55,14 +55,20 @@
         </div>
         <div class="tiles" id="tiles"></div>
         <section id="detail" class="detail" hidden>
-            <div class="detail-head"><h2 id="tName"></h2><button class="btn" id="detailClose">Close</button></div>
+            <div class="detail-head"><h2 id="tName"></h2>
+                <span class="view-toggle" role="group" aria-label="View"><button id="viewTrainee" aria-pressed="true">As the trainee sees it</button><button id="viewFull" aria-pressed="false">Full patient state</button></span>
+                <button class="btn" id="detailClose">Close</button></div>
             <div class="detail-grid">
                 <div class="body-wrap replay-body" id="tBody"></div>
                 <div><h4 id="tPart"></h4><ul class="injuries" id="tInj"></ul></div>
                 <div>
-                    <h4>True vitals</h4><table class="vitals-table" id="tVitals"></table>
+                    <h4 id="tVitalsTitle">True vitals</h4><table class="vitals-table" id="tVitals"></table>
                     <h4>Actions</h4><ul class="timeline" id="tActions"></ul>
                 </div>
+            </div>
+            <div class="detail-full" id="tFull" hidden>
+                <div><div id="tClinical"></div></div>
+                <div><h4>Problems so far</h4><div id="tProblems"></div></div>
             </div>
             <div class="controls-row">
                 <button class="btn" id="tPause">Pause</button>

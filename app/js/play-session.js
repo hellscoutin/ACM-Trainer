@@ -99,7 +99,7 @@ function attach(ctx, api) {
         lastKey = key;
         const actions = (sim.menuLog || []).filter((e) => e.ok).map((e) => ({ t: e.t, id: e.id, part: e.part || null }));
         try {
-            await setDoc(rref, { ...snapshot(sim, { status, current, hints: state.hints, actions }), paused: localPause, round, scenarioId: scn.id, title: scn.title, module: scn.module || "", seed, name: run.name }, { merge: true });
+            await setDoc(rref, { ...snapshot(sim, { status, current, hints: state.hints, actions, recorder: api.recorder }), paused: localPause, round, scenarioId: scn.id, title: scn.title, module: scn.module || "", seed, name: run.name }, { merge: true });
         } catch { /* offline or closed: the next publish retries */ }
     };
     setInterval(publish, 2000);

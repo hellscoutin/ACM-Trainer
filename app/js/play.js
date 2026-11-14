@@ -15,6 +15,8 @@ import { randomScenario, GENERIC_RUBRIC, captureFrame, pushFrame, makeRecord } f
 import { getCustom, addRecord, addReplay, storageOK } from "./store.js";
 import { mountReplay } from "./replay.js";
 import { evaluateGuidance, DEPTHS } from "../../engine/guidance.js";
+import { analyzeProblems } from "../../engine/clinical.js";
+import { labelProblems, renderProblems } from "./clinical-view.js";
 
 const $ = (id) => document.getElementById(id);
 const el = (tag, props = {}, ...kids) => { const e = document.createElement(tag); Object.assign(e, props); e.append(...kids); return e; };
@@ -526,7 +528,9 @@ function debrief(reason) {
     const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
     const res = rubric ? scoreRun(rubric, sim, recorder) : null;
     const record = { ...makeRecord(scn, seed, sim, res), hints: DEPTHS[state.hintsMax] };
-    const replay = { key: record.date, title: `${scn.module}: ${scn.title}`, seed, date: record.date, frames: state.frames, timeline: state.timeline.slice() };
+    const actionLabel = (id) => catalogue.find((a) => a.id === id)?.label || id;
+    const problems = labelProblems(analyzeProblems({ history: recorder.history, log: sim.menuLog, events: sim.events }), actionLabel);
+    const replay = { key: record.date, title: `${scn.module}: ${scn.title}`, seed, date: record.date, frames: state.frames, timeline: state.timeline.slice(), problems };
     const saved = addRecord({ ...record, replay: addReplay(replay) ? replay.key : null, session: sessionCode || undefined });
     sessionCtl?.finish(record);
     saveCloudHistory(record);
@@ -549,6 +553,9 @@ function debrief(reason) {
         <div class="outcome ${p.alive ? "alive" : "dead"}">${esc(outcome)}</div>
         ${state.hintsMax ? `<p class="muted">Hints were on during this run (up to ${DEPTHS[state.hintsMax]}).</p>` : ""}
         ${scoreHtml}
+        <h3>Problems and how they were handled</h3>
+        <p class="muted">Everything that was wrong with the patient during the run, including what you could not see, and what was done about it.</p>
+        <div id="debriefProblems"></div>
         <h3>Patient at the end (true values)</h3>
         <table class="vitals-table"><tr><th>Blood volume</th><td>${p.bloodVolume.toFixed(2)} L</td><th>Heart rate</th><td>${Math.round(p.hr)}</td></tr>
         <tr><th>Blood pressure</th><td>${p.bp[1]}/${p.bp[0]}</td><th>SpO2</th><td>${p.spo2.toFixed(1)} %</td></tr>
@@ -564,6 +571,7 @@ function debrief(reason) {
         ${S ? '<p class="muted">Your result has been sent to the instructor. Stay on this page: it reloads when the instructor starts the next round.</p>' : ""}
         <div class="buttons"><a class="btn" href="index.html">Scenarios</a><button class="btn" id="replayBtn">Replay</button>${S ? "" : '<button class="btn" id="retryBtn">Retry</button><button class="btn primary" id="newSeedBtn">New variation</button>'}</div>`;
     $("debrief").classList.add("show");
+    renderProblems($("debriefProblems"), problems);
     $("replayBtn").addEventListener("click", () => openReplayModal(replay));
     $("retryBtn")?.addEventListener("click", () => { location.href = scenarioUrl(seed); });
     $("newSeedBtn")?.addEventListener("click", () => { location.href = scenarioUrl(randomSeed()); });

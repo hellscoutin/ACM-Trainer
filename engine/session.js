@@ -4,6 +4,8 @@ import { BODY_PARTS, PART_INDEX } from "./util.js";
 import { applyDamage } from "./damage.js";
 import { MECHANISM_NAMES, captureFrame } from "./custom.js";
 import { handlePneumothorax, updateLungState } from "./breathing.js";
+import { clinicalState, analyzeProblems } from "./clinical.js";
+import { knowledgeView } from "./guidance.js";
 
 /** Injects an instructor can send, with the arguments the dashboard asks for. */
 export const INJECTS = {
@@ -89,8 +91,9 @@ export function alerts(sim) {
 }
 
 /** What the trainee publishes every 2 s: status, true vitals, alerts, recent actions and a replay frame (the mirror view). */
-export function snapshot(sim, { status, current = null, hints = 0, actions = [] } = {}) {
+export function snapshot(sim, { status, current = null, hints = 0, actions = [], recorder = null } = {}) {
     const p = sim.p;
+    const k = knowledgeView(sim, 1);
     return {
         status, t: p.t, current, hints,
         alive: p.alive, unconscious: !!p.unconscious, cardiacArrest: !!p.cardiacArrest, rhythm: p.rhythm,
@@ -98,5 +101,9 @@ export function snapshot(sim, { status, current = null, hints = 0, actions = [] 
             bleeding: Math.round(p.woundBleeding * 1000), ib: Math.round(p.internalBleeding * 1000) },
         alerts: alerts(sim), actions: actions.slice(-40),
         frame: JSON.stringify(captureFrame(sim)), // a string: Firestore cannot store the frame's nested arrays
+        // what the trainee can see without examining: device readings (null when nothing measures them) and the obvious state
+        visible: { spo2: k.spo2, hr: k.hr, sys: k.sys, unconscious: k.unconscious, inCloud: k.inCloud, gasMask: k.gasMask },
+        clinical: clinicalState(sim),
+        problems: recorder ? analyzeProblems({ history: recorder.history, log: sim.menuLog, events: sim.events }) : [],
     };
 }

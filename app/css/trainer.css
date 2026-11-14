@@ -320,3 +320,27 @@ table.records td.nogo { color: var(--danger); font-weight: 700; }
 .detail-grid .injuries { padding: 0; }
 .controls-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; border-top: 1px solid var(--line); padding-top: 10px; }
 .controls-row label { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 13px; }
+
+/* ---------- problems and full patient state ---------- */
+.problems { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; }
+.prob { border-left: 4px solid var(--muted); background: rgba(255, 255, 255, 0.04); padding: 6px 10px; border-radius: 0 4px 4px 0; }
+.prob.ok { border-left-color: var(--ok); }
+.prob.warn { border-left-color: var(--accent); }
+.prob.bad { border-left-color: var(--danger); }
+.prob-head { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
+.prob-meta, .prob-done { font-size: 13px; color: var(--muted); }
+.prob-done { color: var(--fg); opacity: 0.85; }
+.badge { font-size: 12px; padding: 1px 8px; border-radius: 10px; background: rgba(255, 255, 255, 0.1); white-space: nowrap; }
+.badge.ok { background: rgba(95, 179, 95, 0.25); color: #c8f0c8; }
+.badge.warn { background: rgba(201, 162, 39, 0.25); color: #f3e2a6; }
+.badge.bad { background: rgba(224, 87, 79, 0.25); color: #ffd2cf; }
+.replay-problems { max-height: 220px; overflow-y: auto; margin-bottom: 10px; }
+.replay-problems .prob { padding: 4px 8px; font-size: 13px; }
+.vitals-table.clinical { width: 100%; font-size: 13px; margin-bottom: 6px; }
+.vitals-table.clinical th { width: 22%; }
+table.meds { font-size: 13px; }
+.view-toggle { display: inline-flex; border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
+.view-toggle button { border: 0; background: transparent; color: var(--fg); padding: 6px 12px; cursor: pointer; font: inherit; }
+.view-toggle button[aria-pressed="true"] { background: var(--accent); color: var(--accent-fg); font-weight: 600; }
+.detail-full { margin-top: 12px; display: grid; grid-template-columns: 1.3fr 1fr; gap: 18px; }
+.detail-full h4 { margin: 10px 0 4px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); }

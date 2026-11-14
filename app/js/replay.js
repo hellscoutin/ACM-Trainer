@@ -3,6 +3,7 @@
 import { createBody } from "./body.js";
 import { frameAt } from "../../engine/custom.js";
 import { formatTime, PART_NAMES } from "../../engine/injuryList.js";
+import { renderProblems } from "./clinical-view.js";
 
 const el = (tag, props = {}, ...kids) => { const e = document.createElement(tag); Object.assign(e, props); e.append(...kids); return e; };
 
@@ -28,10 +29,11 @@ export function mountReplay(host, replay) {
     const inj = el("ul", { className: "injuries" });
     const vitals = el("table", { className: "vitals-table" });
     const tl = el("ul", { className: "timeline replay-timeline" });
+    const probs = el("div", { className: "replay-problems" });
     const grid = el("div", { className: "replay-grid" },
         el("div", { className: "replay-col" }, bodyBox),
         el("div", { className: "replay-col" }, partTitle, inj),
-        el("div", { className: "replay-col" }, el("h4", { textContent: "True vitals" }), vitals, el("h4", { textContent: "Timeline" }), tl));
+        el("div", { className: "replay-col" }, el("h4", { textContent: "True vitals" }), vitals, el("h4", { textContent: "Problems at this moment" }), probs, el("h4", { textContent: "Timeline" }), tl));
     host.append(controls, grid);
     const body = createBody(bodyBox, (p) => { part = p; draw(); });
 
@@ -58,6 +60,8 @@ export function mountReplay(host, replay) {
         for (const [a, b, c, d] of [["State", state, "Blood volume", `${v.bv.toFixed(2)} L`], ["Heart rate", v.hr, "Blood pressure", `${v.sys}/${v.dia}`], ["SpO2", `${v.spo2} %`, "Respiration", `${v.rr} /min`]]) {
             vitals.append(el("tr", {}, el("th", { textContent: a }), el("td", { textContent: b }), el("th", { textContent: c }), el("td", { textContent: d })));
         }
+        if (replay.problems) renderProblems(probs, replay.problems, { at: t });
+        else probs.textContent = "Not recorded for this replay.";
         let lastPast = null;
         for (const it of items) { const past = it.e.t <= t; it.li.classList.toggle("future", !past); if (past) lastPast = it.li; }
         items.forEach((it) => it.li.classList.remove("now"));

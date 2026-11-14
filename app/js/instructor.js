@@ -10,6 +10,7 @@ import { formatTime, PART_NAMES } from "../../engine/injuryList.js";
 import { BODY_PARTS } from "../../engine/util.js";
 import { createBody } from "./body.js";
 import { loadCustom, download } from "./store.js";
+import { labelProblems, renderProblems, renderClinical } from "./clinical-view.js";
 
 const $ = (id) => document.getElementById(id);
 const el = (tag, props = {}, ...kids) => { const e = document.createElement(tag); Object.assign(e, props); e.append(...kids); return e; };
@@ -167,7 +168,7 @@ function renderTiles() {
     }
 }
 
-let mirror = null, mirrorPart = "body";
+let mirror = null, mirrorPart = "body", fullView = false;
 function renderDetail() {
     const r = runs.get(selected);
     if (!r) return;
@@ -180,10 +181,18 @@ function renderDetail() {
     $("tPart").textContent = PART_NAMES[mirrorPart];
     $("tInj").textContent = "";
     for (const [text, color] of f?.inj?.[mirrorPart] || []) { const li = el("li", { textContent: text || " " }); li.style.color = color; $("tInj").append(li); }
-    const v = r.vitals || {};
+    const v = r.vitals || {}, s = r.visible || {};
     $("tVitals").innerHTML = "";
-    for (const [a, b, c, d] of [["Heart rate", v.hr, "Blood pressure", `${v.sys}/${v.dia}`], ["SpO2", `${v.spo2} %`, "Respiration", `${v.rr} /min`], ["Blood volume", `${v.bv} L`, "Rhythm", r.rhythm || ""], ["Bleeding", `${v.bleeding} ml/min`, "Internal", `${v.ib} ml/min`]]) {
-        $("tVitals").append(el("tr", {}, el("th", { textContent: a }), el("td", { textContent: b ?? "" }), el("th", { textContent: c }), el("td", { textContent: d ?? "" })));
+    const rows = fullView
+        ? [["Heart rate", v.hr, "Blood pressure", `${v.sys}/${v.dia}`], ["SpO2", `${v.spo2} %`, "Respiration", `${v.rr} /min`], ["Blood volume", `${v.bv} L`, "Rhythm", r.rhythm || ""], ["Bleeding", `${v.bleeding} ml/min`, "Internal", `${v.ib} ml/min`]]
+        // as the trainee sees it: only what devices show (pulse oximeter, AED monitor or cuff) and the obvious state
+        : [["State", !r.alive ? "Dead" : s.unconscious ? "Unconscious" : "Conscious", "SpO2 (device)", s.spo2 ?? "not measured"], ["Heart rate (device)", s.hr ?? "not measured", "Systolic (device)", s.sys ?? "not measured"]];
+    $("tVitalsTitle").textContent = fullView ? "True vitals" : "What the trainee can see";
+    for (const [a, b, c, d] of rows) $("tVitals").append(el("tr", {}, el("th", { textContent: a }), el("td", { textContent: b ?? "" }), el("th", { textContent: c }), el("td", { textContent: d ?? "" })));
+    $("tFull").hidden = !fullView;
+    if (fullView) {
+        renderClinical($("tClinical"), r.clinical);
+        renderProblems($("tProblems"), labelProblems(r.problems || [], actionLabel));
     }
     $("tActions").textContent = "";
     for (const a of (r.actions || []).slice().reverse()) $("tActions").append(el("li", {}, el("time", { textContent: formatTime(a.t) }), `${actionLabel(a.id)}${a.part ? ` (${PART_NAMES[a.part] || a.part})` : ""}`));
@@ -197,6 +206,9 @@ function setupDetailControls() {
     const argsVisible = () => { const a = INJECTS[$("injKind").value].args; $("injPart").hidden = !a.includes("part"); $("injMech").hidden = !a.includes("mechanism"); $("injDmg").hidden = !a.includes("damage"); };
     $("injKind").addEventListener("change", argsVisible);
     argsVisible();
+    const setView = (full) => { fullView = full; $("viewFull").setAttribute("aria-pressed", String(full)); $("viewTrainee").setAttribute("aria-pressed", String(!full)); renderDetail(); };
+    $("viewTrainee").addEventListener("click", () => setView(false));
+    $("viewFull").addEventListener("click", () => setView(true));
     $("detailClose").addEventListener("click", () => { selected = null; $("detail").hidden = true; renderTiles(); });
     $("tPause").addEventListener("click", () => { const r = runs.get(selected); command(selected, r?.paused ? "resume" : "pause"); });
     $("injBtn").addEventListener("click", () => command(selected, "inject", { kind: $("injKind").value, args: { part: $("injPart").value, mechanism: $("injMech").value, damage: Number($("injDmg").value) } }));

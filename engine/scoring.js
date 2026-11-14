@@ -15,7 +15,7 @@ export function keyState(sim) {
         t: p.t, alive: p.alive, unconscious: p.unconscious, cardiacArrest: p.cardiacArrest, rhythm: p.rhythm,
         bloodVolume: p.bloodVolume, spo2: p.spo2, hr: p.hr, rr: p.rr, systolic: p.bp[1], map: p.bp[0] + (p.bp[1] - p.bp[0]) / 3,
         woundBleeding: p.woundBleeding, internalBleeding: p.internalBleeding, pain: Math.max(0, p.pain - p.painSuppress),
-        ptx: p.ptx, tensionPtx: p.tensionPtx, htxFluid: p.htxFluid, chestSeal: p.chestSeal,
+        ptx: p.ptx, tensionPtx: p.tensionPtx, htxFluid: p.htxFluid, htxState: p.htxState || 0, chestSeal: p.chestSeal,
         airwayBlocked: p.alive && p.unconscious && airwayState(p) === 0, obstructed: p.obstructionVomit + p.obstructionBlood > 0,
         recoveryPosition: p.recoveryPosition, cpr: p.cpr, bvm: p.bvm,
         platelets: p.platelets, overload: p.overload, transfused: p.transfused, calcium: p.calcium, hemolytic: (p.reactionSeverity || 0) > 0,
@@ -25,6 +25,7 @@ export function keyState(sim) {
     BODY_PARTS.forEach((part, i) => {
         s[`bleeding_${part}`] = p.tourniquets[i] ? 0 : p.openWounds[part].reduce((a, w) => a + (w.count > 0 ? w.count * w.bleeding : 0), 0);
         s[`tourniquet_${part}`] = !!p.tourniquets[i];
+        s[`fracture_${part}`] = p.fractures?.[i] ?? 0;
     });
     return s;
 }
