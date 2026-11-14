@@ -60,6 +60,8 @@ App: `app/js/windows-cric.js` (surgical airway window on ACM's art: tool tray, r
 - A thoracostomy without local lidocaine (>= 0.5 in the torso) knocks the patient unconscious; the sweep report uses ACM's strings.
 - A chest seal on an open pneumothorax sets it to 0 and stops progression, so an early seal prevents tension entirely.
 - CBRN: lewisite capillary damage runs from buildup 50 but its ceiling is 0 until 70 (guide corrected 2026-11-13). Dimercaprol pushed IV does nothing (no Dimercaprol_IV class); the ampule is treated as a vial in the draw window (ACM builds its vial list in compiled code only). Sarin seizures and midazolam's effect on them are a player camera effect, so midazolam only acts as a drug on the casualty. Gas masks go on unconscious casualties only (ACE interaction condition).
+- Body diagram icons follow ACM updateBodyImage and gui.hpp colours (airway cyan, circulation green, AED blue, chest seal yellow, pulse oximeter teal): adjuncts, surgical airway (and strapped), lozenge, capnograph (hidden with an oral adjunct or surgical airway), chest seal, AED pads, AED pulse oximeter and cuff, IV sites, IO, pulse oximeter, pressure cuff, plus ACE tourniquets and fracture bones. ACM 1.4.8 has no chest-injury icon (IDC_BODY_TORSO_PNEUMOTHORAX is fetched but no control exists and nothing shows it), so none is drawn; the trainer's own thoracostomy dot was removed for the same reason.
+- Fentanyl lozenge (setLozenge/Local): medic, conscious and lying (Put In Supine Position, medical menu Drag tab), blocked by an oral adjunct (item still used). Comes out when removed, unconscious, no longer lying, or after 180 s; out early, the Fentanyl_BUC entry is frozen at the effect reached. The watch runs every 1 s (ACM 0.1 s).
 - Scripted `addBag` timeline entries schedule the hemolytic reaction for incompatible blood like ivBagLocal, without a bagAdded event (so they don't count as the trainee's action). removeBag emits bagRemoved {compatible}.
 - Training-computer casualties are AI (AI trauma thresholds, AI stay-down chance 1: they stay unconscious until revived) and immune to instant trauma death, as in ACM. They start unconscious (generatePatient calls criticalVitals first).
 - Replay is frame-based (what the trainee saw, second by second), not re-simulation: windows (AED, cric, transfusion) mutate state outside the menu path, so an input log would not reproduce every run. The runner can re-simulate menu-only runs deterministically from seed + actions (used by the tests).
@@ -67,7 +69,7 @@ App: `app/js/windows-cric.js` (surgical airway window on ACM's art: tool tray, r
 
 ## Not ported yet (next modules)
 2. Nausea medication effects on vomiting (getNauseaMedicationEffects is taken as 0).
-3. Fentanyl lozenge, ketamine screen effect, fresh whole blood, BVM oxygen sources.
+3. Ketamine screen effect, fresh whole blood, BVM oxygen sources.
 5. Fresh whole blood (FBTK); BVM with oxygen sources; CBRN detectors and vehicles (world-side). (Trauma death and arrest thresholds are in `sim.criticalHit`.)
 6. Simplifications to revisit: `bandage()` spreads one bandage's effectiveness by bleeding (approximates ACE findMostEffectiveWounds); clot re-opening uses only the "unstable" delay; scenarios with `type` wounds skip the damage-type multipliers (use `mechanism` for the in-game roll).
 

@@ -74,6 +74,7 @@ export function injuryList(sim, part) {
             if (p.sa?.inProgress) t += " [In Progress]";
             e.push({ text: t, color: C.airway });
         }
+        if (p.lozenge) e.push({ text: "Lozenge (OTFC)", color: "rgb(51, 166, 51)" });
     }
     // Cyanosis (head and arms)
     if ((i === 0 || i === 2 || i === 3) && (!p.alive || p.spo2 < 91 || p.tourniquets[i])) {

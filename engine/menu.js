@@ -15,6 +15,7 @@ import { wrap, stitch } from "./wounds.js";
 import { SYRINGE_SIZES, SYRINGE_DRUGS, vialItem, drugName, injectSyringe } from "./syringes.js";
 import { canEstablish, canSecure, canStitchIncision, secureStrap, stitchIncision, stitchIncisionTime, startProcedure } from "./surgicalAirway.js";
 import { inspectForFracture, canInspect, canRealign, realign, canSplint, applySplint, canWrapSplint, wrapSplint, canRemoveSplint, removeSplint } from "./disability.js";
+import { giveLozenge, removeLozenge } from "./circulation.js";
 import { canWashEyes, washEyes, putOnGasMask, replaceFilter, dragOutOfCloud } from "./cbrn.js";
 import { aedState, hasAED, connect, disconnect, analyze, manualCharge, shock, cancelCharge, measureBP, canAnalyze, canManualCharge, canShock, canCancelCharge, canMeasureBP } from "./aed.js";
 
@@ -24,6 +25,7 @@ export const CATEGORIES = [
     { id: "medication", label: "Medication" },
     { id: "airway", label: "Airway Management" },
     { id: "advanced", label: "Advanced Treatments" },
+    { id: "drag", label: "Drag / Carry" },
     { id: "interact", label: "Interaction (CBRN)", cbrnOnly: true }, // ACE interaction menu actions, not the medical menu
 ];
 
@@ -33,7 +35,7 @@ export const ACE_ITEM_NAMES = {
     ACE_epinephrine: "Epinephrine Autoinjector", ACE_adenosine: "Adenosine Autoinjector", ACE_splint: "Splint",
     ACE_surgicalKit: "Surgical Kit", ACE_bodyBag: "Bodybag",
     ACM_Autoinjector_ATNA: "ATNA Autoinjector", ACM_Autoinjector_Midazolam: "Midazolam Autoinjector", ACM_Ampule_Dimercaprol: "Dimercaprol Ampule (300mg/3ml)",
-    ACM_GasMaskFilter: "Gas Mask Filter", G_AirPurifyingRespirator_01_F: "APR Gas Mask",
+    ACM_GasMaskFilter: "Gas Mask Filter", ACM_Lozenge_Fentanyl: "Fentanyl Lozenge (OTFC)", G_AirPurifyingRespirator_01_F: "APR Gas Mask",
     ACE_WaterBottle: "Water Bottle", ACE_WaterBottle_Half: "Water Bottle (Half)", ACE_Canteen: "Canteen", ACE_Canteen_Half: "Canteen (Half)",
 };
 export function itemName(data, cls) {
@@ -97,6 +99,11 @@ const DEFS = {
     // ------------------------------------------------------------------ medication (autoinjectors and simple drugs)
     morphine: { show: () => true, run: (c, part) => med(c, part, "Morphine", 5, "Morphine Autoinjector") },
     epinephrine: { show: () => true, run: (c, part) => med(c, part, "Epinephrine", 0.3, "Epinephrine Autoinjector") },
+    fentanyllozenge: {
+        show: (c) => awake(c.sim.p) && !c.sim.p.lozenge && c.sim.p.lying && !c.sim.p.bvm,
+        run: (c) => { const r = giveLozenge(c.sim); return { hint: r.hint, log: r.ok ? `${c.name} gave Fentanyl Lozenge` : undefined }; },
+    },
+    removefentanyllozenge: { show: (c) => c.sim.p.lozenge === "Fentanyl", run: (c) => ({ ...removeLozenge(c.sim), log: `${c.name} removed the fentanyl lozenge` }) },
     // ACM_CBRN autoinjectors (core/ov/medication: ATNA = 2 mg atropine, midazolam autoinjector = 10 mg midazolam)
     atna_autoinjector: { show: () => true, run: (c, part) => med(c, part, "Atropine", 2, "ATNA Autoinjector") },
     midazolam_autoinjector: { show: () => true, run: (c, part) => med(c, part, "Midazolam", 10, "Midazolam Autoinjector") },
@@ -334,6 +341,9 @@ export function markTreated(sim, a) {
 function interactionDefs() {
     const base = { category: "interact", consumes: true, levelSpec: "anyone" };
     return [
+        { category: "drag", consumes: false, levelSpec: "anyone", items: [], id: "supineposition", label: "Put In Supine Position", parts: ["head", "body", "leftarm", "rightarm", "leftleg", "rightleg"], timeSpec: 1.85,
+            show: (c) => awake(c.sim.p) && !c.sim.p.lying,
+            run: (c) => { c.sim.p.lying = true; return { hint: ["Patient has been placed into the supine position"], log: `${c.name} put the casualty in the supine position` }; } },
         { ...base, id: "putongasmask", label: "Put On Gas Mask", parts: ["head"], items: ["G_AirPurifyingRespirator_01_F"], timeSpec: 0,
             show: (c) => !!c.sim.p.cbrn && !c.sim.p.cbrn.ppe.mask && notAwake(c.sim.p),
             run: (c) => ({ ...putOnGasMask(c.sim), log: `${c.name} put a gas mask on the casualty` }) },

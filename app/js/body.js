@@ -11,6 +11,7 @@ const SHAPES = {
 // Where tourniquets, pulse oximeters and labels are drawn
 const TQ = { leftarm: [140, 104, 22, 9, 12], rightarm: [38, 104, 22, 9, -12], leftleg: [104, 236, 30, 9, 0], rightleg: [66, 236, 30, 9, 0] };
 const OX = { leftarm: [154, 232], rightarm: [30, 232] };
+const COLOR = { airway: "#30e8ed", circulation: "#33a633", aed: "#2e99f5", seal: "#fff200", pulseOx: "#4dcccc" }; // ACM_gui gui.hpp colorText
 const NAMES = { head: "Head", body: "Torso", leftarm: "Left Arm", rightarm: "Right Arm", leftleg: "Left Leg", rightleg: "Right Leg" };
 
 export function createBody(container, onSelect) {
@@ -68,6 +69,12 @@ export function createBody(container, onSelect) {
                 leftarm: [[150, 120], [158, 160], [163, 200]], rightarm: [[50, 120], [42, 160], [37, 200]],
                 leftleg: [[116, 260], [118, 310], [119, 370]], rightleg: [[84, 260], [82, 310], [81, 370]],
             };
+            const box = (cx, cy, w, h, fill, rot = 0, rx = 2) => {
+                const r = document.createElementNS(NS, "rect");
+                Object.entries({ x: cx - w / 2, y: cy - h / 2, width: w, height: h, rx, fill, stroke: "#000", "stroke-width": 1, transform: `rotate(${rot} ${cx} ${cy})` }).forEach(([a, v]) => r.setAttribute(a, v));
+                overlay.append(r);
+                return r;
+            };
             const dot = (x, y, fill, r = 4.5) => {
                 const c = document.createElementNS(NS, "circle");
                 Object.entries({ cx: x, cy: y, r, fill, stroke: "#000", "stroke-width": 1.2 }).forEach(([a, v]) => c.setAttribute(a, v));
@@ -75,13 +82,13 @@ export function createBody(container, onSelect) {
             };
             order.forEach((id, i) => {
                 (p.ivAccess[i] || []).forEach((dev, s) => { if (dev && SITE_POS[id]) dot(...SITE_POS[id][s], dev === "IV_14g" ? "#9be36b" : "#5fb35f"); });
-                if (p.ioAccess[i]) id === "body" ? dot(100, 96, "#b07be0", 5.5) : SITE_POS[id] && dot(...SITE_POS[id][1], "#b07be0", 5.5);
+                if (p.ioAccess[i]) id === "body" ? box(100, 92, 9, 9, COLOR.circulation) : SITE_POS[id] && box(...SITE_POS[id][1], 9, 9, COLOR.circulation);
             });
             ["leftarm", "rightarm"].forEach((id, k) => {
                 if (p.pressureCuff?.[k]) {
                     const [x, y] = SITE_POS[id][0];
                     const r = document.createElementNS(NS, "rect");
-                    Object.entries({ x: x - 12, y: y - 8, width: 24, height: 12, rx: 3, fill: "#2a2a2a", stroke: "#ddd", "stroke-width": 1, transform: `rotate(${k ? -12 : 12} ${x} ${y})` }).forEach(([a, v]) => r.setAttribute(a, v));
+                    Object.entries({ x: x - 12, y: y - 8, width: 24, height: 12, rx: 3, fill: COLOR.circulation, stroke: "#000", "stroke-width": 1, transform: `rotate(${k ? -12 : 12} ${x} ${y})` }).forEach(([a, v]) => r.setAttribute(a, v));
                     overlay.append(r);
                 }
             });
@@ -106,14 +113,27 @@ export function createBody(container, onSelect) {
                 }
                 overlay.append(g);
             });
-            if (p.thoracostomy >= 1) dot(124, 150, p.thoracostomy === 2 ? "#30e8ed" : "#e0574f", 4);
+            // AED connections (ACM updateBodyImage): pads on the chest, its own pulse oximeter and cuff, capnograph at the mouth
+            const aed = p.aed || {};
+            if (aed.pads) { box(80, 104, 13, 17, COLOR.aed, -10); box(124, 162, 13, 17, COLOR.aed, 20); }
+            const ARM = { 2: "leftarm", 3: "rightarm" };
+            if (ARM[aed.po]) { const [x, y] = OX[ARM[aed.po]]; box(x, y + 13, 14, 9, COLOR.aed); }
+            if (ARM[aed.cuff]) { const [x, y] = SITE_POS[ARM[aed.cuff]][0]; box(x, y + 16, 24, 11, COLOR.aed, ARM[aed.cuff] === "leftarm" ? -12 : 12, 3); }
+            if (aed.capno && !p.airwayOral && !p.surgicalAirway) box(117, 58, 12, 6, COLOR.aed, -15);
+            // Surgical airway (tube at the neck; a strap across the neck once secured) and the fentanyl lozenge
+            if (p.surgicalAirway) {
+                if (p.sa?.strapSecure) box(100, 74, 34, 4, COLOR.airway, 0, 2);
+                box(100, 74, 10, 8, COLOR.airway);
+            }
+            if (p.lozenge) dot(84, 57, COLOR.circulation, 4);
             if (p.chestSeal) {
                 const r = document.createElementNS(NS, "rect");
-                Object.entries({ x: 106, y: 100, width: 18, height: 18, rx: 3, fill: "#fff200", stroke: "#000" }).forEach(([a, v]) => r.setAttribute(a, v));
+                Object.entries({ x: 106, y: 100, width: 18, height: 18, rx: 3, fill: COLOR.seal, stroke: "#000" }).forEach(([a, v]) => r.setAttribute(a, v));
                 overlay.append(r);
             }
             const tags = [p.cbrn?.ppe?.mask ? "Mask" : "", p.airwayNasal === "NPA" ? "NPA" : "", p.airwayOral === "SGA" ? "i-gel" : p.airwayOral].filter(Boolean);
             tags.forEach((t, k) => {
+                if (t !== "Mask") box(100, 42 + k * 15, t.length * 8 + 6, 13, COLOR.airway, 0, 3); // airway items in ACM's airway colour
                 const tx = document.createElementNS(NS, "text");
                 Object.entries({ x: 100, y: 46 + k * 15, "text-anchor": "middle", class: "icon-label" }).forEach(([a, v]) => tx.setAttribute(a, v));
                 tx.textContent = t;

@@ -106,7 +106,11 @@ const OVERLAY_FIELDS = ["tourniquets", "pulseOx", "ivAccess", "ioAccess", "press
 /** What the replay viewer shows for one second: body colours and markers, every part's injury list and the true vitals. */
 export function captureFrame(sim) {
     const p = sim.p;
-    const o = { cbrn: p.cbrn ? { ppe: { mask: p.cbrn.ppe.mask } } : undefined };
+    const o = {
+        cbrn: p.cbrn ? { ppe: { mask: p.cbrn.ppe.mask } } : undefined,
+        aed: p.aed ? { pads: p.aed.pads, po: p.aed.po, cuff: p.aed.cuff, capno: p.aed.capno } : undefined,
+        surgicalAirway: p.surgicalAirway, sa: p.sa ? { strapSecure: p.sa.strapSecure } : undefined, lozenge: p.lozenge || "",
+    };
     for (const k of OVERLAY_FIELDS) o[k] = p[k] === undefined ? undefined : JSON.parse(JSON.stringify(p[k]));
     o.splintBone = sim.aceSetting("fractures", 1) >= 2;
     return {

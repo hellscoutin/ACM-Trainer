@@ -2,6 +2,7 @@
 // complications), setIVLocal, setIVComplication, handleIVComplication, inspectIV, ivBagLocal (core override),
 // getReturnVolume, updateActiveFluidBags, handleHemolyticReaction, setPressureCuff, and the measureBP per-frame logic.
 import { lin, PART_INDEX } from "./util.js";
+import { addMedication, medicationEffect } from "./pharmacology.js";
 import { hasPulse } from "./vitals.js";
 import { isBloodCompatible } from "./blood.js";
 
@@ -256,3 +257,44 @@ export function cuffSignal(sim, part) {
     if (hr <= 0 || sys < 80 || !p.alive) return { hr: 0, systolic: sys, diastolic: dia, strength: 0 };
     return { hr, systolic: sys, diastolic: dia, strength: lin(80.1, 120, sys, 0.01, 1) };
 }
+
+// ------------------------------------------------------------------ fentanyl lozenge (setLozenge / setLozengeLocal)
+/** Give Fentanyl Lozenge: blocked by an oral airway item (the item is still used up, as in ACM). */
+export function giveLozenge(sim) {
+    const p = sim.p;
+    if (p.lozenge) return { ok: false, hint: ["Patient already has fentanyl lozenge"] };
+    if (p.airwayOral) return { ok: false, hint: ["Patient oral access is blocked by airway adjunct"] };
+    p.lozenge = "Fentanyl";
+    p.lozengeTime = p.t;
+    p.lozengeEpoch = (p.lozengeEpoch || 0) + 1;
+    addMedication(sim, "head", "Fentanyl_BUC", 1, false);
+    sim.schedule(1, "lozengeWatch", { epoch: p.lozengeEpoch }); // ACM checks every 0.1 s; the trainer ticks once a second
+    return { ok: true, hint: ["Gave Lozenge (OTFC)"] };
+}
+export function removeLozenge(sim) {
+    sim.p.lozenge = "";
+    return { hint: ["Removed fentanyl lozenge"] };
+}
+export const lozengeTimers = {
+    /** The lozenge comes out when removed, when the patient passes out or is no longer lying, or after 180 s (worn off).
+     *  Taken out early, the fentanyl stops rising: the dose is frozen at the effect it had reached. */
+    lozengeWatch(sim, { epoch }) {
+        const p = sim.p;
+        if (epoch !== p.lozengeEpoch) return;
+        const woreOff = p.t - p.lozengeTime > 180;
+        if (p.lozenge === "Fentanyl" && !p.unconscious && !woreOff && p.lying) { sim.schedule(1, "lozengeWatch", { epoch }); return; }
+        if (!woreOff) {
+            const m = p.meds.find((x) => x.name === "Fentanyl_BUC");
+            if (m) {
+                const elapsed = p.t - m.added;
+                const e = medicationEffect(m.route, elapsed, m.onset, m.total, m.plateau);
+                m.onset = elapsed;
+                m.plateau *= e;
+                for (const k of ["hr", "pain", "flow", "rr", "co2", "breathing"]) m[k] *= e;
+                m.conc = e;
+            }
+        }
+        if (p.lozenge && woreOff) sim.emit("lozengeWoreOff", {});
+        p.lozenge = "";
+    },
+};

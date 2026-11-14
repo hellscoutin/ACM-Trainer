@@ -7,7 +7,7 @@ import { addMedication, medicationCount, medicationTypeMap, pharmacologyTimers, 
 import { airwayState } from "./oxygen.js";
 import { airwayTimers, resetAirway, onUnconsciousAirway } from "./airway.js";
 import { breathingTimers, handleChestInjury } from "./breathing.js";
-import { circulationTimers } from "./circulation.js";
+import { circulationTimers, lozengeTimers } from "./circulation.js";
 import { aedTimers, updateAED } from "./aed.js";
 import { disabilityTimers, handleFracture, initDisability } from "./disability.js";
 import { cbrnTimers, cbrnTick } from "./cbrn.js";
@@ -49,7 +49,7 @@ export class Simulation {
         this.events = [];
         this.actions = [];
         this.listeners = [];
-        this.handlers = { ...woundTimers, ...vitalsTimers, ...airwayTimers, ...breathingTimers, ...circulationTimers, ...pharmacologyTimers, ...aedTimers, ...disabilityTimers, ...cbrnTimers, ...simTimers };
+        this.handlers = { ...woundTimers, ...vitalsTimers, ...airwayTimers, ...breathingTimers, ...circulationTimers, ...pharmacologyTimers, ...aedTimers, ...disabilityTimers, ...cbrnTimers, ...lozengeTimers, ...simTimers };
         initDisability(this.p);
         resetAirway(this);
     }
