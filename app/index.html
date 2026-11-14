@@ -4,21 +4,53 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ACM Trainer</title>
-<style>
-:root { --bg: #f5f3f1; --fg: #1f2226; --muted: #626970; --accent: #7a1f24; --line: #dcd8d4; }
-@media (prefers-color-scheme: dark) { :root { --bg: #17191b; --fg: #ebe7e3; --muted: #a3a8ad; --accent: #e0787b; --line: #353a3f; color-scheme: dark; } }
-body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.55 "Segoe UI", Arial, sans-serif; }
-main { max-width: 680px; margin: 0 auto; padding: 48px 16px; }
-h1 { font-size: 34px; margin: 0 0 4px; border-bottom: 3px solid var(--accent); padding-bottom: 8px; }
-p { color: var(--muted); }
-code { background: color-mix(in srgb, var(--line) 50%, transparent); padding: 0 4px; border-radius: 3px; }
-</style>
+<link rel="stylesheet" href="css/trainer.css">
 </head>
 <body>
-<main>
+<div class="narrow-notice">ACM Trainer needs a tablet in landscape or a desktop screen (at least 900 px wide).</div>
+<main class="landing">
     <h1>ACM Trainer</h1>
-    <p>A browser trainer for Advanced Combat Medicine (Arma 3). It is being built: the patient simulation comes first, then the medical menu, solo practice and instructor-led sessions.</p>
-    <p>Simulation data: <code>ACM 1.4.8</code>. Credits: Advanced Combat Medicine by Blue and the ACM team; ACE3 by the ACE team.</p>
+    <p class="lede">Practise Advanced Combat Medicine on simulated casualties. The patient model is ported from ACM 1.4.8 and ACE 3.21.2, so wounds, vitals and treatments behave as they do in game. Pick a scenario to start solo practice.</p>
+    <div id="tracks"><p class="lede">Loading scenarios…</p></div>
+    <p class="credits">Advanced Combat Medicine by Blue and the ACM team, used with permission. ACE3 by the ACE team (GPL-2.0). Instructor-led sessions, scoring and sign-in are being built.</p>
 </main>
+<script type="module">
+const base = "../scenarios/";
+const index = await (await fetch(base + "index.json")).json();
+const list = await Promise.all(index.scenarios.map(async (id) => (await fetch(base + id + ".json")).json()));
+const root = document.getElementById("tracks");
+root.textContent = "";
+for (const track of index.tracks) {
+    const sec = document.createElement("section");
+    sec.className = "track";
+    const h = document.createElement("h2");
+    h.textContent = track.title;
+    sec.append(h);
+    const mine = list.filter((s) => s.track === track.id);
+    if (!mine.length) {
+        const p = document.createElement("p");
+        p.className = "empty";
+        p.textContent = "Scenarios coming in a later build.";
+        sec.append(p);
+    } else {
+        const cards = document.createElement("div");
+        cards.className = "cards";
+        for (const s of mine) {
+            const c = document.createElement("article");
+            c.className = "card";
+            const mod = document.createElement("div"); mod.className = "mod"; mod.textContent = s.module;
+            const t = document.createElement("h3"); t.textContent = s.title;
+            const d = document.createElement("p"); d.textContent = s.summary;
+            const meta = document.createElement("div"); meta.className = "meta";
+            meta.textContent = `${Math.round(s.timeLimit / 60)} min · role: ${s.role}`;
+            const a = document.createElement("a"); a.className = "btn primary"; a.href = "play.html?s=" + encodeURIComponent(s.id); a.textContent = "Start practice";
+            c.append(mod, t, d, meta, a);
+            cards.append(c);
+        }
+        sec.append(cards);
+    }
+    root.append(sec);
+}
+</script>
 </body>
 </html>

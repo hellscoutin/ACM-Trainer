@@ -17,6 +17,9 @@ A web application that simulates ACM casualties in a browser with an interface m
 | 2026-11-13 | Target devices: **tablets and desktops only**; phones are not supported. |
 | 2026-11-13 | English only. |
 | 2026-11-13 | Repository `hellscoutin/ACM-Trainer` is **public**, so GitHub Pages works on the free plan. Nothing secret is stored in it (the Firebase web config is public by design; the Discord client secret lives only in the Cloudflare Worker's encrypted settings). Firebase project: `acm-trainer`. |
+| 2026-11-13 | Menu lists only actions that are possible now, as in game; a "Show unavailable actions" switch (off by default) shows the rest with the reason (fidelity first; the switch is a training aid). |
+| 2026-11-13 | In solo practice the speed buttons (pause to 10x) also shorten progress bars, since they run on simulation time (one clock for everything; instructor control of this comes with sessions). |
+| 2026-11-13 | Menu text uses the ACM and ACE English stringtables (`data/acm-strings-en.json`, `data/ace-strings-en.json`); body diagram is our own drawing (exact wording without copying ACE artwork). |
 
 ## 1. Architecture
 

@@ -1,0 +1,8 @@
+{
+  "tracks": [
+    { "id": "combat-lifesaver", "title": "Combat Lifesaver (TCCC for riflemen)" },
+    { "id": "combat-medic", "title": "Combat Medic" },
+    { "id": "advanced-medic", "title": "Advanced Medic" }
+  ],
+  "scenarios": ["cls1-leg-hemorrhage", "cls2-unconscious-airway", "cls3-chest-gunshot"]
+}

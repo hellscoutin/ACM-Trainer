@@ -166,14 +166,17 @@ test("CPR: no success chance before ~59 s of continuous compressions", () => {
 });
 
 test("CPR chance matches the guide formula (medic, VF, full blood volume, first session)", () => {
-    const s = arrest(22);
-    s.act("cprStart", { skill: 1 });
-    let seen = null;
-    for (let i = 0; i < 125 && s.p.cardiacArrest; i++) {
-        s.tick();
-        if (s.p.t === 120) seen = s.p.lastCprChance;
+    // Use the first seed whose rolls don't achieve ROSC before 120 s
+    let s, seen = null;
+    for (let seed = 22; seed < 200 && seen === null; seed++) {
+        s = arrest(seed);
+        s.act("cprStart", { skill: 1 });
+        for (let i = 0; i < 125 && s.p.cardiacArrest; i++) {
+            s.tick();
+            if (s.p.t === 120 && s.p.rhythm === "VF") seen = s.p.lastCprChance;
+        }
     }
-    assert.notEqual(seen, null, "ROSC before 120 s with this seed; pick another seed");
+    assert.notEqual(seen, null);
     {
         const noFlow = 120;
         const last = Math.max(0.5, Math.min(1.5, (0.1 + (0 - 65) * (0.9 / 55)) * (30 / noFlow)));

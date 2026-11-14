@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ACM Trainer: practice</title>
+<link rel="stylesheet" href="css/trainer.css">
+</head>
+<body>
+<div class="narrow-notice">ACM Trainer needs a tablet in landscape or a desktop screen (at least 900 px wide).</div>
+<div class="trainer">
+    <header class="topbar">
+        <a class="btn" href="index.html" aria-label="Back to scenarios">←</a>
+        <div class="title" id="title">Loading…</div>
+        <div class="spacer"></div>
+        <label class="toggle"><input type="checkbox" id="showUnavailable"> Show unavailable actions</label>
+        <div class="speed" role="group" aria-label="Time speed" id="speed">
+            <button data-speed="0" aria-pressed="false" title="Pause (Space)">❚❚</button>
+            <button data-speed="1" aria-pressed="true">1×</button>
+            <button data-speed="2" aria-pressed="false">2×</button>
+            <button data-speed="5" aria-pressed="false">5×</button>
+            <button data-speed="10" aria-pressed="false">10×</button>
+        </div>
+        <div class="clock" id="clock">00:00</div>
+        <button class="btn danger" id="endBtn">End</button>
+    </header>
+    <div class="menu">
+        <section class="panel" aria-label="Treatments">
+            <div class="cats" role="tablist" id="cats"></div>
+            <div class="cat-title" id="catTitle"></div>
+            <ul class="actions" id="actions"></ul>
+        </section>
+        <div class="center">
+            <section class="panel" aria-label="Patient">
+                <div class="patient-state" id="patientState"></div>
+                <div class="body-wrap" id="body"></div>
+            </section>
+            <section class="panel" aria-label="Injuries" style="min-height:0">
+                <h2>Injuries</h2>
+                <ul class="injuries" id="injuries"></ul>
+            </section>
+        </div>
+        <div class="right">
+            <section class="panel" aria-label="Activity log"><h2>Activity Log</h2><ul class="log" id="activity"></ul></section>
+            <section class="panel" aria-label="Quick view"><h2>Quick View</h2><ul class="log" id="quick"></ul></section>
+            <section class="panel" aria-label="Inventory"><h2>Your inventory</h2><ul class="inventory" id="inventory"></ul></section>
+        </div>
+    </div>
+</div>
+<div class="hint" id="hint" role="status" aria-live="polite"></div>
+<div class="progress" id="progress" role="progressbar" aria-valuemin="0" aria-valuemax="100">
+    <div class="row"><span id="progressLabel"></span><button class="btn" id="cancelBtn">Cancel</button></div>
+    <div class="bar"><div class="fill" id="progressFill"></div></div>
+</div>
+<div class="continuous" id="continuous"><span id="continuousLabel"></span><span id="continuousButtons"></span></div>
+<div class="pulse-window" id="pulseWindow" aria-live="off">
+    <div class="site" id="pulseSite"></div>
+    <div class="heart-box"><svg class="heart" id="heart" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 21s-7.5-4.6-10-9.3C.4 8.5 2.3 4.5 6 4.5c2.2 0 3.6 1.2 4.4 2.4h3.2c.8-1.2 2.2-2.4 4.4-2.4 3.7 0 5.6 4 4 7.2C19.5 16.4 12 21 12 21z"/></svg></div>
+    <div class="nothing" id="pulseNothing"></div>
+    <button class="btn" id="pulseStop">Stop feeling pulse</button>
+</div>
+<div class="modal-back" id="briefing"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="briefTitle">
+    <h2 id="briefTitle"></h2><p id="briefSummary"></p>
+    <h3>Objectives</h3><ul id="briefObjectives"></ul>
+    <h3>Your kit</h3><p id="briefKit"></p>
+    <h3>How it works</h3>
+    <p>Select a body part on the diagram, choose a category on the left, then an action. Actions take their in-game time and are listed only when they can be done, as in game. Feel Pulse, head tilt-chin lift, BVM and CPR continue until you stop them. Vital signs are hidden unless an examination or a pulse oximeter shows them. Space pauses; the speed buttons fast-forward time.</p>
+    <div class="buttons"><a class="btn" href="index.html">Back</a><button class="btn primary" id="startBtn">Start</button></div>
+</div></div>
+<div class="modal-back" id="debrief"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="debriefTitle" id="debriefBody"></div></div>
+<script type="module" src="js/play.js"></script>
+</body>
+</html>

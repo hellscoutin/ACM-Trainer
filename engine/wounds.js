@@ -31,6 +31,7 @@ export function addWound(sim, part, type, damage, count = 1) {
         // Critical hit to the head or a penetrating torso hit
         if (type !== "ThermalBurn" && type !== "ChemicalBurn" && (part === "head" || (part === "body" && dmg > data.thresholds.aceConstants.penetrationThreshold))) {
             sim.emit("criticalHit", { part, type, size: category, damage: dmg });
+            sim.criticalHit(part, type, category, dmg);
         }
     }
     updateWoundBleeding(sim);

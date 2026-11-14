@@ -1,0 +1,21 @@
+{
+  "id": "cls1-leg-hemorrhage",
+  "title": "Gunshot to the thigh",
+  "track": "combat-lifesaver", "module": "CLS-2",
+  "summary": "A rifleman takes a round to the left thigh and a graze to the right forearm. He is awake and bleeding heavily. You are the nearest combat lifesaver.",
+  "seed": 1101,
+  "timeLimit": 300,
+  "role": "anyone",
+  "patient": { "weight": 82, "bloodType": "A+", "conscious": true },
+  "injuries": [
+    { "part": "leftleg", "type": "VelocityWound", "damage": 1.4 },
+    { "part": "rightarm", "type": "Cut", "damage": 0.5 }
+  ],
+  "loadout": { "ACE_tourniquet": 2, "ACM_PressureBandage": 4, "ACM_Paracetamol": 1 },
+  "objectives": [
+    "Stop the life-threatening leg bleed with a tourniquet as fast as possible",
+    "Bandage the forearm wound",
+    "Treat pain once bleeding is controlled",
+    "Patient alive and not bleeding at the end"
+  ]
+}

@@ -1,0 +1,405 @@
+// Solo practice: runs a scenario in the browser with the ACM medical menu.
+import { loadScenario, runTimeline, ROLE_LEVEL } from "../../engine/scenario.js";
+import { CATEGORIES, buildCatalogue, available, actionTime, pickItem, itemName } from "../../engine/menu.js";
+import { injuryList, bodyPartColors, formatTime, PART_NAMES } from "../../engine/injuryList.js";
+import { feelPulse, updatePulseOximeters } from "../../engine/exams.js";
+import { createBody } from "./body.js";
+
+const $ = (id) => document.getElementById(id);
+const el = (tag, props = {}, ...kids) => { const e = document.createElement(tag); Object.assign(e, props); e.append(...kids); return e; };
+
+const CAT_ICONS = {
+    examine: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10" cy="10" r="6" fill="none" stroke="currentColor" stroke-width="2"/><path d="M15 15l6 6" stroke="currentColor" stroke-width="2"/></svg>',
+    bandage: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="8" width="20" height="8" rx="4" fill="none" stroke="currentColor" stroke-width="2" transform="rotate(-35 12 12)"/><circle cx="12" cy="12" r="1.3" fill="currentColor"/></svg>',
+    medication: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20l5-5M8 12l4 4M10 6l8 8-3 3-8-8z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M17 3l4 4" stroke="currentColor" stroke-width="2"/></svg>',
+    airway: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v7M12 10c-3 0-7 3-7 8 0 2 2 3 4 2l3-4M12 10c3 0 7 3 7 8 0 2-2 3-4 2l-3-4" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
+    advanced: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h4l2-5 4 10 2-5h6" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
+};
+
+const params = new URLSearchParams(location.search);
+const scenarioId = params.get("s") || "cls1-leg-hemorrhage";
+const [data, meds, scn] = await Promise.all([
+    fetch("../data/acm-1.4.8.json").then((r) => r.json()),
+    fetch("../data/medications-1.4.8.json").then((r) => r.json()),
+    fetch(`../scenarios/${encodeURIComponent(scenarioId)}.json`).then((r) => r.json()),
+]);
+const catalogue = buildCatalogue(data);
+const seed = params.has("seed") ? Number(params.get("seed")) : scn.seed;
+
+let sim, ctx, state, body;
+
+function start() {
+    sim = loadScenario(scn, data, meds, { seed });
+    ctx = { sim, level: ROLE_LEVEL[scn.role || "anyone"], inventory: { ...(scn.loadout || {}) }, name: "You", patientName: "Patient", busy: null };
+    state = {
+        part: "head", cat: "examine", speed: 1, acc: 0, last: performance.now(), running: false, ended: false,
+        progress: null, cont: null, history: [], activity: [], quick: [], timeline: [], nextBeat: 0, pulseDone: true,
+    };
+    sim.on(onSimEvent);
+    record();
+}
+
+// ------------------------------------------------------------------ events and logs
+function log(kind, text) {
+    if (!text) return;
+    const entry = { t: sim.p.t, text };
+    (kind === "quick" ? state.quick : state.activity).unshift(entry);
+    state.timeline.push({ t: sim.p.t, text, kind });
+}
+function onSimEvent(e) {
+    const cue = {
+        vomit: e.obstructs ? "You hear the casualty vomiting" : "The casualty vomits (recovery position keeps the airway clear)",
+        unconscious: "The casualty goes unconscious",
+        wokeUp: "The casualty wakes up",
+        death: "The casualty has died",
+        tensionPneumothorax: null, cardiacArrest: null, rosc: null,
+    };
+    if (e.event in cue) {
+        state.timeline.push({ t: e.t, text: eventName(e), kind: "event" });
+        if (cue[e.event]) hint([cue[e.event]]);
+    } else if (["pneumothorax", "hemothorax", "criticalGrace", "rhythmChange", "bagEmpty"].includes(e.event)) {
+        state.timeline.push({ t: e.t, text: eventName(e), kind: "event" });
+    }
+}
+function eventName(e) {
+    return {
+        vomit: "Vomited" + (e.obstructs ? " (airway obstructed)" : ""), unconscious: "Went unconscious", wokeUp: "Woke up",
+        death: `Died (${e.cause})`, tensionPneumothorax: "Tension pneumothorax", cardiacArrest: "Cardiac arrest", rosc: "Return of circulation",
+        pneumothorax: `Pneumothorax level ${e.level}${e.tension ? " (tension)" : ""}`, hemothorax: `Hemothorax level ${e.level}`,
+        criticalGrace: "Critical vitals (grace period)", rhythmChange: `Rhythm: ${e.rhythm}`, bagEmpty: "IV bag empty",
+    }[e.event] || e.event;
+}
+
+let hintTimer = 0;
+function hint(lines) {
+    const h = $("hint");
+    h.textContent = "";
+    lines.forEach((l, i) => { if (i) h.append(el("br")); h.append(l); });
+    h.classList.add("show");
+    clearTimeout(hintTimer);
+    hintTimer = setTimeout(() => h.classList.remove("show"), 2600 + 600 * lines.length);
+}
+
+// ------------------------------------------------------------------ actions
+function startAction(a) {
+    if (state.ended || state.progress) return;
+    const part = state.part;
+    const why = available(ctx, a, part);
+    if (why) { hint([why]); return; }
+    const t = actionTime(ctx, a, part);
+    if (a.continuous || t < 0.1) { finishAction(a, part, pickItem(ctx, a)); return; }
+    state.progress = { a, part, item: pickItem(ctx, a), total: t, start: sim.p.t + state.acc, end: sim.p.t + state.acc + t };
+    $("progressLabel").textContent = `${a.label}…`;
+    $("progress").classList.add("show");
+    if (!state.running) setSpeed(state.speed || 1);
+}
+function cancelAction(reason) {
+    if (!state.progress) return;
+    state.progress = null;
+    $("progress").classList.remove("show");
+    if (reason) hint([reason]);
+}
+function finishAction(a, part, item) {
+    ctx.label = a.label;
+    const r = a.run(ctx, part) || {};
+    if (item && a.consumes && !r.refund) ctx.inventory[item] = Math.max(0, (ctx.inventory[item] || 0) - 1);
+    if (a.returnsItem) ctx.inventory[a.returnsItem] = (ctx.inventory[a.returnsItem] || 0) + 1;
+    if (r.hint) hint(r.hint);
+    if (r.log) log("activity", r.log);
+    if (r.quick) log("quick", r.quick);
+    if (a.continuous) beginContinuous(a.continuous, part);
+    render();
+}
+
+function beginContinuous(type, part) {
+    state.cont = { type, part, nextSqueeze: sim.p.t + 6 };
+    ctx.busy = type;
+    const label = $("continuousLabel"), btns = $("continuousButtons");
+    btns.textContent = "";
+    const b = (text, fn, cls = "btn") => { const x = el("button", { className: cls, textContent: text }); x.addEventListener("click", fn); btns.append(x); return x; };
+    if (type === "pulse") {
+        $("pulseWindow").classList.add("show");
+        $("continuous").classList.remove("show");
+        return;
+    }
+    if (type === "headTilt") { label.textContent = "Holding head tilt-chin lift"; b("Release", endContinuous); }
+    if (type === "bvm") { label.textContent = "Ventilating with BVM (one squeeze every 6 s)"; b("Stop", endContinuous); }
+    if (type === "cpr") {
+        label.textContent = "CPR in progress";
+        const pause = b("Pause", () => {
+            if (sim.p.cpr) { sim.act("cprPause"); pause.textContent = "Continue"; label.textContent = "CPR paused"; log("activity", "You paused CPR"); }
+            else { sim.act("cprResume"); pause.textContent = "Pause"; label.textContent = "CPR in progress"; log("activity", "You continued CPR"); }
+            render();
+        });
+        b("Stop", endContinuous, "btn danger");
+    }
+    $("continuous").classList.add("show");
+}
+function endContinuous() {
+    const c = state.cont;
+    if (!c) return;
+    if (c.type === "pulse") { $("pulseWindow").classList.remove("show"); hint(["Stopped feeling pulse"]); }
+    if (c.type === "headTilt") { sim.p.headTilt = false; log("activity", "You released head tilt-chin lift"); }
+    if (c.type === "bvm") { sim.act("bvmStop"); log("activity", "You stopped using BVM"); }
+    if (c.type === "cpr") { sim.act("cprStop"); log("activity", "You stopped CPR"); }
+    state.cont = null;
+    ctx.busy = null;
+    $("continuous").classList.remove("show");
+    render();
+}
+
+// ------------------------------------------------------------------ time
+function setSpeed(s) {
+    state.speed = s;
+    state.running = s > 0 && !state.ended;
+    for (const btn of $("speed").querySelectorAll("button")) btn.setAttribute("aria-pressed", String(Number(btn.dataset.speed) === s));
+}
+function record() {
+    const p = sim.p;
+    state.history.push({ t: p.t, bv: p.bloodVolume, spo2: p.spo2, hr: p.hr, map: p.bp[0] + (p.bp[1] - p.bp[0]) / 3 });
+}
+function step() {
+    sim.tick();
+    runTimeline(sim);
+    updatePulseOximeters(sim);
+    const p = sim.p, c = state.cont;
+    if (c) {
+        if (c.type === "bvm" && p.t >= c.nextSqueeze) { sim.act("bvmBreath"); c.nextSqueeze = p.t + 6; }
+        // Continuous actions end on their own as in game: patient wakes (head tilt, BVM, CPR) or dies
+        if ((c.type === "headTilt" && (!p.headTilt || !p.unconscious)) || (c.type === "bvm" && (!p.bvm || (!p.unconscious && !p.lying))) || (c.type === "cpr" && !p.unconscious)) endContinuous();
+        if (!p.alive && c.type !== "pulse") endContinuous();
+    }
+    if (state.progress) {
+        const pr = state.progress;
+        const why = available(ctx, pr.a, pr.part);
+        if (why && !why.startsWith("Requires")) cancelAction(`${pr.a.label} interrupted`);
+        else if (p.t >= pr.end) { state.progress = null; $("progress").classList.remove("show"); finishAction(pr.a, pr.part, pr.item); }
+    }
+    record();
+    if (!p.alive) { endScenario("The casualty died."); return; }
+    if (p.t >= scn.timeLimit) endScenario("Time is up: the casualty has been handed over.");
+}
+function frame(now) {
+    const dt = Math.min(0.25, (now - state.last) / 1000);
+    state.last = now;
+    if (state.running) {
+        state.acc += dt * state.speed;
+        let steps = 0;
+        while (state.acc >= 1 && !state.ended && steps < 20) { state.acc -= 1; step(); steps++; if (!state.ended) renderTick(); }
+    }
+    drawFrame(now);
+    requestAnimationFrame(frame);
+}
+
+// ------------------------------------------------------------------ rendering
+function renderCats() {
+    const cats = $("cats");
+    cats.textContent = "";
+    for (const c of CATEGORIES) {
+        const b = el("button", { role: "tab", title: c.label });
+        b.innerHTML = CAT_ICONS[c.id];
+        b.append(el("span", { textContent: c.label.split(" ")[0] }));
+        b.setAttribute("aria-selected", String(c.id === state.cat));
+        b.addEventListener("click", () => { state.cat = c.id; render(); });
+        cats.append(b);
+    }
+    $("catTitle").textContent = CATEGORIES.find((c) => c.id === state.cat).label;
+}
+function renderActions() {
+    const list = $("actions");
+    list.textContent = "";
+    const showAll = $("showUnavailable").checked;
+    let shown = 0;
+    for (const a of catalogue.filter((x) => x.category === state.cat)) {
+        if (!a.parts.includes(state.part)) continue;
+        const why = available(ctx, a, state.part);
+        if (why && !showAll) continue;
+        const b = el("button", { disabled: !!why || !!state.progress });
+        b.append(el("span", { textContent: a.label }));
+        if (why) b.append(el("span", { className: "why", textContent: why }));
+        else if (a.items.length) {
+            const n = a.items.reduce((s, i) => s + (ctx.inventory[i] || 0), 0);
+            b.append(el("span", { className: "count", textContent: `×${n}` }));
+        }
+        b.addEventListener("click", () => startAction(a));
+        list.append(el("li", {}, b));
+        shown++;
+    }
+    if (!shown) list.append(el("li", { className: "none", textContent: "No actions available on this body part" }));
+}
+function renderState() {
+    const p = sim.p, box = $("patientState");
+    box.textContent = "";
+    const chip = (t, warn) => box.append(el("span", { className: "chip" + (warn ? " warn" : ""), textContent: t }));
+    chip(PART_NAMES[state.part] + " selected");
+    if (!p.alive) chip("Dead", true);
+    else if (p.unconscious) chip("Unconscious", true);
+    else chip("Conscious");
+    if (p.recoveryPosition) chip("Recovery position");
+    if (p.bvm) chip("BVM");
+    if (p.cpr || p.cprPaused) chip(p.cpr ? "CPR" : "CPR paused");
+}
+function renderInjuries() {
+    const ul = $("injuries");
+    ul.textContent = "";
+    for (const e of injuryList(sim, state.part)) {
+        const li = el("li", { textContent: e.text || " " });
+        li.style.color = e.color;
+        ul.append(li);
+    }
+}
+function renderLogs() {
+    for (const [id, arr] of [["activity", state.activity], ["quick", state.quick]]) {
+        const ul = $(id);
+        ul.textContent = "";
+        for (const e of arr.slice(0, 60)) ul.append(el("li", {}, el("time", { textContent: formatTime(e.t) }), e.text));
+    }
+}
+function renderInventory() {
+    const ul = $("inventory");
+    ul.textContent = "";
+    for (const [cls, n] of Object.entries(ctx.inventory)) {
+        ul.append(el("li", { className: n ? "" : "out" }, el("span", { textContent: itemName(data, cls) }), el("span", { textContent: `×${n}` })));
+    }
+}
+function render() {
+    renderCats();
+    renderActions();
+    renderTick();
+}
+function renderTick() {
+    $("clock").textContent = formatTime(sim.p.t);
+    renderState();
+    body.update(bodyPartColors(sim), state.part, sim.p);
+    renderInjuries();
+    renderLogs();
+    renderInventory();
+    if (!state.progress) renderActions();
+}
+function drawFrame(now) {
+    if (state.progress) {
+        const pr = state.progress;
+        const f = Math.min(1, (sim.p.t + state.acc - pr.start) / pr.total);
+        $("progressFill").style.width = `${f * 100}%`;
+        $("progress").setAttribute("aria-valuenow", String(Math.round(f * 100)));
+    }
+    if (state.cont?.type === "pulse") drawPulse(now);
+}
+function drawPulse(now) {
+    const part = state.cont.part;
+    const r = feelPulse(sim, part);
+    $("pulseSite").textContent = `Patient (${r.site[0].toUpperCase() + r.site.slice(1)})`;
+    const heart = $("heart");
+    if (r.rate > 0 && state.running) {
+        heart.style.visibility = "visible";
+        $("pulseNothing").textContent = "";
+        if (now >= state.nextBeat) {
+            const delay = 60 / r.rate / state.speed;
+            const beat = Math.min(0.5, 0.4 * delay), release = Math.min(0.7, 0.6 * delay);
+            const full = r.strength, rel = full * 0.62;
+            heart.animate([{ transform: `scale(${rel})` }, { transform: `scale(${full})`, offset: beat / (beat + release) }, { transform: `scale(${rel})` }], { duration: (beat + release) * 1000, easing: "ease-out" });
+            state.nextBeat = now + delay * 1000;
+        }
+    } else {
+        heart.style.visibility = r.rate > 0 ? "visible" : "hidden";
+        $("pulseNothing").textContent = r.rate > 0 ? "" : "Nothing felt";
+    }
+}
+
+// ------------------------------------------------------------------ briefing and debrief
+function briefing() {
+    $("briefTitle").textContent = `${scn.module}: ${scn.title}`;
+    $("briefSummary").textContent = scn.summary;
+    const ul = $("briefObjectives");
+    ul.textContent = "";
+    for (const o of scn.objectives || []) ul.append(el("li", { textContent: o }));
+    $("briefKit").textContent = Object.entries(scn.loadout || {}).map(([c, n]) => `${n}× ${itemName(data, c)}`).join(", ") + `. Role: ${scn.role}. Time limit ${Math.round(scn.timeLimit / 60)} min.`;
+    $("briefing").classList.add("show");
+    $("startBtn").focus();
+}
+function endScenario(reason) {
+    if (state.ended) return;
+    state.ended = true;
+    setSpeed(0);
+    cancelAction();
+    if (state.cont) endContinuous();
+    debrief(reason);
+}
+function chart(series, key, label, lo, hi, color, marks = []) {
+    const W = 760, H = 160, L = 34, B = 20, T = 8;
+    const tMax = Math.max(60, state.history.at(-1).t);
+    const x = (t) => L + (t / tMax) * (W - L - 6);
+    const y = (v) => T + (1 - (Math.max(lo, Math.min(hi, v)) - lo) / (hi - lo)) * (H - T - B);
+    const pts = series.map((h) => `${x(h.t).toFixed(1)},${y(h[key]).toFixed(1)}`).join(" ");
+    const markLines = marks.map((m) => `<line x1="${L}" x2="${W - 6}" y1="${y(m.v)}" y2="${y(m.v)}" stroke="${m.c}" stroke-dasharray="4 4" stroke-width="1"/><text x="${W - 8}" y="${y(m.v) - 3}" text-anchor="end">${m.t}</text>`).join("");
+    return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${label} over time">
+        <line class="axis" x1="${L}" y1="${H - B}" x2="${W - 6}" y2="${H - B}"/><line class="axis" x1="${L}" y1="${T}" x2="${L}" y2="${H - B}"/>
+        <text x="${L - 4}" y="${T + 8}" text-anchor="end">${hi}</text><text x="${L - 4}" y="${H - B}" text-anchor="end">${lo}</text>
+        <text x="${L}" y="${H - 4}">0:00</text><text x="${W - 6}" y="${H - 4}" text-anchor="end">${formatTime(tMax)}</text>
+        <text x="${L + 6}" y="${T + 10}">${label}</text>${markLines}
+        <polyline fill="none" stroke="${color}" stroke-width="2" points="${pts}"/></svg>`;
+}
+function debrief(reason) {
+    const p = sim.p;
+    const box = $("debriefBody");
+    const firsts = {};
+    for (const a of sim.actions) if (!(a.name in firsts)) firsts[a.name] = a.t;
+    const outcome = p.alive ? (p.woundBleeding > 0 ? "Alive, still bleeding" : "Alive") : `Died: ${p.causeOfDeath}`;
+    const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+    box.innerHTML = `
+        <h2 id="debriefTitle">Debrief: ${esc(scn.title)}</h2>
+        <p>${esc(reason)}</p>
+        <div class="outcome ${p.alive ? "alive" : "dead"}">${esc(outcome)}</div>
+        <h3>Patient at the end (true values)</h3>
+        <table class="vitals-table"><tr><th>Blood volume</th><td>${p.bloodVolume.toFixed(2)} L</td><th>Heart rate</th><td>${Math.round(p.hr)}</td></tr>
+        <tr><th>Blood pressure</th><td>${p.bp[1]}/${p.bp[0]}</td><th>SpO2</th><td>${p.spo2.toFixed(1)} %</td></tr>
+        <tr><th>Respiration</th><td>${Math.round(p.rr)} /min</td><th>Conscious</th><td>${p.alive && !p.unconscious ? "yes" : "no"}</td></tr></table>
+        <h3>Blood volume and oxygen</h3>
+        ${chart(state.history, "bv", "Blood volume (L)", 2.5, 6, "#e0574f", [{ v: 5.1, t: "5.1 L: can wake", c: "#c9a227" }, { v: 3.6, t: "3.6 L: class IV", c: "#e0574f" }])}
+        ${chart(state.history, "spo2", "SpO2 (%)", 50, 100, "#4dcccc", [{ v: 80, t: "80 %: unconscious", c: "#c9a227" }, { v: 67, t: "67 %: hypoxic arrest", c: "#e0574f" }])}
+        <h3>Timeline</h3>
+        <ul class="timeline">${state.timeline.sort((a, b) => a.t - b.t).map((e) => `<li class="${e.kind === "event" ? "ev" : ""}"><time>${formatTime(e.t)}</time>${esc(e.text)}</li>`).join("") || "<li>No actions taken</li>"}</ul>
+        <h3>Objectives (scoring arrives in a later build)</h3>
+        <ul>${(scn.objectives || []).map((o) => `<li>${esc(o)}</li>`).join("")}</ul>
+        <div class="buttons"><a class="btn" href="index.html">Scenarios</a><button class="btn" id="retryBtn">Retry</button><button class="btn primary" id="newSeedBtn">New variation</button></div>`;
+    $("debrief").classList.add("show");
+    $("retryBtn").addEventListener("click", () => { location.href = `play.html?s=${encodeURIComponent(scn.id)}&seed=${seed}`; });
+    $("newSeedBtn").addEventListener("click", () => { location.href = `play.html?s=${encodeURIComponent(scn.id)}&seed=${Math.floor(Math.random() * 1e9)}`; });
+    $("retryBtn").focus({ preventScroll: true });
+    box.scrollTop = 0;
+}
+
+// ------------------------------------------------------------------ wiring
+start();
+document.title = `${scn.title}: ACM Trainer`;
+$("title").innerHTML = "";
+$("title").append(scn.title, el("small", { textContent: scn.module + (seed !== scn.seed ? ` · variation ${seed}` : "") }));
+body = createBody($("body"), (part) => { state.part = part; render(); });
+$("speed").addEventListener("click", (e) => { const b = e.target.closest("button"); if (b && !state.ended) setSpeed(Number(b.dataset.speed)); });
+$("showUnavailable").addEventListener("change", render);
+$("cancelBtn").addEventListener("click", () => cancelAction("Cancelled"));
+$("pulseStop").addEventListener("click", endContinuous);
+$("endBtn").addEventListener("click", () => endScenario("You ended the scenario."));
+$("startBtn").addEventListener("click", () => { $("briefing").classList.remove("show"); setSpeed(1); });
+document.addEventListener("keydown", (e) => {
+    if (e.code === "Space" && !e.target.closest("button, input, a, [role=button]")) { e.preventDefault(); setSpeed(state.speed > 0 ? 0 : 1); }
+    if (e.key === "Escape" && state.progress) cancelAction("Cancelled");
+});
+setSpeed(0);
+render();
+if (params.has("autostart")) {
+    // Testing aid: skip the briefing, optionally fast-forward (ff seconds) and select a part
+    // script=id@part,id@part runs actions through the same path as the buttons (startAction -> progress -> finish)
+    for (const entry of (params.get("script") || "").split(",").filter(Boolean)) {
+        const [id, part] = entry.split("@");
+        state.part = part;
+        startAction(catalogue.find((a) => a.id === id));
+        for (let i = 0; i < 60 && state.progress && !state.ended; i++) step();
+    }
+    for (let i = 0; i < Number(params.get("ff") || 0) && !state.ended; i++) step();
+    if (params.get("part")) state.part = params.get("part");
+    if (params.get("cat")) state.cat = params.get("cat");
+    render();
+    if (!state.ended) setSpeed(1);
+} else briefing();
+requestAnimationFrame((t) => { state.last = t; frame(t); });

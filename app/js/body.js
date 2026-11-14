@@ -1,0 +1,80 @@
+// Body diagram (drawn here, not copied from ACE). Viewed from the front: the patient's left side is on the right.
+const NS = "http://www.w3.org/2000/svg";
+const SHAPES = {
+    head: { tag: "ellipse", a: { cx: 100, cy: 40, rx: 26, ry: 30 } },
+    body: { tag: "path", a: { d: "M70 78 Q100 70 130 78 L138 92 L134 210 Q100 222 66 210 L62 92 Z" } },
+    rightarm: { tag: "path", a: { d: "M60 84 L44 92 L26 196 L30 236 L46 238 L50 200 L64 112 Z" } },
+    leftarm: { tag: "path", a: { d: "M140 84 L156 92 L174 196 L170 236 L154 238 L150 200 L136 112 Z" } },
+    rightleg: { tag: "path", a: { d: "M68 214 Q84 222 98 220 L96 330 L92 404 L70 406 L66 330 Z" } },
+    leftleg: { tag: "path", a: { d: "M132 214 Q116 222 102 220 L104 330 L108 404 L130 406 L134 330 Z" } },
+};
+// Where tourniquets, pulse oximeters and labels are drawn
+const TQ = { leftarm: [140, 104, 22, 9, 12], rightarm: [38, 104, 22, 9, -12], leftleg: [104, 236, 30, 9, 0], rightleg: [66, 236, 30, 9, 0] };
+const OX = { leftarm: [154, 232], rightarm: [30, 232] };
+const NAMES = { head: "Head", body: "Torso", leftarm: "Left Arm", rightarm: "Right Arm", leftleg: "Left Leg", rightleg: "Right Leg" };
+
+export function createBody(container, onSelect) {
+    const svg = document.createElementNS(NS, "svg");
+    svg.setAttribute("viewBox", "0 0 200 420");
+    svg.setAttribute("class", "body-svg");
+    svg.setAttribute("role", "group");
+    svg.setAttribute("aria-label", "Body parts");
+    const parts = {};
+    for (const [id, s] of Object.entries(SHAPES)) {
+        const el = document.createElementNS(NS, s.tag);
+        for (const [k, v] of Object.entries(s.a)) el.setAttribute(k, v);
+        el.setAttribute("class", "part");
+        el.setAttribute("tabindex", "0");
+        el.setAttribute("role", "button");
+        el.setAttribute("aria-label", NAMES[id]);
+        el.addEventListener("click", () => onSelect(id));
+        el.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onSelect(id); } });
+        svg.append(el);
+        parts[id] = el;
+    }
+    const overlay = document.createElementNS(NS, "g");
+    svg.append(overlay);
+    const side = (x, t) => { const el = document.createElementNS(NS, "text"); el.setAttribute("x", x); el.setAttribute("y", 416); el.setAttribute("fill", "#a9adb1"); el.setAttribute("font-size", "12"); el.setAttribute("text-anchor", "middle"); el.textContent = t; svg.append(el); };
+    side(30, "R"); side(170, "L");
+    container.append(svg);
+
+    return {
+        update(colors, selected, p) {
+            const order = ["head", "body", "leftarm", "rightarm", "leftleg", "rightleg"];
+            order.forEach((id, i) => {
+                parts[id].style.fill = colors[i];
+                parts[id].classList.toggle("selected", id === selected);
+                parts[id].setAttribute("aria-pressed", String(id === selected));
+            });
+            overlay.textContent = "";
+            order.forEach((id, i) => {
+                if (p.tourniquets[i] && TQ[id]) {
+                    const [x, y, w, h, rot] = TQ[id];
+                    const r = document.createElementNS(NS, "rect");
+                    Object.entries({ x, y, width: w, height: h, rx: 2, class: "tq", transform: `rotate(${rot} ${x + w / 2} ${y + h / 2})` }).forEach(([k, v]) => r.setAttribute(k, v));
+                    overlay.append(r);
+                }
+            });
+            ["leftarm", "rightarm"].forEach((id, k) => {
+                if (p.pulseOx[k]) {
+                    const [x, y] = OX[id];
+                    const r = document.createElementNS(NS, "rect");
+                    Object.entries({ x: x - 7, y: y - 4, width: 14, height: 10, rx: 2, fill: "#4dcccc", stroke: "#000" }).forEach(([a, v]) => r.setAttribute(a, v));
+                    overlay.append(r);
+                }
+            });
+            if (p.chestSeal) {
+                const r = document.createElementNS(NS, "rect");
+                Object.entries({ x: 106, y: 100, width: 18, height: 18, rx: 3, fill: "#fff200", stroke: "#000" }).forEach(([a, v]) => r.setAttribute(a, v));
+                overlay.append(r);
+            }
+            const tags = [p.airwayNasal === "NPA" ? "NPA" : "", p.airwayOral === "SGA" ? "i-gel" : p.airwayOral].filter(Boolean);
+            tags.forEach((t, k) => {
+                const tx = document.createElementNS(NS, "text");
+                Object.entries({ x: 100, y: 46 + k * 15, "text-anchor": "middle", class: "icon-label" }).forEach(([a, v]) => tx.setAttribute(a, v));
+                tx.textContent = t;
+                overlay.append(tx);
+            });
+        },
+    };
+}

@@ -5,6 +5,8 @@ import { createPatient } from "./patient.js";
 import { addWound, bandage, wrap, stitch, updateWoundBleeding, coagulationStep, ibCoagulationStep, woundTimers } from "./wounds.js";
 import { addMedication, medicationCount, medicationTypeMap } from "./pharmacology.js";
 import { airwayState } from "./oxygen.js";
+import { airwayTimers, resetAirway, onUnconsciousAirway } from "./airway.js";
+import { breathingTimers, handleChestInjury } from "./breathing.js";
 import {
     handleUnitVitals, vitalsTimers, onCardiacArrest, administerShock, wakeUpCheck, hasPulse, bloodPressure,
     updateCirculationState, recentAEDShock,
@@ -34,7 +36,8 @@ export class Simulation {
         this.events = [];
         this.actions = [];
         this.listeners = [];
-        this.handlers = { ...woundTimers, ...vitalsTimers, ...simTimers };
+        this.handlers = { ...woundTimers, ...vitalsTimers, ...airwayTimers, ...breathingTimers, ...simTimers };
+        resetAirway(this);
     }
 
     // ---------------------------------------------------------------- services used by the modules
@@ -92,12 +95,14 @@ export class Simulation {
         p.unconscious = state;
         this.emit(state ? "unconscious" : "wokeUp", {});
         if (state) {
-            // core/onUnconscious -> handleKnockOut
+            // core/onUnconscious -> handleKnockOut; airway/onUnconscious -> handleAirway
             p.knockOut = true;
             this.schedule(15 + this.rng.random(20), "knockOutEnds");
             p.lastWakeUpCheck = null;
+            onUnconsciousAirway(this);
         } else {
             p.lastBreath = -1;
+            resetAirway(this); // airway/onUnconscious on waking -> resetVariables
         }
     }
     cprSucceeded() {
@@ -116,6 +121,20 @@ export class Simulation {
         if (recentAEDShock(p)) p.lastShock = 0;
     }
     wakeUp() { this.setUnconscious(false); }
+
+    /** woundsHandlerBase critical hit (head, or torso above the penetration threshold): trauma check, then chest injury. */
+    criticalHit(part, type, size, damage) {
+        const p = this.p;
+        if (this.setting("ACM_damage_enable")) {
+            // damage/handleTrauma and handleCardiacArrestTrauma (player thresholds; 0 disables)
+            const [head, body] = [p.bodyPartDamage[0], p.bodyPartDamage[1]];
+            const hd = this.setting("ACM_damage_headTraumaDeathThreshold"), bd = this.setting("ACM_damage_bodyTraumaDeathThreshold");
+            const hc = this.setting("ACM_damage_headTraumaCardiacArrestThreshold"), bc = this.setting("ACM_damage_bodyTraumaCardiacArrestThreshold");
+            if ((hd > 0 && head > hd) || (bd > 0 && body > bd)) { this.die("Fatal Injury"); return; }
+            if ((hc > 0 && head > hc) || (bc > 0 && body > bc)) this.fatalVitals();
+        }
+        if (part === "body") handleChestInjury(this, type, size, damage);
+    }
     die(cause) {
         const p = this.p;
         if (!p.alive) return;
