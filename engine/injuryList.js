@@ -66,6 +66,13 @@ export function injuryList(sim, part) {
     if (i === 0) {
         if (p.airwayNasal === "NPA") e.push({ text: "NPA", color: C.airway });
         if (p.airwayOral) e.push({ text: p.airwayOral === "SGA" ? "i-gel" : "OPA", color: C.airway });
+        if (p.surgicalAirway || p.sa?.inProgress) {
+            let t = "Surgical Airway";
+            if (p.surgicalAirway && p.sa?.strapSecure) t += " [Strapped]";
+            if (p.incisionOpen && !p.incisionStitched) t += " [Open Incision]";
+            if (p.sa?.inProgress) t += " [In Progress]";
+            e.push({ text: t, color: C.airway });
+        }
     }
     // Cyanosis (head and arms)
     if ((i === 0 || i === 2 || i === 3) && (!p.alive || p.spo2 < 91 || p.tourniquets[i])) {

@@ -33,6 +33,7 @@ export function resetAirway(sim) {
     p.airwayOral = "";
     p.airwayNasal = "";
     p.airwayCheckedTime = null;
+    p.surgicalAirway = false; p.surgicalAirwayUnsecure = false; p.incisionOpen = false; p.incisionStitched = false; p.incisionBleedBase = 0; p.sa = null;
     p.airwayEpoch = (p.airwayEpoch || 0) + 1; // invalidates pending timeline timers from an earlier episode
 }
 

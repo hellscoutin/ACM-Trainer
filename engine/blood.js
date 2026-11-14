@@ -3,6 +3,7 @@
 // SQF operator precedence is kept where it changes results; those lines are marked "as SQF".
 import { lin, PART_INDEX } from "./util.js";
 import { cardiacOutput, addPain } from "./patient.js";
+import { incisionBleedRate } from "./surgicalAirway.js";
 
 const DEFAULT_BLOOD = 6;
 
@@ -67,7 +68,8 @@ export function bloodVolumeStep(sim, dt) {
         htx = -dt * hemothoraxBleedRate(sim);
         p.htxFluid = Math.min(1.5, p.htxFluid - htx * (1 - plateletBleedRatio));
     }
-    if (p.incisionBleedRate > 0 && !p.incisionStitched) bloodLoss += -dt * p.incisionBleedRate;
+    const incision = incisionBleedRate(sim);
+    if (incision > 0) bloodLoss += -dt * incision;
 
     const active = (blood > 0 ? 1 : 0) + (plasma > 0 ? 1 : 0) + (saline > 0 ? 1 : 0);
 

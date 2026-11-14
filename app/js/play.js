@@ -9,6 +9,8 @@ import { createRecorder, scoreRun } from "../../engine/scoring.js";
 import { openSyringe, openAED, aedAmbient } from "./windows-med.js";
 import { drawSyringe, injectSyringe, drugName } from "../../engine/syringes.js";
 import { aedState } from "../../engine/aed.js";
+import { openCric } from "./windows-cric.js";
+import { endProcedure } from "../../engine/surgicalAirway.js";
 
 const $ = (id) => document.getElementById(id);
 const el = (tag, props = {}, ...kids) => { const e = document.createElement(tag); Object.assign(e, props); e.append(...kids); return e; };
@@ -176,7 +178,7 @@ function aedPress(id) {
 function beginContinuous(type, part, win) {
     state.cont = { type, part, nextSqueeze: sim.p.t + 6 };
     ctx.busy = type;
-    if (win && ["bp", "stethoscope", "transfusion", "syringe", "aed"].includes(type)) {
+    if (win && ["bp", "stethoscope", "transfusion", "syringe", "aed", "cric"].includes(type)) {
         const host = $("procHost");
         const speed = () => (state.running ? state.speed : 0);
         if (type === "bp") state.cont.win = openBP(host, sim, part, win.stethoscope, speed);
@@ -184,7 +186,8 @@ function beginContinuous(type, part, win) {
         if (type === "transfusion") state.cont.win = openTransfusion(host, sim, part, ctx, { startTimed, onChange: (text) => { log("activity", text); render(); } });
         if (type === "syringe") state.cont.win = openSyringe(host, ctx, part, win.size, syringeCallbacks(part, win.size));
         if (type === "aed") state.cont.win = openAED(host, sim, { press: aedPress }, speed);
-        $("procClose").textContent = { bp: "Stop measuring", stethoscope: "Stop using stethoscope", transfusion: "Close", syringe: "Close", aed: "Close monitor" }[type];
+        if (type === "cric") state.cont.win = openCric(host, sim, { hint, close: () => endContinuous() });
+        $("procClose").textContent = { bp: "Stop measuring", stethoscope: "Stop using stethoscope", transfusion: "Close", syringe: "Close", aed: "Close monitor", cric: "Finish / cancel" }[type];
         $("procWindow").classList.add("show");
         return;
     }
@@ -216,6 +219,13 @@ function endContinuous() {
     if (c.win) { c.win.close(); $("procWindow").classList.remove("show"); }
     if (c.type === "bp") hint(["Stopped measuring blood pressure"]);
     if (c.type === "stethoscope") hint(["Stopped using stethoscope"]);
+    if (c.type === "cric") {
+        const r = endProcedure(sim);
+        if (r.kitReturned) { ctx.inventory.ACM_CricKit = (ctx.inventory.ACM_CricKit || 0) + 1; hint(["Cancelled surgical airway"]); }
+        else if (r.failed) { hint(["Surgical airway failed"]); log("activity", `${ctx.name} cancelled surgical airway`); }
+        else if (r.cancelled) { hint(["Cancelled surgical airway"]); log("activity", `${ctx.name} cancelled surgical airway`); }
+        else if (r.established) { log("activity", `${ctx.name} established surgical airway`); recorder.action("surgicalairway_established", "head", true); if (sim.p.sa.strapSecure) recorder.action("surgicalairway_securestrap", "head", true); }
+    }
     if (c.type === "headTilt") { sim.p.headTilt = false; log("activity", "You released head tilt-chin lift"); }
     if (c.type === "bvm") { sim.act("bvmStop"); log("activity", "You stopped using BVM"); }
     if (c.type === "cpr") { sim.act("cprStop"); log("activity", "You stopped CPR"); }
@@ -245,6 +255,7 @@ function step() {
         // Continuous actions end on their own as in game: patient wakes (head tilt, BVM, CPR) or dies
         if ((c.type === "headTilt" && (!p.headTilt || !p.unconscious)) || (c.type === "bvm" && (!p.bvm || (!p.unconscious && !p.lying))) || (c.type === "cpr" && !p.unconscious)) endContinuous();
         if (!p.alive && c.type !== "pulse") endContinuous();
+        if (c.type === "cric" && state.cont && (!p.unconscious || p.sa?.failed)) endContinuous();
     }
     if (state.progress?.fn) {
         const pr = state.progress;

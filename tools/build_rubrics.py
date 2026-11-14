@@ -128,6 +128,22 @@ RUBRICS = {
         {"id": "spo2-end", "text": "SpO2 above 90 % at the end", "type": "end-state", "state": {"all": [ALIVE, P("spo2", ">", 90)]}, "weight": 2,
          "why": "After ROSC keep the airway open and ventilate until oxygen recovers.", "guide": "Ventilation and oxygen"},
     ]},
+    "cm6-surgical-airway": {"passMark": 0.75, "checks": [
+        {"id": "check", "text": "Airway checked within 60 s", "type": "action-within", "actions": ["checkairway"], "within": 60, "weight": 1,
+         "why": "Check Airway reports light or full obstruction, collapse and what is in place.", "guide": "Airway management"},
+        {"id": "bleed", "text": "Head bleeding stopped within 2 minutes", "type": "state-within", "state": P("bleeding_head", "==", 0), "within": 120, "weight": 2,
+         "why": "Blood obstruction keeps coming while the head bleeds; bandaging the head slows it at the source.", "guide": "How airways fail"},
+        {"id": "cric", "text": "Surgical airway established", "type": "action-done", "actions": ["surgicalairway_established"], "weight": 3, "critical": True,
+         "why": "A surgical airway gives a full airway whatever is in the throat. It needs the landmarks: vertical cut across the membrane, then horizontal through it.", "guide": "Airway management"},
+        {"id": "blocked", "text": "Airway blocked for no more than 90 s in total", "type": "state-duration-max", "state": P("airwayBlocked", "==", True), "max": 90, "weight": 2,
+         "why": "With the airway blocked there is no breathing at all; clear it first (head turn, suction) and then secure it.", "guide": "Airway management"},
+        {"id": "strap", "text": "Neck strap secured", "type": "action-done", "actions": ["surgicalairway_securestrap"], "weight": 1,
+         "why": "Secure the strap during the procedure or afterwards from the menu.", "guide": "Airway management"},
+        {"id": "stitch", "text": "Airway incision stitched", "type": "action-done", "actions": ["stitchairwayincision"], "weight": 2,
+         "why": "Each incision keeps bleeding (count x 0.02 x severity, scaled by cardiac output) until stitched with the surgical kit.", "guide": "Airway management"},
+        {"id": "spo2-end", "text": "SpO2 above 90 % at the end", "type": "end-state", "state": {"all": [ALIVE, P("spo2", ">", 90)]}, "weight": 2,
+         "why": "Once the airway is secure, breathing restores oxygen.", "guide": "Ventilation and oxygen"},
+    ]},
 }
 
 

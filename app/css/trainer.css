@@ -201,3 +201,21 @@ button { font: inherit; color: inherit; }
 .aed-btn { position: absolute; border-radius: 10px; }
 .aed-box .hit { background: transparent; border: 0; cursor: pointer; }
 .aed-box .hit:hover, .aed-box .hit:focus-visible { outline: 2px solid var(--focus); }
+
+/* surgical airway */
+.cric-row { display: grid; grid-template-columns: 74px 1fr; gap: 12px; }
+.cric-tray { display: flex; flex-direction: column; gap: 8px; }
+.cric-tool { width: 66px; height: 66px; padding: 4px; border-radius: 6px; border: 1px solid var(--line); background: rgba(255, 255, 255, 0.08); cursor: pointer; }
+.cric-tool img { width: 100%; height: 100%; object-fit: contain; }
+.cric-tool.selected { background: #fff; outline: 2px solid var(--accent); }
+.cric-tool.selected img { filter: brightness(0); }
+.cric-tool:disabled { opacity: 0.25; cursor: not-allowed; }
+.cric-area { display: flex; justify-content: center; }
+.cric-stage { cursor: crosshair; touch-action: none; }
+.cric-stage .hide { display: none; }
+.cric-marker { border-radius: 50%; pointer-events: none; -webkit-mask: url(../assets/acm/ui/cric/feedback_marker.png) center / contain no-repeat; mask: url(../assets/acm/ui/cric/feedback_marker.png) center / contain no-repeat; }
+.cric-active { pointer-events: none; }
+.cric-cut { position: absolute; background: #8b0000; pointer-events: none; }
+.cric-zone { cursor: pointer; border-radius: 6px; }
+.cric-zone:hover, .cric-zone:focus-visible { outline: 2px dashed var(--focus); }
+.cric-ctl { display: flex; gap: 8px; margin-top: 8px; }

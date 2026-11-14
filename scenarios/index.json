@@ -20,6 +20,7 @@
     "cm1-hemorrhagic-shock",
     "cm2-tension-chest",
     "cm4-hemothorax",
-    "cm5-cardiac-arrest"
+    "cm5-cardiac-arrest",
+    "cm6-surgical-airway"
   ]
 }

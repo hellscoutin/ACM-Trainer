@@ -1,0 +1,51 @@
+{
+  "id": "cm6-surgical-airway",
+  "title": "Blood in the airway",
+  "track": "combat-medic",
+  "module": "CM-6",
+  "summary": "A gunner took fragments to the face and scalp and is unconscious. Blood keeps running into his airway faster than you can clear it, and you have one suction bag. Secure the airway for good.",
+  "seed": 7301,
+  "timeLimit": 720,
+  "role": "medic",
+  "patient": {
+    "weight": 84,
+    "bloodType": "B+",
+    "conscious": false
+  },
+  "injuries": [
+    {
+      "part": "head",
+      "type": "Laceration",
+      "damage": 1.2,
+      "count": 2
+    },
+    {
+      "part": "head",
+      "type": "Avulsion",
+      "damage": 0.9
+    }
+  ],
+  "settings": {
+    "ACM_airway_airwayObstructionBloodChance": 2
+  },
+  "loadout": {
+    "ACM_CricKit": 1,
+    "ACE_surgicalKit": 1,
+    "ACM_SuctionBag": 1,
+    "ACM_PressureBandage": 4,
+    "ACM_EmergencyTraumaDressing": 1,
+    "ACM_NPA": 1,
+    "ACM_BVM": 1,
+    "ACM_PulseOximeter": 1,
+    "ACM_IV_16g": 1,
+    "ACE_salineIV": 1
+  },
+  "objectives": [
+    "Check the airway and clear it (head turn, suction)",
+    "Control the head bleeding",
+    "Establish a surgical airway: palpate, vertical cut, horizontal cut, hook, Cric-Key, cuff, stylet",
+    "Secure the neck strap and stitch the incision (incisions bleed until stitched)",
+    "SpO2 above 90 % at the end"
+  ],
+  "rubric": "rubrics/cm6-surgical-airway.json"
+}

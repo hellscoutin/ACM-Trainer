@@ -13,6 +13,7 @@ import { insertIV, removeIV, insertIO, removeIO, inspectIV, attachCuff, removeCu
 import { thoracostomy, insertChestTube, drainChest, closeIncision } from "./breathing.js";
 import { wrap, stitch } from "./wounds.js";
 import { SYRINGE_SIZES, SYRINGE_DRUGS, vialItem, drugName, injectSyringe } from "./syringes.js";
+import { canEstablish, canSecure, canStitchIncision, secureStrap, stitchIncision, stitchIncisionTime, startProcedure } from "./surgicalAirway.js";
 import { aedState, hasAED, connect, disconnect, analyze, manualCharge, shock, cancelCharge, measureBP, canAnalyze, canManualCharge, canShock, canCancelCharge, canMeasureBP } from "./aed.js";
 
 export const CATEGORIES = [
@@ -201,6 +202,10 @@ const DEFS = {
     aed_shock: aedDef((c) => canShock(c.sim.p), (c) => shock(c.sim), "administered a shock"),
     aed_cancelcharge: aedDef((c) => canCancelCharge(c.sim.p), (c) => cancelCharge(c.sim), "cancelled the charge"),
     aed_measurebp: aedDef((c, part) => canMeasureBP(c.sim.p) && (aedState(c.sim.p).cuff === PART_INDEX[part] || part === "body"), (c) => measureBP(c.sim), "measured blood pressure (AED)"),
+    // ------------------------------------------------------------------ surgical airway
+    establishsurgicalairway: { continuous: "cric", show: (c) => airwayOn(c) && canEstablish(c.sim.p), run: (c) => { startProcedure(c.sim); return { window: { type: "cric" } }; } },
+    surgicalairway_securestrap: { show: (c) => canSecure(c.sim.p), run: (c) => ({ hint: [secureStrap(c.sim)], log: `${c.name} secured surgical airway neck strap` }) },
+    stitchairwayincision: { show: (c) => canStitchIncision(c.sim.p), time: (c) => stitchIncisionTime(c.sim.p, false), run: (c) => ({ hint: [stitchIncision(c.sim)], log: `${c.name} stitched surgical airway incision` }) },
     elasticwrapbandages: wrapDef(false), elasticwrapclots: wrapDef(true),
     surgicalkit: stitchDef("bandaged", 5), stitchclottedwounds: stitchDef("clotted", 5), stitchwrappedwounds: stitchDef("wrapped", 2),
 };
@@ -310,7 +315,8 @@ export function buildCatalogue(data) {
         out.push({
             id: cls, label: t.name, category: t.category,
             parts: t.bodyParts.includes("all") ? ["head", "body", ...LIMBS] : t.bodyParts,
-            items: t.items || [], consumes: !!t.consumesItem && (t.items || []).length > 0,
+            // consumesItem may be an ACE setting (consumeSurgicalKit, default 0 = nothing consumed)
+            items: t.items || [], consumes: t.consumesItem === true && (t.items || []).length > 0,
             levelSpec: t.trainingLevel, timeSpec: t.time, ...def,
         });
     }
