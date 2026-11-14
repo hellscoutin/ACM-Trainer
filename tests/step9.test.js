@@ -101,6 +101,7 @@ for (const [id, play] of Object.entries({
         s.act("insertiv_14_middle", "leftarm");
         s.addBag("leftarm", 1, true, "ACM_BloodBag_B_500"); s.addBag("leftarm", 1, true, "ACM_BloodBag_B_500");
         for (let k = 0; k < 12; k++) for (const part of PARTS) if ((s.sim.p.openWounds[part] || []).some((w) => w.count > 0 && w.bleeding > 0)) for (const b of ["emergencytraumadressing", "pressurebandage", "elasticbandage"]) if (!s.act(b, part).error) break;
+        s.act("applychestseal", "body");
         s.draw(10, "TXA", 10); s.act("txa_10_iv", "leftarm");
         s.until(240); s.addBag("leftarm", 1, true, "ACM_BloodBag_ON_500"); s.addBag("leftarm", 1, true, "ACM_BloodBag_ON_500");
         s.until(420); s.draw(10, "CalciumChloride", 10); s.act("calciumchloride_10_iv", "leftarm");
@@ -131,6 +132,7 @@ for (const [id, play] of Object.entries({
         s.until(scn.timeLimit);
         const r = s.score();
         assert.equal(r.passed, true, failedIds(r));
+        assert.equal(failedIds(r), "", "textbook treatment passes every applicable check");
     });
 }
 

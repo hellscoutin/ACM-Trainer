@@ -27,13 +27,15 @@
   "loadout": {
     "ACE_tourniquet": 2,
     "ACM_PressureBandage": 4,
-    "ACM_Paracetamol": 1
+    "ACM_Paracetamol": 1,
+    "ACM_SAMSplint": 1
   },
   "objectives": [
     "Stop the life-threatening leg bleed with a tourniquet as fast as possible",
     "Bandage the forearm wound",
     "Treat pain once bleeding is controlled",
-    "Patient alive and not bleeding at the end"
+    "Patient alive and not bleeding at the end",
+    "Splint the leg if it is fractured"
   ],
   "rubric": "rubrics/cls1-leg-hemorrhage.json"
 }

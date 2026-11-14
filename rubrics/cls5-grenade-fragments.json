@@ -49,6 +49,23 @@
    "guide": "Pain and consciousness"
   },
   {
+   "id": "seal",
+   "text": "Chest wound sealed",
+   "type": "action-done",
+   "actions": [
+    "applychestseal"
+   ],
+   "requires": {
+    "field": "chestInjury",
+    "op": "==",
+    "value": true
+   },
+   "requiresText": "No chest injury in this variation",
+   "weight": 1,
+   "why": "A penetrating torso wound causes a chest injury; seal it so a pneumothorax cannot build up.",
+   "guide": "Chest treatment"
+  },
+  {
    "id": "alive",
    "text": "Casualty alive at handover",
    "type": "end-state",

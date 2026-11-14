@@ -55,7 +55,8 @@ export function renderClinical(container, c) {
     const ci = c.circulation;
     sec("Circulation", row("Heart rate", ci.hr, "Blood pressure", `${ci.sys}/${ci.dia}`), row("Blood volume", `${ci.bloodVolume} L`, "Blood / plasma / saline", `${ci.blood} / ${ci.plasma} / ${ci.saline} L`),
         row("External bleeding", `${ci.externalBleeding} ml/min`, "Internal bleeding", `${ci.internalBleeding} ml/min`),
-        row("Bleeding from", ci.bleedingParts.map((x) => `${PART_NAMES[x.part]} ${x.ml}`).join(", ") || "none", "Tourniquets", ci.tourniquets.map((x) => `${PART_NAMES[x.part]}${x.minutes !== null ? ` ${x.minutes} min` : ""}`).join(", ") || "none"),
+        row("Bleeding from", ci.bleedingParts.map((x) => `${PART_NAMES[x.part]} ${x.ml}`).join(", ") || "none", "Internal bleeding from", (ci.internalParts || []).map((x) => `${PART_NAMES[x.part]} ${x.ml}`).join(", ") || "none"),
+        row("Tourniquets", ci.tourniquets.map((x) => `${PART_NAMES[x.part]}${x.minutes !== null ? ` ${x.minutes} min` : ""}`).join(", ") || "none", "", ""),
         row("Platelets", ci.platelets, "Fluid overload", `${ci.overload} L`), row("Transfused (uncleared)", `${ci.transfused} L`, "Calcium", ci.calcium),
         row("Hemolytic reaction", ci.hemolytic ? `severity ${ci.hemolytic}` : "none", "Running bags", ci.bags.map((x) => `${x.type}${x.bloodType ? " " + x.bloodType : ""} ${x.remaining} ml`).join(", ") || "none"));
     const d = c.disability;

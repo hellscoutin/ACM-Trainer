@@ -87,6 +87,26 @@
    "guide": "External bleeding"
   },
   {
+   "id": "splint",
+   "text": "Fractured leg splinted",
+   "type": "action-done",
+   "actions": [
+    "applysamsplint"
+   ],
+   "parts": [
+    "leftleg"
+   ],
+   "requires": {
+    "field": "fracture_leftleg",
+    "op": "==",
+    "value": 1
+   },
+   "requiresText": "The leg is not fractured in this variation",
+   "weight": 1,
+   "why": "The gunshot broke the thigh bone. Splint it once the bleeding is controlled.",
+   "guide": "Fractures"
+  },
+  {
    "id": "alive",
    "text": "Casualty alive at handover",
    "type": "end-state",

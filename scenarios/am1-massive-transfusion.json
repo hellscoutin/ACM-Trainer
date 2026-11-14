@@ -3,8 +3,8 @@
   "title": "Massive transfusion",
   "track": "advanced-medic",
   "module": "AM-1a",
-  "summary": "A casualty from an IED strike reaches the aid post after a long carry. The medic put a tourniquet on his mangled right leg, but he has lost a lot of blood, is bleeding inside and still has open wounds. You are the doctor: resuscitate him and manage a long transfusion.",
-  "seed": 7,
+  "summary": "A casualty hit by an IED and then shot through the torso and left arm reaches the aid post after a long carry. The medic put a tourniquet on his mangled right leg, but he has lost a lot of blood, is bleeding inside his torso and still has open wounds. You are the doctor: resuscitate him and manage a long transfusion.",
+  "seed": 61,
   "timeLimit": 1200,
   "role": "doctor",
   "patient": {
@@ -20,8 +20,8 @@
     },
     {
       "part": "body",
-      "mechanism": "grenade",
-      "damage": 1.2
+      "mechanism": "bullet",
+      "damage": 1.0
     },
     {
       "part": "leftarm",
@@ -60,11 +60,13 @@
     "ACM_Vial_Morphine": 1,
     "ACM_PulseOximeter": 1,
     "ACM_PressureCuff": 1,
-    "ACM_Stethoscope": 1
+    "ACM_Stethoscope": 1,
+    "ACM_ChestSeal": 1,
+    "ACM_SAMSplint": 2
   },
   "objectives": [
-    "Dress the remaining wounds",
-    "TXA early for the internal bleeding",
+    "Dress the remaining wounds and seal the chest wound",
+    "TXA early for the bleeding inside the torso",
     "Transfuse blood (check the type on the dog tag; O- fits anyone) and avoid flooding him with saline",
     "After several units of blood, give calcium chloride IV (transfused blood lowers the heart rate and uses up platelets)",
     "Blood volume back above 5.4 L and the casualty alive after 20 minutes"

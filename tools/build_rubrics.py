@@ -31,6 +31,8 @@ RUBRICS = {
          "why": "Once bleeding is controlled, treat pain: an awake casualty in severe pain stays tachycardic.", "guide": "Pain and consciousness"},
         {"id": "no-tq-off", "text": "Tourniquet not removed while the wound still bleeds", "type": "action-forbidden", "actions": ["removetourniquet"], "parts": ["leftleg"], "when": P("bleeding_leftleg", ">", 0), "weight": 1,
          "why": "Taking the tourniquet off an unbandaged wound restarts the bleed. A combat lifesaver leaves it on for the medic.", "guide": "External bleeding"},
+        {"id": "splint", "text": "Fractured leg splinted", "type": "action-done", "actions": ["applysamsplint"], "parts": ["leftleg"], "requires": P("fracture_leftleg", "==", 1), "requiresText": "The leg is not fractured in this variation", "weight": 1,
+         "why": "The gunshot broke the thigh bone. Splint it once the bleeding is controlled.", "guide": "Fractures"},
         {"id": "alive", "text": "Casualty alive at handover", "type": "end-state", "state": ALIVE, "weight": 2, "critical": True,
          "why": "The casualty must survive to handover.", "guide": "The patient model"},
     ]},
@@ -150,6 +152,8 @@ RUBRICS = {
         {"id": "splint", "requires": P("fracture_leftarm", "==", 1), "requiresText": "No fracture of that limb in this variation", "text": "Fractured arm splinted", "type": "action-done", "actions": ["applysamsplint"], "parts": ["leftarm"], "weight": 2,
          "why": "Inspect for deformity and splint the fractured limb (a medic realigns it first so the splint sets the bone).", "guide": "Fractures"},
         {"id": "pain", "text": "Pain treated", "type": "action-done", "actions": ["paracetamol"], "weight": 1, "why": "Fragment wounds and fractures hurt; treat pain once bleeding is controlled.", "guide": "Pain and consciousness"},
+        {"id": "seal", "text": "Chest wound sealed", "type": "action-done", "actions": ["applychestseal"], "requires": P("chestInjury", "==", True), "requiresText": "No chest injury in this variation", "weight": 1,
+         "why": "A penetrating torso wound causes a chest injury; seal it so a pneumothorax cannot build up.", "guide": "Chest treatment"},
         {"id": "alive", "text": "Casualty alive at handover", "type": "end-state", "state": ALIVE, "weight": 2, "critical": True, "why": "The casualty must survive.", "guide": "The patient model"},
     ]},
     "cm7-ied-blast": {"passMark": 0.75, "checks": [
@@ -177,6 +181,8 @@ RUBRICS = {
          "why": "Internal bleeding from the torso impact does not show as external bleeding. TXA lets it clot.", "guide": "Internal bleeding, platelets and TXA"},
         {"id": "bleed", "text": "External bleeding stopped within 3 minutes", "type": "state-within", "state": P("woundBleeding", "==", 0), "within": 180, "weight": 2, "why": "Dress the lacerations and avulsions.", "guide": "External bleeding"},
         {"id": "spo2-end", "text": "SpO2 above 90 % at the end", "type": "end-state", "state": {"all": [ALIVE, P("spo2", ">", 90)]}, "weight": 2, "why": "Treat the chest and support breathing.", "guide": "Ventilation and oxygen"},
+        {"id": "seal", "text": "Chest wound sealed", "type": "action-done", "actions": ["applychestseal"], "requires": P("chestInjury", "==", True), "requiresText": "No chest injury in this variation", "weight": 1,
+         "why": "A penetrating torso wound causes a chest injury; seal it so a pneumothorax cannot build up.", "guide": "Chest treatment"},
         {"id": "alive", "text": "Casualty alive at the end", "type": "end-state", "state": ALIVE, "weight": 2, "critical": True, "why": "The casualty must survive.", "guide": "The patient model"},
     ]},
     "am1-massive-transfusion": {"passMark": 0.75, "checks": [
@@ -193,6 +199,10 @@ RUBRICS = {
         {"id": "compatible", "text": "No incompatible blood given", "type": "event-never", "event": "bagAdded", "match": {"type": "Blood", "compatible": False}, "weight": 2, "critical": True,
          "why": "He is B+: only B+, B-, O+ or O- blood is safe.", "guide": "Fluids and blood"},
         {"id": "bv", "text": "Blood volume at least 5.4 L at the end", "type": "end-state", "state": P("bloodVolume", ">=", 5.4), "weight": 2, "why": "Bring him back above the level where he can wake and stay stable.", "guide": "The patient model"},
+        {"id": "seal", "text": "Chest wound sealed", "type": "action-done", "actions": ["applychestseal"], "requires": P("chestInjury", "==", True), "requiresText": "No chest injury in this variation", "weight": 1,
+         "why": "A penetrating torso wound causes a chest injury; seal it so a pneumothorax cannot build up.", "guide": "Chest treatment"},
+        {"id": "splint", "text": "Fractures splinted", "type": "action-done", "actions": ["applysamsplint"], "requires": {"any": [P("fracture_leftarm", "==", 1), P("fracture_rightarm", "==", 1), P("fracture_leftleg", "==", 1), P("fracture_rightleg", "==", 1)]}, "requiresText": "No fracture in this variation", "weight": 1,
+         "why": "Realign (lidocaine first) and splint every fracture.", "guide": "Fractures"},
         {"id": "alive", "text": "Casualty alive after 20 minutes", "type": "end-state", "state": ALIVE, "weight": 2, "critical": True, "why": "The casualty must survive.", "guide": "The patient model"},
     ]},
     "am1-incompatible-blood": {"passMark": 0.75, "checks": [

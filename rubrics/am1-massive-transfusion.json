@@ -109,6 +109,59 @@
    "guide": "The patient model"
   },
   {
+   "id": "seal",
+   "text": "Chest wound sealed",
+   "type": "action-done",
+   "actions": [
+    "applychestseal"
+   ],
+   "requires": {
+    "field": "chestInjury",
+    "op": "==",
+    "value": true
+   },
+   "requiresText": "No chest injury in this variation",
+   "weight": 1,
+   "why": "A penetrating torso wound causes a chest injury; seal it so a pneumothorax cannot build up.",
+   "guide": "Chest treatment"
+  },
+  {
+   "id": "splint",
+   "text": "Fractures splinted",
+   "type": "action-done",
+   "actions": [
+    "applysamsplint"
+   ],
+   "requires": {
+    "any": [
+     {
+      "field": "fracture_leftarm",
+      "op": "==",
+      "value": 1
+     },
+     {
+      "field": "fracture_rightarm",
+      "op": "==",
+      "value": 1
+     },
+     {
+      "field": "fracture_leftleg",
+      "op": "==",
+      "value": 1
+     },
+     {
+      "field": "fracture_rightleg",
+      "op": "==",
+      "value": 1
+     }
+    ]
+   },
+   "requiresText": "No fracture in this variation",
+   "weight": 1,
+   "why": "Realign (lidocaine first) and splint every fracture.",
+   "guide": "Fractures"
+  },
+  {
    "id": "alive",
    "text": "Casualty alive after 20 minutes",
    "type": "end-state",

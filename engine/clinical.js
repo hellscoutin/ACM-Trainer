@@ -35,6 +35,10 @@ export function clinicalState(sim) {
         const rate = p.tourniquets[i] ? 0 : p.openWounds[part].reduce((a, w) => a + (w.count > 0 ? w.count * w.bleeding : 0), 0);
         return rate > 0 ? { part, ml: Math.round(rate * 1000) } : null;
     }).filter(Boolean);
+    const internalParts = BODY_PARTS.map((part, i) => {
+        const rate = p.tourniquets[i] ? 0 : p.internalWounds[part].reduce((a, w) => a + w.count * w.bleeding, 0); // a tourniquet stops a limb's internal bleeding
+        return rate > 0 ? { part, ml: Math.round(rate * 1000) } : null;
+    }).filter(Boolean);
     const c = {
         consciousness, rhythm: p.rhythm, cardiacArrest: !!p.cardiacArrest, reversibleArrest: !!p.reversibleActive,
         airway: {
@@ -51,7 +55,7 @@ export function clinicalState(sim) {
         circulation: {
             hr: Math.round(p.hr), sys: Math.round(p.bp[1]), dia: Math.round(p.bp[0]), bloodVolume: r2(p.bloodVolume),
             blood: r2(p.blood), plasma: r2(p.plasma), saline: r2(p.saline), platelets: r2(p.platelets), overload: r2(p.overload), transfused: r2(p.transfused), calcium: r2(p.calcium),
-            externalBleeding: Math.round(p.woundBleeding * 1000), internalBleeding: Math.round(p.internalBleeding * 1000), bleedingParts,
+            externalBleeding: Math.round(p.woundBleeding * 1000), internalBleeding: Math.round(p.internalBleeding * 1000), bleedingParts, internalParts,
             hemolytic: r1(p.reactionSeverity || 0),
             bags: p.ivBags.map((b) => ({ type: b.type, bloodType: b.bloodType || null, remaining: Math.round(b.remaining), part: b.part, iv: b.iv })),
             tourniquets: BODY_PARTS.filter((x, i) => p.tourniquets[i]).map((part) => ({ part, minutes: p.tourniquetTime?.[PART_INDEX[part]] >= 0 ? Math.round((p.t - p.tourniquetTime[PART_INDEX[part]]) / 60) : null })),
