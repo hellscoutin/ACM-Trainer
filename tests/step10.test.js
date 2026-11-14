@@ -100,3 +100,39 @@ test("written test: scoring maps shuffled options back; multi needs exactly the 
     assert.equal(scoreTest(bank, t, {}).passed, false);
     assert.throws(() => validateBank({ format: "x" }));
 });
+
+/** Dress both arms, read the dog tag, IV in the left leg, B- and O- blood, one full morphine dose. */
+function accessTextbook(s, bags = ["ACM_BloodBag_BN_500", "ACM_BloodBag_ON_500"]) {
+    for (const part of ["rightarm", "rightarm", "leftarm", "leftarm"]) s.act("pressurebandage", part);
+    s.act("checkdogtags", "head");
+    assert.ok(!s.act("insertiv_16_middle", "leftleg").error);
+    for (const b of bags) s.addBag("leftleg", 1, true, b);
+    s.draw(10, "Morphine", 1.6);
+    s.act("morphine_10_iv", "leftleg");
+    s.until(900);
+}
+
+test("CM-4 access and drugs: textbook passes; A+ blood for a B- casualty is a critical no-go; idle fails", () => {
+    let s = scenario("cm4-access-drugs");
+    accessTextbook(s);
+    let r = s.score();
+    assert.equal(r.passed, true, failed(r).join(", "));
+    assert.ok(s.sim.p.bloodVolume >= 5.1);
+    s = scenario("cm4-access-drugs");
+    accessTextbook(s, ["ACM_BloodBag_A_500"]);
+    r = s.score();
+    assert.ok(r.criticalFails.some((x) => x.check.id === "no-reaction"));
+    s = scenario("cm4-access-drugs");
+    s.until(900);
+    assert.equal(s.score().passed, false);
+});
+
+test("CM-4: two quick morphine doses overdose (the trap the scenario teaches)", () => {
+    const s = scenario("cm4-access-drugs");
+    s.tick(20);
+    s.act("insertiv_16_middle", "leftleg");
+    for (let k = 0; k < 2; k++) { s.draw(10, "Morphine", 2); s.act("morphine_10_iv", "leftleg"); s.tick(20); }
+    s.tick(120);
+    const r = s.score();
+    assert.ok(s.sim.events.some((e) => e.event === "overdose") === r.results.some((x) => x.check.id === "no-overdose" && x.status === "fail"));
+});

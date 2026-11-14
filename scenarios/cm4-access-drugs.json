@@ -1,0 +1,68 @@
+{
+  "id": "cm4-access-drugs",
+  "title": "Access, blood and pain",
+  "track": "combat-medic",
+  "module": "CM-4",
+  "summary": "A rifleman was hit in both arms by a burst. A buddy put a tourniquet on his left arm. He is awake, pale and in severe pain, and has lost a lot of blood. Your kit has blood of several types: find out which he can take.",
+  "seed": 4404,
+  "timeLimit": 900,
+  "role": "medic",
+  "patient": {
+    "weight": 76,
+    "bloodType": "B-",
+    "conscious": true
+  },
+  "injuries": [
+    {
+      "part": "leftarm",
+      "mechanism": "bullet",
+      "damage": 1.6
+    },
+    {
+      "part": "rightarm",
+      "type": "PunctureWound",
+      "damage": 0.7,
+      "count": 2
+    }
+  ],
+  "state": {
+    "blood": 4.4
+  },
+  "timeline": [
+    {
+      "at": 0,
+      "action": "tourniquet",
+      "args": {
+        "part": "leftarm"
+      }
+    }
+  ],
+  "loadout": {
+    "ACM_PressureBandage": 6,
+    "ACM_ElasticWrap": 2,
+    "ACE_tourniquet": 1,
+    "ACM_IV_16g": 2,
+    "ACM_IO_EZ": 1,
+    "ACM_IO_FAST": 1,
+    "ACM_BloodBag_A_500": 2,
+    "ACM_BloodBag_ON_500": 1,
+    "ACM_BloodBag_BN_500": 1,
+    "ACE_salineIV": 1,
+    "ACM_Syringe_10": 3,
+    "ACM_Vial_Morphine": 2,
+    "ACM_Vial_Fentanyl": 1,
+    "ACM_Vial_Ketamine": 1,
+    "ACM_Vial_TXA": 1,
+    "ACM_PulseOximeter": 1,
+    "ACM_PressureCuff": 1,
+    "ACM_Stethoscope": 1
+  },
+  "objectives": [
+    "Dress the right arm and the wounds under the tourniquet",
+    "Gain access on an uninjured limb: the left arm has a tourniquet (no flow, IV chance falls) and the right arm is damaged; an IO is the fallback that always succeeds",
+    "Check the dog tag before giving typed blood: only compatible bags count as blood",
+    "Give pain relief at the right dose (opioids are weight-based; a second dose too soon overdoses)",
+    "Blood volume back above 5.1 L at the end"
+  ],
+  "rubric": "rubrics/cm4-access-drugs.json"
+}

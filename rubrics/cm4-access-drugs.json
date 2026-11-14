@@ -1,0 +1,152 @@
+{
+ "scenario": "cm4-access-drugs",
+ "passMark": 0.75,
+ "checks": [
+  {
+   "id": "bleed",
+   "text": "All external bleeding stopped within 2 minutes",
+   "type": "state-within",
+   "state": {
+    "field": "woundBleeding",
+    "op": "==",
+    "value": 0
+   },
+   "within": 120,
+   "weight": 2,
+   "why": "The right arm still bleeds; the left is held by the tourniquet. Dress both so the tourniquet can come off later.",
+   "guide": "External bleeding"
+  },
+  {
+   "id": "access",
+   "text": "IV or IO access within 2 minutes",
+   "type": "action-within",
+   "actions": [
+    "insertiv_16_upper",
+    "insertiv_16_middle",
+    "insertiv_16_lower",
+    "insertiv_14_upper",
+    "insertiv_14_middle",
+    "insertiv_14_lower",
+    "insertio_fast1",
+    "insertio_ez"
+   ],
+   "within": 120,
+   "weight": 2,
+   "why": "Arm IVs fail below a systolic of 70 and damaged limbs lower the chance further; an IO always succeeds.",
+   "guide": "IV and IO access"
+  },
+  {
+   "id": "dogtag",
+   "text": "Dog tag checked before the first blood bag",
+   "type": "action-before-event",
+   "actions": [
+    "checkdogtags"
+   ],
+   "event": "bagAdded",
+   "match": {
+    "type": "Blood"
+   },
+   "weight": 2,
+   "why": "The kit holds A+, B- and O- blood. Only the blood type on the dog tag tells you which bags he can take.",
+   "guide": "Fluids and blood"
+  },
+  {
+   "id": "no-reaction",
+   "text": "No incompatible blood given",
+   "type": "event-never",
+   "event": "bagAdded",
+   "match": {
+    "compatible": false
+   },
+   "weight": 2,
+   "critical": true,
+   "why": "A B- casualty can only receive B- or O-. Incompatible blood causes a hemolytic reaction and only counts as saline.",
+   "guide": "Fluids and blood"
+  },
+  {
+   "id": "blood",
+   "text": "Compatible blood started within 4 minutes",
+   "type": "event-within",
+   "event": "bagAdded",
+   "match": {
+    "type": "Blood",
+    "compatible": true
+   },
+   "within": 240,
+   "weight": 3,
+   "why": "Blood restores oxygen-carrying volume; saline only converts slowly.",
+   "guide": "Fluids and blood"
+  },
+  {
+   "id": "pain",
+   "text": "Pain treated with an opioid or ketamine",
+   "type": "action-done",
+   "actions": [
+    "morphine_10_iv",
+    "morphine_10_im",
+    "morphine_5_iv",
+    "morphine_5_im",
+    "morphine_3_iv",
+    "morphine_3_im",
+    "morphine_1_iv",
+    "morphine_1_im",
+    "fentanyl_10_iv",
+    "fentanyl_10_im",
+    "fentanyl_5_iv",
+    "fentanyl_5_im",
+    "fentanyl_3_iv",
+    "fentanyl_3_im",
+    "fentanyl_1_iv",
+    "fentanyl_1_im",
+    "ketamine_10_iv",
+    "ketamine_10_im",
+    "ketamine_5_iv",
+    "ketamine_5_im",
+    "ketamine_3_iv",
+    "ketamine_3_im",
+    "ketamine_1_iv",
+    "ketamine_1_im"
+   ],
+   "weight": 2,
+   "why": "He is awake with two arm wounds and a tourniquet. A full weight-based dose (about 8 mg morphine IV for him) controls the pain.",
+   "guide": "Medications"
+  },
+  {
+   "id": "no-overdose",
+   "text": "No overdose",
+   "type": "event-never",
+   "event": "overdose",
+   "weight": 2,
+   "critical": true,
+   "why": "Opioid doses add up: morphine IV overdoses above 12 mg active (with up to 3 mg of variation). Wait for one dose to act before giving more.",
+   "guide": "Medications"
+  },
+  {
+   "id": "bv",
+   "text": "Blood volume at least 5.1 L at the end",
+   "type": "end-state",
+   "state": {
+    "field": "bloodVolume",
+    "op": ">=",
+    "value": 5.1
+   },
+   "weight": 2,
+   "why": "Two compatible units bring him back above 5.1 L, where he can wake up.",
+   "guide": "The patient model"
+  },
+  {
+   "id": "alive",
+   "text": "Casualty alive at the end",
+   "type": "end-state",
+   "state": {
+    "field": "alive",
+    "op": "==",
+    "value": true
+   },
+   "weight": 2,
+   "critical": true,
+   "why": "The casualty must survive.",
+   "guide": "The patient model"
+  }
+ ]
+}
