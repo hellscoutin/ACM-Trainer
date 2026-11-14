@@ -1,0 +1,107 @@
+{
+ "scenario": "cls2-unconscious-airway",
+ "passMark": 0.7,
+ "checks": [
+  {
+   "id": "assess",
+   "text": "Response, breathing or airway checked within 60 s",
+   "type": "action-within",
+   "actions": [
+    "checkresponse",
+    "checkbreathing",
+    "checkairway"
+   ],
+   "within": 60,
+   "weight": 1,
+   "why": "Start with a quick assessment: response, then airway and breathing.",
+   "guide": "Assessment"
+  },
+  {
+   "id": "bleed",
+   "text": "Arm bleeding stopped within 2 minutes",
+   "type": "state-within",
+   "state": {
+    "field": "bleeding_leftarm",
+    "op": "==",
+    "value": 0
+   },
+   "within": 120,
+   "weight": 2,
+   "why": "Even small bleeds add up; a pressure bandage on the arm takes seconds.",
+   "guide": "External bleeding"
+  },
+  {
+   "id": "recovery",
+   "text": "Recovery position before the first vomit",
+   "type": "action-before-event",
+   "actions": [
+    "recoveryposition"
+   ],
+   "event": "vomit",
+   "weight": 3,
+   "critical": true,
+   "why": "A head injury makes vomiting likely 1.5-3 minutes after going down. In the recovery position vomit does not obstruct, and it holds the airway open against collapse.",
+   "guide": "How airways fail"
+  },
+  {
+   "id": "blocked",
+   "text": "Airway blocked for no more than 30 s in total",
+   "type": "state-duration-max",
+   "state": {
+    "field": "airwayBlocked",
+    "op": "==",
+    "value": true
+   },
+   "max": 30,
+   "weight": 2,
+   "why": "An obstructed airway means no breathing at all. Head turning clears a light obstruction; suction clears any.",
+   "guide": "Airway management"
+  },
+  {
+   "id": "hypoxia",
+   "text": "SpO2 below 80 % for no more than 60 s",
+   "type": "state-duration-max",
+   "state": {
+    "all": [
+     {
+      "field": "alive",
+      "op": "==",
+      "value": true
+     },
+     {
+      "field": "spo2",
+      "op": "<",
+      "value": 80
+     }
+    ]
+   },
+   "max": 60,
+   "weight": 2,
+   "why": "An unconscious casualty without airway support loses the reflex, then the airway collapses; with no breathing SpO2 falls about 0.1 %/s.",
+   "guide": "How airways fail"
+  },
+  {
+   "id": "breathing",
+   "text": "Casualty alive and breathing at the end",
+   "type": "end-state",
+   "state": {
+    "all": [
+     {
+      "field": "alive",
+      "op": "==",
+      "value": true
+     },
+     {
+      "field": "rr",
+      "op": ">",
+      "value": 0
+     }
+    ]
+   },
+   "weight": 2,
+   "critical": true,
+   "why": "The airway must be open at handover.",
+   "guide": "Airway management"
+  }
+ ]
+}

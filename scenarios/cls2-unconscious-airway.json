@@ -1,23 +1,47 @@
 {
   "id": "cls2-unconscious-airway",
   "title": "Unconscious after a blast",
-  "track": "combat-lifesaver", "module": "CLS-3",
+  "track": "combat-lifesaver",
+  "module": "CLS-3",
   "summary": "A soldier was thrown by an explosion. He is unconscious with a head injury and fragment wounds to the left arm. Keep his airway open until the medic arrives.",
   "seed": 2201,
   "timeLimit": 600,
   "role": "anyone",
-  "patient": { "weight": 79, "bloodType": "O+", "conscious": false },
+  "patient": {
+    "weight": 79,
+    "bloodType": "O+",
+    "conscious": false
+  },
   "injuries": [
-    { "part": "head", "type": "Contusion", "damage": 1.6 },
-    { "part": "leftarm", "type": "PunctureWound", "damage": 0.45 },
-    { "part": "leftarm", "type": "Abrasion", "damage": 0.3, "count": 2 }
+    {
+      "part": "head",
+      "type": "Contusion",
+      "damage": 1.6
+    },
+    {
+      "part": "leftarm",
+      "type": "PunctureWound",
+      "damage": 0.45
+    },
+    {
+      "part": "leftarm",
+      "type": "Abrasion",
+      "damage": 0.3,
+      "count": 2
+    }
   ],
-  "loadout": { "ACE_tourniquet": 1, "ACM_PressureBandage": 3, "ACM_NPA": 1, "ACM_SuctionBag": 1 },
+  "loadout": {
+    "ACE_tourniquet": 1,
+    "ACM_PressureBandage": 3,
+    "ACM_NPA": 1,
+    "ACM_SuctionBag": 1
+  },
   "objectives": [
     "Check response, breathing and airway",
     "Control the arm bleeding",
     "Place the casualty in the recovery position before he vomits",
     "Clear the airway if it becomes obstructed",
     "Patient breathing at the end"
-  ]
+  ],
+  "rubric": "rubrics/cls2-unconscious-airway.json"
 }

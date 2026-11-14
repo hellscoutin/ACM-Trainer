@@ -211,7 +211,9 @@ export function addBag(sim, part, site, iv, cls) {
     const b = bagInfo(cls);
     if (!b) return { ok: false };
     p.ivBags.push({ type: b.type, remaining: b.volume, original: b.volume, part, site: iv ? site : 0, iv, bloodType: b.bloodType, donorAlive: true, collectedAt: p.t });
-    if (b.bloodType && !isBloodCompatible(data, p.bloodType, b.bloodType)) sim.schedule(30 + sim.rng.random(30), "hemolyticStart");
+    const compatible = !b.bloodType || isBloodCompatible(data, p.bloodType, b.bloodType);
+    sim.emit("bagAdded", { type: b.type, volume: b.volume, bloodType: b.bloodType, compatible, part, iv });
+    if (!compatible) sim.schedule(30 + sim.rng.random(30), "hemolyticStart");
     return { ok: true, log: `added ${bagName(cls)} to ${iv ? `IV (${SITE[site]})` : "IO"}` };
 }
 

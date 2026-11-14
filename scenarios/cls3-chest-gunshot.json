@@ -1,22 +1,43 @@
 {
   "id": "cls3-chest-gunshot",
   "title": "Gunshot to the chest",
-  "track": "combat-lifesaver", "module": "CLS-4",
+  "track": "combat-lifesaver",
+  "module": "CLS-4",
   "summary": "A machine gunner is hit in the chest and the right leg. He is awake, short of breath and in pain.",
   "seed": 3307,
   "timeLimit": 480,
   "role": "anyone",
-  "patient": { "weight": 88, "bloodType": "B+", "conscious": true },
+  "patient": {
+    "weight": 88,
+    "bloodType": "B+",
+    "conscious": true
+  },
   "injuries": [
-    { "part": "body", "type": "VelocityWound", "damage": 0.45 },
-    { "part": "rightleg", "type": "Laceration", "damage": 0.7 }
+    {
+      "part": "body",
+      "type": "VelocityWound",
+      "damage": 0.45
+    },
+    {
+      "part": "rightleg",
+      "type": "Laceration",
+      "damage": 0.7
+    }
   ],
-  "chest": { "ptx": 1 },
-  "loadout": { "ACE_tourniquet": 1, "ACM_PressureBandage": 3, "ACM_ChestSeal": 1, "ACM_PulseOximeter": 1 },
+  "chest": {
+    "ptx": 1
+  },
+  "loadout": {
+    "ACE_tourniquet": 1,
+    "ACM_PressureBandage": 3,
+    "ACM_ChestSeal": 1,
+    "ACM_PulseOximeter": 1
+  },
   "objectives": [
     "Seal the chest wound before the pneumothorax worsens",
     "Control the leg bleeding",
     "Monitor breathing and oxygen saturation",
     "Patient alive at the end"
-  ]
+  ],
+  "rubric": "rubrics/cls3-chest-gunshot.json"
 }

@@ -5,6 +5,7 @@ import { injuryList, bodyPartColors, formatTime, PART_NAMES } from "../../engine
 import { feelPulse, updatePulseOximeters } from "../../engine/exams.js";
 import { createBody } from "./body.js";
 import { audio, openBP, openStethoscope, openTransfusion } from "./windows.js";
+import { createRecorder, scoreRun } from "../../engine/scoring.js";
 
 const $ = (id) => document.getElementById(id);
 const el = (tag, props = {}, ...kids) => { const e = document.createElement(tag); Object.assign(e, props); e.append(...kids); return e; };
@@ -24,10 +25,11 @@ const [data, meds, scn] = await Promise.all([
     fetch("../data/medications-1.4.8.json").then((r) => r.json()),
     fetch(`../scenarios/${encodeURIComponent(scenarioId)}.json`).then((r) => r.json()),
 ]);
+const rubric = scn.rubric ? await fetch(`../${scn.rubric}`).then((r) => (r.ok ? r.json() : null)).catch(() => null) : null;
 const catalogue = buildCatalogue(data);
 const seed = params.has("seed") ? Number(params.get("seed")) : scn.seed;
 
-let sim, ctx, state, body;
+let sim, ctx, state, body, recorder;
 
 function start() {
     sim = loadScenario(scn, data, meds, { seed });
@@ -37,6 +39,7 @@ function start() {
         progress: null, cont: null, history: [], activity: [], quick: [], timeline: [], nextBeat: 0, pulseDone: true,
     };
     sim.on(onSimEvent);
+    recorder = createRecorder(sim);
     record();
 }
 
@@ -115,6 +118,7 @@ function finishAction(a, part, item) {
     if (item && a.consumes && !r.refund) ctx.inventory[item] = Math.max(0, (ctx.inventory[item] || 0) - 1);
     if (a.returnsItem) ctx.inventory[a.returnsItem] = (ctx.inventory[a.returnsItem] || 0) + 1;
     for (const c of r.give || []) ctx.inventory[c] = (ctx.inventory[c] || 0) + 1;
+    recorder.action(a.id, part, !r.refund);
     if (a.id === "applytourniquet") audio.play("tourniquet_apply", 0.8);
     if (a.id === "removetourniquet") audio.play("tourniquet_remove", 0.8);
     if (r.hint) hint(r.hint);
@@ -205,6 +209,7 @@ function step() {
         else if (p.t >= pr.end) { state.progress = null; $("progress").classList.remove("show"); finishAction(pr.a, pr.part, pr.item); }
     }
     record();
+    recorder.tick();
     if (!p.alive) { endScenario("The casualty died."); return; }
     if (p.t >= scn.timeLimit) endScenario("Time is up: the casualty has been handed over.");
 }
@@ -354,14 +359,15 @@ function endScenario(reason) {
     if (state.cont) endContinuous();
     debrief(reason);
 }
-function chart(series, key, label, lo, hi, color, marks = []) {
+function chart(series, key, label, lo, hi, color, marks = [], ticks = []) {
     const W = 760, H = 160, L = 34, B = 20, T = 8;
     const tMax = Math.max(60, state.history.at(-1).t);
     const x = (t) => L + (t / tMax) * (W - L - 6);
     const y = (v) => T + (1 - (Math.max(lo, Math.min(hi, v)) - lo) / (hi - lo)) * (H - T - B);
     const pts = series.map((h) => `${x(h.t).toFixed(1)},${y(h[key]).toFixed(1)}`).join(" ");
     const markLines = marks.map((m) => `<line x1="${L}" x2="${W - 6}" y1="${y(m.v)}" y2="${y(m.v)}" stroke="${m.c}" stroke-dasharray="4 4" stroke-width="1"/><text x="${W - 8}" y="${y(m.v) - 3}" text-anchor="end">${m.t}</text>`).join("");
-    return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${label} over time">
+    const tickLines = ticks.map((k) => `<line x1="${x(k.t)}" x2="${x(k.t)}" y1="${T}" y2="${H - B}" class="tick"><title>${formatTime(k.t)} ${k.label}</title></line>`).join("");
+    return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${label} over time">${tickLines}
         <line class="axis" x1="${L}" y1="${H - B}" x2="${W - 6}" y2="${H - B}"/><line class="axis" x1="${L}" y1="${T}" x2="${L}" y2="${H - B}"/>
         <text x="${L - 4}" y="${T + 8}" text-anchor="end">${hi}</text><text x="${L - 4}" y="${H - B}" text-anchor="end">${lo}</text>
         <text x="${L}" y="${H - 4}">0:00</text><text x="${W - 6}" y="${H - 4}" text-anchor="end">${formatTime(tMax)}</text>
@@ -375,21 +381,36 @@ function debrief(reason) {
     for (const a of sim.actions) if (!(a.name in firsts)) firsts[a.name] = a.t;
     const outcome = p.alive ? (p.woundBleeding > 0 ? "Alive, still bleeding" : "Alive") : `Died: ${p.causeOfDeath}`;
     const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+    const res = rubric ? scoreRun(rubric, sim, recorder) : null;
+    const icon = { pass: "✓", fail: "✗", na: "–" };
+    const scoreHtml = res ? `
+        <div class="scorecard ${res.passed ? "go" : "nogo"}">
+            <div class="verdict">${res.passed ? "GO" : "NO-GO"}</div>
+            <div><div class="pct">${Math.round(res.score * 100)} %</div><div class="muted">pass mark ${Math.round(res.passMark * 100)} %${res.criticalFails.length ? ` · ${res.criticalFails.length} critical check${res.criticalFails.length > 1 ? "s" : ""} failed` : ""}</div></div>
+        </div>
+        <h3>Checks</h3>
+        <ul class="checks">${res.results.map((r) => `<li class="${r.status}">
+            <span class="ic" aria-label="${r.status}">${icon[r.status]}</span>
+            <div><div class="ct">${esc(r.check.text)}${r.check.critical ? ' <span class="crit">critical</span>' : ""} <span class="cw">×${r.check.weight ?? 1}</span></div>
+            <div class="cd">${esc(r.detail)}</div>
+            ${r.status === "fail" ? `<div class="why">${esc(r.check.why || "")}${r.check.guide ? ` <span class="guide">Guide: ${esc(r.check.guide)}</span>` : ""}</div>` : ""}</div></li>`).join("")}</ul>` : "";
+    const ticks = (sim.menuLog || []).filter((e) => e.ok).map((e) => ({ t: e.t, label: catalogue.find((a) => a.id === e.id)?.label || e.id }));
     box.innerHTML = `
         <h2 id="debriefTitle">Debrief: ${esc(scn.title)}</h2>
         <p>${esc(reason)}</p>
         <div class="outcome ${p.alive ? "alive" : "dead"}">${esc(outcome)}</div>
+        ${scoreHtml}
         <h3>Patient at the end (true values)</h3>
         <table class="vitals-table"><tr><th>Blood volume</th><td>${p.bloodVolume.toFixed(2)} L</td><th>Heart rate</th><td>${Math.round(p.hr)}</td></tr>
         <tr><th>Blood pressure</th><td>${p.bp[1]}/${p.bp[0]}</td><th>SpO2</th><td>${p.spo2.toFixed(1)} %</td></tr>
         <tr><th>Respiration</th><td>${Math.round(p.rr)} /min</td><th>Conscious</th><td>${p.alive && !p.unconscious ? "yes" : "no"}</td></tr></table>
         <h3>Blood volume and oxygen</h3>
-        ${chart(state.history, "bv", "Blood volume (L)", 2.5, 6, "#e0574f", [{ v: 5.1, t: "5.1 L: can wake", c: "#c9a227" }, { v: 3.6, t: "3.6 L: class IV", c: "#e0574f" }])}
-        ${chart(state.history, "spo2", "SpO2 (%)", 50, 100, "#4dcccc", [{ v: 80, t: "80 %: unconscious", c: "#c9a227" }, { v: 67, t: "67 %: hypoxic arrest", c: "#e0574f" }])}
+        ${chart(state.history, "bv", "Blood volume (L)", 2.5, 6, "#e0574f", [{ v: 5.1, t: "5.1 L: can wake", c: "#c9a227" }, { v: 3.6, t: "3.6 L: class IV", c: "#e0574f" }], ticks)}
+        ${chart(state.history, "spo2", "SpO2 (%)", 50, 100, "#4dcccc", [{ v: 80, t: "80 %: unconscious", c: "#c9a227" }, { v: 67, t: "67 %: hypoxic arrest", c: "#e0574f" }], ticks)}
+        <p class="muted">Grey lines mark your treatments (hover for details).</p>
         <h3>Timeline</h3>
         <ul class="timeline">${state.timeline.sort((a, b) => a.t - b.t).map((e) => `<li class="${e.kind === "event" ? "ev" : ""}"><time>${formatTime(e.t)}</time>${esc(e.text)}</li>`).join("") || "<li>No actions taken</li>"}</ul>
-        <h3>Objectives (scoring arrives in a later build)</h3>
-        <ul>${(scn.objectives || []).map((o) => `<li>${esc(o)}</li>`).join("")}</ul>
+
         <div class="buttons"><a class="btn" href="index.html">Scenarios</a><button class="btn" id="retryBtn">Retry</button><button class="btn primary" id="newSeedBtn">New variation</button></div>`;
     $("debrief").classList.add("show");
     $("retryBtn").addEventListener("click", () => { location.href = `play.html?s=${encodeURIComponent(scn.id)}&seed=${seed}`; });

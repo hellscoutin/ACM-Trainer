@@ -1,0 +1,104 @@
+{
+ "scenario": "cls1-leg-hemorrhage",
+ "passMark": 0.7,
+ "checks": [
+  {
+   "id": "tq-fast",
+   "text": "Tourniquet on the bleeding leg within 30 s",
+   "type": "action-within",
+   "actions": [
+    "applytourniquet"
+   ],
+   "parts": [
+    "leftleg"
+   ],
+   "within": 30,
+   "weight": 3,
+   "critical": true,
+   "why": "A large velocity wound to the thigh bleeds out in about 4 minutes. A tourniquet takes 7 s and stops limb bleeding at once; apply it before anything else.",
+   "guide": "External bleeding"
+  },
+  {
+   "id": "tq-first",
+   "text": "Tourniquet before dressings on that leg",
+   "type": "action-order",
+   "first": [
+    "applytourniquet"
+   ],
+   "then": [
+    "fielddressing",
+    "packingbandage",
+    "elasticbandage",
+    "quikclot",
+    "pressurebandage",
+    "emergencytraumadressing"
+   ],
+   "parts": [
+    "leftleg"
+   ],
+   "weight": 1,
+   "why": "Massive limb bleeding first gets a tourniquet; dressings come after the bleeding is stopped.",
+   "guide": "External bleeding"
+  },
+  {
+   "id": "bleed-controlled",
+   "text": "All external bleeding stopped within 90 s",
+   "type": "state-within",
+   "state": {
+    "field": "woundBleeding",
+    "op": "==",
+    "value": 0
+   },
+   "within": 90,
+   "weight": 2,
+   "why": "Bandage the forearm too: every open wound keeps draining blood volume and platelets.",
+   "guide": "External bleeding"
+  },
+  {
+   "id": "pain",
+   "text": "Pain treated",
+   "type": "action-done",
+   "actions": [
+    "paracetamol",
+    "penthrox",
+    "morphine"
+   ],
+   "weight": 1,
+   "why": "Once bleeding is controlled, treat pain: an awake casualty in severe pain stays tachycardic.",
+   "guide": "Pain and consciousness"
+  },
+  {
+   "id": "no-tq-off",
+   "text": "Tourniquet not removed while the wound still bleeds",
+   "type": "action-forbidden",
+   "actions": [
+    "removetourniquet"
+   ],
+   "parts": [
+    "leftleg"
+   ],
+   "when": {
+    "field": "bleeding_leftleg",
+    "op": ">",
+    "value": 0
+   },
+   "weight": 1,
+   "why": "Taking the tourniquet off an unbandaged wound restarts the bleed. A combat lifesaver leaves it on for the medic.",
+   "guide": "External bleeding"
+  },
+  {
+   "id": "alive",
+   "text": "Casualty alive at handover",
+   "type": "end-state",
+   "state": {
+    "field": "alive",
+    "op": "==",
+    "value": true
+   },
+   "weight": 2,
+   "critical": true,
+   "why": "The casualty must survive to handover.",
+   "guide": "The patient model"
+  }
+ ]
+}

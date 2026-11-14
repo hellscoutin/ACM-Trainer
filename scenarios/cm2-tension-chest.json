@@ -40,5 +40,6 @@
     "Know what a decompression does without tension: it makes the pneumothorax worse",
     "Definitive care: thoracostomy, chest tube, keep the patient lying",
     "Support airway and breathing while unconscious; SpO2 above 90 % at the end"
-  ]
+  ],
+  "rubric": "rubrics/cm2-tension-chest.json"
 }

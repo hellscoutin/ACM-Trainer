@@ -1,0 +1,126 @@
+{
+ "scenario": "cm1-hemorrhagic-shock",
+ "passMark": 0.75,
+ "checks": [
+  {
+   "id": "tq-fast",
+   "text": "Tourniquet on the leg within 30 s",
+   "type": "action-within",
+   "actions": [
+    "applytourniquet"
+   ],
+   "parts": [
+    "leftleg"
+   ],
+   "within": 30,
+   "weight": 3,
+   "critical": true,
+   "why": "He has already lost 1.5 L. Stop the bleeding before anything else.",
+   "guide": "External bleeding"
+  },
+  {
+   "id": "access",
+   "text": "IV or IO access within 2 minutes",
+   "type": "action-within",
+   "actions": [
+    "insertiv_16_upper",
+    "insertiv_16_middle",
+    "insertiv_16_lower",
+    "insertiv_14_upper",
+    "insertiv_14_middle",
+    "insertiv_14_lower",
+    "insertio_fast1",
+    "insertio_ez"
+   ],
+   "within": 120,
+   "weight": 2,
+   "why": "IV success falls with blood pressure (arm: none below 70 systolic). Get access early, or go to the IO, which always succeeds.",
+   "guide": "IV and IO access"
+  },
+  {
+   "id": "blood",
+   "text": "Compatible blood started within 3 minutes",
+   "type": "event-within",
+   "event": "bagAdded",
+   "match": {
+    "type": "Blood",
+    "compatible": true
+   },
+   "within": 180,
+   "weight": 3,
+   "why": "Blood restores oxygen-carrying volume directly; saline only converts slowly (0.7 ml/s). O- is safe for any recipient.",
+   "guide": "Fluids and blood"
+  },
+  {
+   "id": "no-reaction",
+   "text": "No incompatible blood given",
+   "type": "event-never",
+   "event": "bagAdded",
+   "match": {
+    "compatible": false
+   },
+   "weight": 2,
+   "critical": true,
+   "why": "Check the dog tag before giving typed blood: incompatible blood causes a hemolytic reaction and only counts as saline.",
+   "guide": "Fluids and blood"
+  },
+  {
+   "id": "bp",
+   "text": "Blood pressure measured",
+   "type": "action-done",
+   "actions": [
+    "measurebloodpressure",
+    "measurebloodpressurestethoscope"
+   ],
+   "weight": 1,
+   "why": "Measure blood pressure to judge shock and the response to fluids.",
+   "guide": "Assessment"
+  },
+  {
+   "id": "dressing",
+   "text": "Leg wounds dressed",
+   "type": "action-done",
+   "actions": [
+    "fielddressing",
+    "packingbandage",
+    "elasticbandage",
+    "quikclot",
+    "pressurebandage",
+    "emergencytraumadressing"
+   ],
+   "parts": [
+    "leftleg"
+   ],
+   "weight": 1,
+   "why": "Dress the wounds under the tourniquet so it can come off later.",
+   "guide": "External bleeding"
+  },
+  {
+   "id": "bv",
+   "text": "Blood volume at least 5.1 L at the end",
+   "type": "end-state",
+   "state": {
+    "field": "bloodVolume",
+    "op": ">=",
+    "value": 5.1
+   },
+   "weight": 3,
+   "why": "Below 5.1 L a casualty cannot wake up, whatever else you do.",
+   "guide": "The patient model"
+  },
+  {
+   "id": "alive",
+   "text": "Casualty alive at the end",
+   "type": "end-state",
+   "state": {
+    "field": "alive",
+    "op": "==",
+    "value": true
+   },
+   "weight": 2,
+   "critical": true,
+   "why": "The casualty must survive.",
+   "guide": "The patient model"
+  }
+ ]
+}

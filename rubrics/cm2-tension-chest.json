@@ -1,0 +1,116 @@
+{
+ "scenario": "cm2-tension-chest",
+ "passMark": 0.75,
+ "checks": [
+  {
+   "id": "assess",
+   "text": "Breathing assessed within 90 s (check, inspect, stethoscope)",
+   "type": "action-within",
+   "actions": [
+    "checkbreathing",
+    "inspectchest",
+    "usestethoscope"
+   ],
+   "within": 90,
+   "weight": 1,
+   "why": "Shallow breathing and uneven chest rise point to a pneumothorax; dull breath sounds on one side to tension or blood.",
+   "guide": "Assessing breathing"
+  },
+  {
+   "id": "seal",
+   "text": "Chest seal within 60 s",
+   "type": "action-within",
+   "actions": [
+    "applychestseal"
+   ],
+   "within": 60,
+   "weight": 3,
+   "why": "Sealing early resets the pneumothorax and prevents tension altogether.",
+   "guide": "Chest treatment"
+  },
+  {
+   "id": "decompress",
+   "text": "Tension relieved within 60 s of developing",
+   "type": "state-within",
+   "from": {
+    "event": "tensionPneumothorax"
+   },
+   "state": {
+    "field": "tensionPtx",
+    "op": "==",
+    "value": false
+   },
+   "within": 60,
+   "weight": 3,
+   "critical": true,
+   "why": "Tension pneumothorax stops circulation (reversible arrest). Needle decompression or thoracostomy relieves it at once.",
+   "guide": "Chest treatment"
+  },
+  {
+   "id": "no-ncd",
+   "text": "No needle decompression without tension",
+   "type": "action-forbidden",
+   "actions": [
+    "performncd"
+   ],
+   "when": {
+    "field": "tensionPtx",
+    "op": "==",
+    "value": false
+   },
+   "weight": 2,
+   "why": "In ACM a decompression on a chest without tension sets the pneumothorax to level 3 (worse) unless a seal is on.",
+   "guide": "Chest treatment"
+  },
+  {
+   "id": "hypoxia",
+   "text": "SpO2 below 80 % for no more than 90 s",
+   "type": "state-duration-max",
+   "state": {
+    "all": [
+     {
+      "field": "alive",
+      "op": "==",
+      "value": true
+     },
+     {
+      "field": "spo2",
+      "op": "<",
+      "value": 80
+     }
+    ]
+   },
+   "max": 90,
+   "weight": 2,
+   "why": "Support airway and ventilation (recovery position or adjuncts, BVM) while the chest is fixed.",
+   "guide": "Ventilation and oxygen"
+  },
+  {
+   "id": "spo2-end",
+   "text": "SpO2 above 90 % at the end",
+   "type": "end-state",
+   "state": {
+    "field": "spo2",
+    "op": ">",
+    "value": 90
+   },
+   "weight": 2,
+   "why": "Oxygen should recover once the chest is treated.",
+   "guide": "Ventilation and oxygen"
+  },
+  {
+   "id": "alive",
+   "text": "Casualty alive at the end",
+   "type": "end-state",
+   "state": {
+    "field": "alive",
+    "op": "==",
+    "value": true
+   },
+   "weight": 2,
+   "critical": true,
+   "why": "The casualty must survive.",
+   "guide": "Chest injuries"
+  }
+ ]
+}

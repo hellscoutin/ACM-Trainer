@@ -1,23 +1,53 @@
 {
   "id": "cm1-hemorrhagic-shock",
   "title": "Hemorrhagic shock",
-  "track": "combat-medic", "module": "CM-2",
+  "track": "combat-medic",
+  "module": "CM-2",
   "summary": "A rifleman was hit by fragments from a grenade several minutes ago. A buddy slowed the leg bleeding with his hands but he has lost a lot of blood. He is pale and confused. You are the platoon medic.",
   "seed": 4102,
   "timeLimit": 600,
   "role": "medic",
-  "patient": { "weight": 81, "bloodType": "A+", "conscious": true },
+  "patient": {
+    "weight": 81,
+    "bloodType": "A+",
+    "conscious": true
+  },
   "injuries": [
-    { "part": "leftleg", "type": "Avulsion", "damage": 1.3 },
-    { "part": "leftleg", "type": "PunctureWound", "damage": 0.6, "count": 2 },
-    { "part": "body", "type": "Abrasion", "damage": 0.3 }
+    {
+      "part": "leftleg",
+      "type": "Avulsion",
+      "damage": 1.3
+    },
+    {
+      "part": "leftleg",
+      "type": "PunctureWound",
+      "damage": 0.6,
+      "count": 2
+    },
+    {
+      "part": "body",
+      "type": "Abrasion",
+      "damage": 0.3
+    }
   ],
-  "state": { "blood": 4.5, "bloodVolume": 4.5, "platelets": 2.2 },
+  "state": {
+    "blood": 4.5,
+    "bloodVolume": 4.5,
+    "platelets": 2.2
+  },
   "loadout": {
-    "ACE_tourniquet": 2, "ACM_EmergencyTraumaDressing": 1, "ACM_PressureBandage": 4, "ACM_ElasticWrap": 2,
-    "ACM_IV_16g": 2, "ACM_IV_14g": 1, "ACM_IO_EZ": 1,
-    "ACE_salineIV": 2, "ACM_BloodBag_ON_500": 2,
-    "ACM_PressureCuff": 1, "ACM_Stethoscope": 1, "ACM_PulseOximeter": 1
+    "ACE_tourniquet": 2,
+    "ACM_EmergencyTraumaDressing": 1,
+    "ACM_PressureBandage": 4,
+    "ACM_ElasticWrap": 2,
+    "ACM_IV_16g": 2,
+    "ACM_IV_14g": 1,
+    "ACM_IO_EZ": 1,
+    "ACE_salineIV": 2,
+    "ACM_BloodBag_ON_500": 2,
+    "ACM_PressureCuff": 1,
+    "ACM_Stethoscope": 1,
+    "ACM_PulseOximeter": 1
   },
   "objectives": [
     "Stop the leg bleeding (tourniquet first, then dressings)",
@@ -25,5 +55,6 @@
     "Restore volume: compatible blood first, saline as a bridge",
     "Measure blood pressure and monitor SpO2",
     "Blood volume above 5.1 L at the end (the patient can wake)"
-  ]
+  ],
+  "rubric": "rubrics/cm1-hemorrhagic-shock.json"
 }

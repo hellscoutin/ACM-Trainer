@@ -1,0 +1,84 @@
+{
+ "scenario": "cls3-chest-gunshot",
+ "passMark": 0.7,
+ "checks": [
+  {
+   "id": "seal-fast",
+   "text": "Chest seal within 60 s",
+   "type": "action-within",
+   "actions": [
+    "applychestseal"
+   ],
+   "within": 60,
+   "weight": 3,
+   "why": "A chest seal resets an open pneumothorax and stops it getting worse. Every minute without it risks tension.",
+   "guide": "Chest treatment"
+  },
+  {
+   "id": "seal-before-tension",
+   "text": "Chest sealed before tension pneumothorax",
+   "type": "action-before-event",
+   "actions": [
+    "applychestseal"
+   ],
+   "event": "tensionPneumothorax",
+   "weight": 2,
+   "critical": true,
+   "why": "Once the pneumothorax reaches tension a seal no longer fixes it, and a combat lifesaver cannot decompress.",
+   "guide": "Chest injuries"
+  },
+  {
+   "id": "leg",
+   "text": "Leg bleeding stopped within 2 minutes",
+   "type": "state-within",
+   "state": {
+    "field": "bleeding_rightleg",
+    "op": "==",
+    "value": 0
+   },
+   "within": 120,
+   "weight": 2,
+   "why": "Bandage the leg once the chest is sealed.",
+   "guide": "External bleeding"
+  },
+  {
+   "id": "monitor",
+   "text": "Breathing checked or pulse oximeter placed",
+   "type": "action-done",
+   "actions": [
+    "checkbreathing",
+    "placepulseoximeter"
+   ],
+   "weight": 1,
+   "why": "Reassess breathing after the seal; a pulse oximeter shows SpO2 recovering.",
+   "guide": "Assessing breathing"
+  },
+  {
+   "id": "spo2-end",
+   "text": "SpO2 above 90 % at the end",
+   "type": "end-state",
+   "state": {
+    "field": "spo2",
+    "op": ">",
+    "value": 90
+   },
+   "weight": 2,
+   "why": "With the seal on and the pneumothorax at 0, oxygen recovers within minutes.",
+   "guide": "Ventilation and oxygen"
+  },
+  {
+   "id": "alive",
+   "text": "Casualty alive at the end",
+   "type": "end-state",
+   "state": {
+    "field": "alive",
+    "op": "==",
+    "value": true
+   },
+   "weight": 2,
+   "critical": true,
+   "why": "The casualty must survive.",
+   "guide": "Chest injuries"
+  }
+ ]
+}
