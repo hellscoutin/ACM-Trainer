@@ -144,18 +144,24 @@ export function formatTime(s) {
     return `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 }
 
-/** updateBodyImage colours: bleeding parts shade white -> red (0.5 = full red), otherwise damage white -> blue. */
+// ACE medical_gui initSettings: the two 10-step palettes behind bloodLossToRGBA and damageToRGBA.
+// Step 0 (no bleeding, no damage) is drawn white, as the menu shows an unhurt casualty.
+const BLOOD_LOSS_COLORS = [[1, 1, 1], [1, 0.95, 0.64], [1, 0.87, 0.46], [1, 0.8, 0.33], [1, 0.72, 0.24], [1, 0.63, 0.15], [1, 0.54, 0.08], [1, 0.43, 0.02], [1, 0.3, 0], [1, 0, 0]];
+const DAMAGE_COLORS = [[1, 1, 1], [0.75, 0.95, 1], [0.62, 0.86, 1], [0.54, 0.77, 1], [0.48, 0.67, 1], [0.42, 0.57, 1], [0.37, 0.47, 1], [0.31, 0.36, 1], [0.22, 0.23, 1], [0, 0, 1]];
+const step = (fraction) => Math.ceil(Math.max(0, Math.min(1, fraction)) * 9);
+
+/**
+ * ACM updateBodyImage colours: a bleeding part takes the blood loss palette (0.5 = full red), otherwise the damage
+ * palette against the part's trauma threshold (AI thresholds for AI casualties; arms 0.5 x 4, legs 0.3 x 4).
+ */
 export function bodyPartColors(sim) {
     const { p } = sim;
-    const thresholds = [sim.setting("ACM_damage_headTraumaDeathThreshold"), sim.setting("ACM_damage_bodyTraumaDeathThreshold"), 2, 2, 1.2, 1.2];
+    const ai = p.ai ? "AI" : "";
+    const thresholds = [sim.setting(`ACM_damage_headTraumaDeathThreshold${ai}`), sim.setting(`ACM_damage_bodyTraumaDeathThreshold${ai}`), 2, 2, 1.2, 1.2];
     return BODY_PARTS.map((part, i) => {
         const loss = p.openWounds[part].reduce((a, w) => a + w.count * w.bleeding, 0);
-        if (loss > 0) {
-            const f = Math.ceil(Math.min(1, loss / 0.5) * 9) / 9;
-            return rgb(1, 1 - f * 0.9, 1 - f);
-        }
-        const dmg = p.bodyPartDamage[i] / Math.max(0.01, thresholds[i]);
-        const f = Math.ceil(Math.min(1, dmg / 0.8) * 9) / 9;
-        return rgb(1 - f * 0.8, 1 - f * 0.8, 1);
+        if (loss > 0) return rgb(...BLOOD_LOSS_COLORS[step(loss / 0.5)]);
+        const dmg = Math.min(1, p.bodyPartDamage[i] / Math.max(0.01, thresholds[i]));
+        return rgb(...DAMAGE_COLORS[step(dmg / 0.8)]);
     });
 }

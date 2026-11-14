@@ -32,5 +32,9 @@ npx serve .              # or any static server, then open /app/
 ## Credits
 
 - **Advanced Combat Medicine** by Blue and the ACM team. Reproduction of ACM's code, interfaces, artwork and sounds is used with their permission (`app/assets/acm/`, `data/acm-strings-en.json`).
-- **ACE3** by the ACE team (GPL-2.0). `data/ace-strings-en.json` holds ACE's English medical stringtables, used for display text only; the body diagram is drawn for this project.
+- **ACE3** by the ACE team (GPL-2.0). The body diagram and category images in `app/assets/ace/` are ACE's medical menu artwork; `data/ace-strings-en.json` holds ACE's English medical stringtables; parts of `engine/` are ports of ACE functions.
 - Not an official ACM or ACE product.
+
+## Licence
+
+GPL-2.0, as ACE3 (see `LICENSE`). ACM's code, interfaces, artwork and sounds are reproduced with the ACM team's permission.

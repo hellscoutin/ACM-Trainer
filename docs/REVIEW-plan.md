@@ -6,10 +6,22 @@ A review of the web trainer against the ACM 1.4.8 and ACE source and artwork, wi
 
 | Date | Decision |
 |---|---|
-| open | Body figure: use ACE's own body images (needs a GPL-2.0 licence file in this repo), or redraw the figure ourselves to look like it. See section 3.1. |
+| 2026-11-14 | Body figure: ACE's own body images with ACM's overlays. The repo is licensed GPL-2.0 (`LICENSE`), with the ACE team credited for the artwork. |
+| 2026-11-14 | Add all the missing ACM actions listed in section 2.2. |
+| 2026-11-14 | Keep the selection outline and the L/R labels on. |
 | open | Menu layout: move to ACE's three columns with the logs along the bottom, or keep the current layout. See section 3.2. |
-| open | Which of the missing ACM actions to add (section 2.2). |
-| open | Whether the body should show the selection outline and the L/R labels, which ACM turns off by default (section 3.4). |
+
+## Status
+
+| Phase | State |
+|---|---|
+| 1. Small fixes (B1, B2, B3, B5) | built 2026-11-14 |
+| 2. Patient model | built 2026-11-14 (`app/js/body.js`, `app/assets/ace/body`, `app/assets/acm/body`); checked against an in-game screenshot of an uninjured casualty and by eye with devices attached |
+| 3. Menu chrome | not started; the layout decision is open |
+| 4. Missing actions | not started |
+| 5. Proof against the game | not started |
+
+The in-game screenshot settled the palette question in 3.1: an unhurt part is drawn white, so step 0 of both palettes is white in the trainer.
 
 ## 1. What was checked
 

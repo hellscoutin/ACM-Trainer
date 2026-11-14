@@ -169,7 +169,8 @@ const DEFS = {
         run: (c, part) => { const r = inspectIV(c.sim, part, k); return { hint: r.hint, quick: `${c.name} ${r.quick}` }; },
     }])),
     pressurecuff_attach: {
-        show: (c, part) => !c.sim.p.pressureCuff[PART_INDEX[part] - 2] && !c.sim.p.ivAccess[PART_INDEX[part]][0],
+        // not on the arm that carries the AED's cuff (hasAED type 3)
+        show: (c, part) => aedState(c.sim.p).cuff !== PART_INDEX[part] && !c.sim.p.pressureCuff[PART_INDEX[part] - 2] && !c.sim.p.ivAccess[PART_INDEX[part]][0],
         run: (c, part) => outcome(c, attachCuff(c.sim, part)),
     },
     pressurecuff_remove: {
