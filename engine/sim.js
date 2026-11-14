@@ -9,6 +9,7 @@ import { airwayTimers, resetAirway, onUnconsciousAirway } from "./airway.js";
 import { breathingTimers, handleChestInjury } from "./breathing.js";
 import { circulationTimers } from "./circulation.js";
 import { aedTimers, updateAED } from "./aed.js";
+import { disabilityTimers, handleFracture, initDisability } from "./disability.js";
 import {
     handleUnitVitals, vitalsTimers, onCardiacArrest, administerShock, wakeUpCheck, hasPulse, bloodPressure,
     updateCirculationState, recentAEDShock, attemptROSC, hasStableVitals,
@@ -19,6 +20,7 @@ export const ACE_DEFAULTS = {
     ivFlowRate: 1, bleedingCoefficient: 1, woundReopenChance: 1, spontaneousWakeUpChance: 0.1,
     cardiacArrestBleedoutEnabled: true, treatmentTimeTourniquet: 7, treatmentTimeAutoinjector: 5,
     medicMorphine: 0, medicEpinephrine: 0, medicSurgicalKit: 1, consumeSurgicalKit: 0, allowSelfStitch: 0, woundStitchTime: 5,
+    fractures: 1, fractureChance: 0.8, medicSplint: 0,
 };
 
 export class Simulation {
@@ -45,7 +47,8 @@ export class Simulation {
         this.events = [];
         this.actions = [];
         this.listeners = [];
-        this.handlers = { ...woundTimers, ...vitalsTimers, ...airwayTimers, ...breathingTimers, ...circulationTimers, ...pharmacologyTimers, ...aedTimers, ...simTimers };
+        this.handlers = { ...woundTimers, ...vitalsTimers, ...airwayTimers, ...breathingTimers, ...circulationTimers, ...pharmacologyTimers, ...aedTimers, ...disabilityTimers, ...simTimers };
+        initDisability(this.p);
         resetAirway(this);
     }
 
@@ -108,7 +111,8 @@ export class Simulation {
         if (state) {
             // core/onUnconscious -> handleKnockOut; airway/onUnconscious -> handleAirway
             p.knockOut = true;
-            this.schedule(15 + this.rng.random(20), "knockOutEnds");
+            // core/handleKnockOut: AI only get the knock-out timer if random > AI Stay Down Chance (default 1: never)
+            if (!p.ai || this.rng.random(1) > this.setting("ACM_damage_AIStayDownChance")) this.schedule(15 + this.rng.random(20), "knockOutEnds");
             p.lastWakeUpCheck = null;
             onUnconsciousAirway(this);
         } else {
@@ -134,6 +138,7 @@ export class Simulation {
         if (recentAEDShock(p)) p.lastShock = 0;
     }
     wakeUp() { this.setUnconscious(false); }
+    fracture(i) { handleFracture(this, i); }
 
     /** woundsHandlerBase critical hit (head, or torso above the penetration threshold): trauma check, then chest injury. */
     criticalHit(part, type, size, damage) {
@@ -141,9 +146,10 @@ export class Simulation {
         if (this.setting("ACM_damage_enable")) {
             // damage/handleTrauma and handleCardiacArrestTrauma (player thresholds; 0 disables)
             const [head, body] = [p.bodyPartDamage[0], p.bodyPartDamage[1]];
-            const hd = this.setting("ACM_damage_headTraumaDeathThreshold"), bd = this.setting("ACM_damage_bodyTraumaDeathThreshold");
-            const hc = this.setting("ACM_damage_headTraumaCardiacArrestThreshold"), bc = this.setting("ACM_damage_bodyTraumaCardiacArrestThreshold");
-            if ((hd > 0 && head > hd) || (bd > 0 && body > bd)) { this.die("Fatal Injury"); return; }
+            const ai = p.ai ? "AI" : ""; // AI casualties (training computer) use the AI thresholds
+            const hd = this.setting(`ACM_damage_headTraumaDeathThreshold${ai}`), bd = this.setting(`ACM_damage_bodyTraumaDeathThreshold${ai}`);
+            const hc = this.setting(`ACM_damage_headTraumaCardiacArrestThreshold${ai}`), bc = this.setting(`ACM_damage_bodyTraumaCardiacArrestThreshold${ai}`);
+            if (!p.instantDeathImmune && ((hd > 0 && head > hd) || (bd > 0 && body > bd))) { this.die("Fatal Injury"); return; }
             if ((hc > 0 && head > hc) || (bc > 0 && body > bc)) this.fatalVitals();
         }
         if (part === "body") handleChestInjury(this, type, size, damage);

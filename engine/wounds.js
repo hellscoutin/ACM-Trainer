@@ -13,17 +13,22 @@ const INTERNAL_TYPES = ["Avulsion", "Contusion", "Crush", "VelocityWound", "Punc
  * Bleeding and pain follow woundsHandlerBase: woundSize = lin(0.1..2 over damage*sizeMultiplier -> 0.125..1).
  * The size category (minor/medium/large) comes from woundSize, as in ACE.
  */
-export function addWound(sim, part, type, damage, count = 1) {
+export function addWound(sim, part, type, damage, count = 1, mult = {}) {
     const { p, data, rng } = sim;
     const def = data.wounds.types[type];
     if (!def) throw new Error("Unknown wound type " + type);
     const pi = PART_INDEX[part];
+    const { size: sizeMult = 1, pain: painMult = 1, bleeding: bleedMult = 1, fracture: fractureMult = 1, dmg: dmgMult = 1 } = mult;
     for (let i = 0; i < count; i++) {
-        const dmg = damage * rng.tri(0.9, 1, 1.1);
+        const dmg = damage * dmgMult * rng.tri(0.9, 1, 1.1);
         p.bodyPartDamage[pi] += dmg;
-        const woundSize = lin(0.1, 2, dmg, LARGE_WOUND_THRESHOLD ** 3, 1);
-        const pain = woundSize * def.pain;
-        const bleeding = woundSize * def.bleeding;
+        const woundSize = lin(0.1, 2, dmg * sizeMult, LARGE_WOUND_THRESHOLD ** 3, 1);
+        const pain = woundSize * painMult * def.pain;
+        const bleeding = woundSize * bleedMult * def.bleeding;
+        // Fracture: limbs only, wound types that cause fractures, damage over the ACE fracture threshold (0.5)
+        if (def.fracture && pi > 1 && dmg > data.thresholds.aceConstants.fractureDamageThreshold && sim.aceSetting("fractures", 1) > 0 && rng.random(1) < fractureMult * sim.aceSetting("fractureChance", 0.8)) {
+            sim.fracture(pi);
+        }
         const category = Math.max(0, Math.min(2, 2 - Math.floor(Math.log(woundSize) / Math.log(LARGE_WOUND_THRESHOLD))));
         addPain(p, pain, data);
         mergeWound(p.openWounds[part], { type, size: category, count: 1, bleeding, damage: dmg });

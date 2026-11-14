@@ -72,6 +72,12 @@
     <p>Select a body part on the diagram, choose a category on the left, then an action. Actions take their in-game time and are listed only when they can be done, as in game. Feel Pulse, head tilt-chin lift, BVM and CPR continue until you stop them. Vital signs are hidden unless an examination or a pulse oximeter shows them. Space pauses; the speed buttons fast-forward time.</p>
     <div class="buttons"><a class="btn" href="index.html">Back</a><button class="btn primary" id="startBtn">Start</button></div>
 </div></div>
+<div class="modal-back" id="replay"><div class="modal wide" role="dialog" aria-modal="true" aria-labelledby="replayTitle">
+    <h2 id="replayTitle">Replay</h2>
+    <p>Scrub through the run. Select a body part to see its injuries at that moment. True vitals are shown here even if they were hidden during play.</p>
+    <div id="replayHost"></div>
+    <div class="buttons"><button class="btn" id="replayClose">Back to debrief</button></div>
+</div></div>
 <div class="modal-back" id="debrief"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="debriefTitle" id="debriefBody"></div></div>
 <script type="module" src="js/play.js"></script>
 </body>

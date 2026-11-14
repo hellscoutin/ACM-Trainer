@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ACM Trainer: records</title>
+<link rel="stylesheet" href="css/trainer.css">
+</head>
+<body>
+<main class="landing wide-page">
+    <p><a class="btn" href="index.html">← Scenarios</a></p>
+    <h1>Practice records</h1>
+    <p class="lede">Every solo run you finish is saved here, in this browser only. Export them as CSV to share with your instructor or keep a copy. The three most recent runs can be replayed.</p>
+    <div class="toolbar">
+        <label>Scenario <select id="fScenario"><option value="">All</option></select></label>
+        <label>Result <select id="fResult"><option value="">All</option><option>GO</option><option>NO-GO</option></select></label>
+        <span class="spacer"></span>
+        <button class="btn primary" id="csvBtn">Export CSV</button>
+        <button class="btn danger" id="clearBtn">Clear records</button>
+    </div>
+    <p id="summary" class="muted"></p>
+    <div class="table-wrap"><table class="records" id="table">
+        <thead><tr><th>Date</th><th>Scenario</th><th>Role</th><th>Seed</th><th>Result</th><th>Score</th><th>Outcome</th><th>Time</th><th>Failed checks</th><th></th></tr></thead>
+        <tbody></tbody>
+    </table></div>
+    <section id="replaySection" hidden>
+        <h2 id="replayTitle" class="section-title"></h2>
+        <div id="replayHost"></div>
+    </section>
+</main>
+<script type="module">
+import { loadRecords, clearRecords, getReplay, download, storageOK } from "./js/store.js";
+import { recordsToCSV } from "../engine/custom.js";
+import { formatTime } from "../engine/injuryList.js";
+import { mountReplay } from "./js/replay.js";
+
+const $ = (id) => document.getElementById(id);
+const el = (tag, props = {}, ...kids) => { const e = document.createElement(tag); Object.assign(e, props); e.append(...kids); return e; };
+let view = null;
+
+function filtered() {
+    const s = $("fScenario").value, r = $("fResult").value;
+    return loadRecords().filter((x) => (!s || x.scenario === s) && (!r || x.result === r));
+}
+function render() {
+    const all = loadRecords();
+    const sel = $("fScenario"), cur = sel.value;
+    sel.length = 1;
+    for (const [id, title] of new Map(all.map((r) => [r.scenario, `${r.module}: ${r.title}`]))) sel.append(el("option", { value: id, textContent: title, selected: id === cur }));
+    const rows = filtered().slice().reverse();
+    const tb = $("table").tBodies[0];
+    tb.textContent = "";
+    for (const r of rows) {
+        const tr = el("tr", {},
+            el("td", { textContent: new Date(r.date).toLocaleString() }), el("td", { textContent: `${r.module}: ${r.title}` }), el("td", { textContent: r.role }),
+            el("td", { textContent: r.seed }), el("td", { className: r.result === "GO" ? "go" : r.result ? "nogo" : "", textContent: r.result || "–" }),
+            el("td", { textContent: r.score === "" ? "–" : `${r.score} %` }), el("td", { textContent: r.outcome }), el("td", { textContent: formatTime(r.duration) }),
+            el("td", { textContent: (r.failedChecks || []).join(", ") || "–" }));
+        const cell = el("td");
+        if (r.replay && getReplay(r.replay)) {
+            const b = el("button", { className: "btn", textContent: "Replay" });
+            b.addEventListener("click", () => show(r.replay));
+            cell.append(b);
+        }
+        tr.append(cell);
+        tb.append(tr);
+    }
+    if (!rows.length) tb.append(el("tr", {}, el("td", { colSpan: 10, className: "muted", textContent: storageOK ? "No records yet. Finish a scenario to add one." : "This browser blocks storage, so no records can be kept." })));
+    const go = rows.filter((r) => r.result === "GO").length;
+    $("summary").textContent = rows.length ? `${rows.length} run${rows.length > 1 ? "s" : ""}, ${go} GO (${Math.round((go / rows.length) * 100)} %).` : "";
+}
+function show(key) {
+    const rep = getReplay(key);
+    if (!rep) return;
+    view?.destroy();
+    $("replaySection").hidden = false;
+    $("replayTitle").textContent = `Replay: ${rep.title} (${new Date(rep.date).toLocaleString()})`;
+    view = mountReplay($("replayHost"), rep);
+    $("replaySection").scrollIntoView({ behavior: "smooth" });
+}
+$("fScenario").addEventListener("change", render);
+$("fResult").addEventListener("change", render);
+$("csvBtn").addEventListener("click", () => download(`acm-trainer-records-${new Date().toISOString().slice(0, 10)}.csv`, recordsToCSV(filtered()), "text/csv"));
+$("clearBtn").addEventListener("click", () => { if (confirm("Delete all practice records and replays saved in this browser?")) { clearRecords(); view?.destroy(); $("replaySection").hidden = true; render(); } });
+render();
+</script>
+</body>
+</html>

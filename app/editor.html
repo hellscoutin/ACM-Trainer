@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ACM Trainer: scenario editor</title>
+<link rel="stylesheet" href="css/trainer.css">
+</head>
+<body>
+<main class="landing wide-page editor">
+    <p><a class="btn" href="index.html">← Scenarios</a></p>
+    <h1>Scenario editor</h1>
+    <p class="lede">Build your own casualty: injuries by mechanism (the same damage model as in game) or by exact wound type, chest injuries, kit and objectives. Custom scenarios are saved in this browser and scored with the general checks. Export a scenario as a file to share it; others import it here.</p>
+
+    <div class="toolbar">
+        <label>Start from <select id="startFrom"><option value="">Blank scenario</option></select></label>
+        <span class="spacer"></span>
+        <label class="btn file-btn">Import file<input type="file" id="importFile" accept=".json,application/json" hidden></label>
+    </div>
+
+    <form id="form" autocomplete="off" novalidate>
+        <fieldset>
+            <legend>Scenario</legend>
+            <div class="grid2">
+                <label>Title <input id="title" required maxlength="80"></label>
+                <label>Module label <input id="module" maxlength="20" placeholder="Custom"></label>
+                <label>Track <select id="track"><option value="combat-lifesaver">Combat Lifesaver</option><option value="combat-medic" selected>Combat Medic</option><option value="advanced-medic">Advanced Medic</option></select></label>
+                <label>Trainee role <select id="role"><option value="anyone">Anyone (combat lifesaver)</option><option value="medic" selected>Medic</option><option value="doctor">Doctor</option></select></label>
+                <label>Time limit (minutes) <input id="timeLimit" type="number" min="1" max="60" step="1" value="10"></label>
+                <label>Seed <input id="seed" type="number" step="1" value="1"><span class="hint-text">Same seed, same casualty. Change it for a variation.</span></label>
+            </div>
+            <label>Briefing <textarea id="summary" rows="3" maxlength="600" placeholder="What happened and what the trainee sees on arrival."></textarea></label>
+            <label>Objectives (one per line) <textarea id="objectives" rows="4" maxlength="1200"></textarea></label>
+        </fieldset>
+
+        <fieldset>
+            <legend>Patient</legend>
+            <div class="grid3">
+                <label>Weight (kg) <input id="weight" type="number" min="40" max="150" value="80"></label>
+                <label>Blood type <select id="bloodType"></select></label>
+                <label class="check"><input id="conscious" type="checkbox" checked> Starts conscious</label>
+            </div>
+        </fieldset>
+
+        <fieldset>
+            <legend>Injuries</legend>
+            <p class="hint-text">A mechanism rolls wounds the way the game does for that damage on that body part (higher damage: more and larger wounds, fractures, chest injuries). A wound type adds exactly that wound. Damage 0.2 is minor, about 1 is serious, 4 and above is devastating.</p>
+            <table class="edit-table" id="injuries"><thead><tr><th>Body part</th><th>Mechanism or wound</th><th>Damage</th><th>Repeat</th><th></th></tr></thead><tbody></tbody></table>
+            <button type="button" class="btn" id="addInjury">Add injury</button>
+            <div class="grid3 chest">
+                <label>Pneumothorax level <input id="ptx" type="number" min="0" max="10" value="0"></label>
+                <label>Hemothorax level <input id="htx" type="number" min="0" max="10" value="0"></label>
+            </div>
+        </fieldset>
+
+        <fieldset>
+            <legend>Kit</legend>
+            <div class="toolbar"><button type="button" class="btn" id="roleKit">Fill with the role's standard kit</button><button type="button" class="btn" id="clearKit">Clear kit</button></div>
+            <table class="edit-table" id="loadout"><thead><tr><th>Item</th><th>Count</th><th></th></tr></thead><tbody></tbody></table>
+            <button type="button" class="btn" id="addItem">Add item</button>
+        </fieldset>
+
+        <div id="errors" class="errors" role="alert"></div>
+        <div class="toolbar actions-bar">
+            <button type="button" class="btn" id="previewBtn">Preview casualty</button>
+            <button type="button" class="btn" id="exportBtn">Export file</button>
+            <button type="button" class="btn danger" id="deleteBtn" hidden>Delete</button>
+            <span class="spacer"></span>
+            <button type="button" class="btn" id="saveBtn">Save</button>
+            <button type="button" class="btn primary" id="playBtn">Save and play</button>
+        </div>
+        <p id="status" class="muted" role="status"></p>
+    </form>
+
+    <section id="preview" class="preview" hidden>
+        <h2 class="section-title">Preview</h2>
+        <div id="previewBody"></div>
+    </section>
+</main>
+<script type="module" src="js/editor.js"></script>
+</body>
+</html>

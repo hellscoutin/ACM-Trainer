@@ -1,0 +1,47 @@
+{
+  "id": "cls5-grenade-fragments",
+  "title": "Grenade fragments",
+  "track": "combat-lifesaver",
+  "module": "CLS-5",
+  "summary": "A grenade went off next to a rifleman. He is awake with fragment wounds to the left arm, right leg and torso, and his left arm looks deformed.",
+  "seed": 24,
+  "timeLimit": 480,
+  "role": "anyone",
+  "patient": {
+    "weight": 78,
+    "bloodType": "A-",
+    "conscious": true
+  },
+  "injuries": [
+    {
+      "part": "leftarm",
+      "mechanism": "grenade",
+      "damage": 1.6
+    },
+    {
+      "part": "rightleg",
+      "mechanism": "grenade",
+      "damage": 1.4
+    },
+    {
+      "part": "body",
+      "mechanism": "grenade",
+      "damage": 0.6
+    }
+  ],
+  "loadout": {
+    "ACE_tourniquet": 2,
+    "ACM_PressureBandage": 6,
+    "ACM_SAMSplint": 1,
+    "ACM_ChestSeal": 1,
+    "ACM_Paracetamol": 1
+  },
+  "objectives": [
+    "Find every wound: fragments spread over several limbs",
+    "Stop the bleeding (tourniquet if a limb bleeds heavily, pressure bandages for the rest)",
+    "Seal a torso fragment wound if the chest is injured",
+    "Splint the deformed arm",
+    "Patient alive and not bleeding at handover"
+  ],
+  "rubric": "rubrics/cls5-grenade-fragments.json"
+}

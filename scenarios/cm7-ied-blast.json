@@ -1,0 +1,68 @@
+{
+  "id": "cm7-ied-blast",
+  "title": "IED blast",
+  "track": "combat-medic",
+  "module": "CM-7",
+  "summary": "A dismount stepped on a pressure-plate IED. His right leg is mangled, he has fragment wounds to the left leg, left arm, chest and face, and he is going pale.",
+  "seed": 14,
+  "timeLimit": 720,
+  "role": "medic",
+  "patient": {
+    "weight": 82,
+    "bloodType": "O+",
+    "conscious": true
+  },
+  "injuries": [
+    {
+      "part": "rightleg",
+      "mechanism": "explosive",
+      "damage": 4.5
+    },
+    {
+      "part": "leftleg",
+      "mechanism": "grenade",
+      "damage": 1.8
+    },
+    {
+      "part": "body",
+      "mechanism": "grenade",
+      "damage": 1.2
+    },
+    {
+      "part": "leftarm",
+      "mechanism": "grenade",
+      "damage": 1.0
+    },
+    {
+      "part": "head",
+      "mechanism": "explosive",
+      "damage": 0.8
+    }
+  ],
+  "loadout": {
+    "ACE_tourniquet": 3,
+    "ACM_EmergencyTraumaDressing": 2,
+    "ACM_PressureBandage": 8,
+    "ACM_ElasticWrap": 3,
+    "ACM_ChestSeal": 1,
+    "ACM_NCDKit": 1,
+    "ACM_SAMSplint": 2,
+    "ACM_IV_16g": 2,
+    "ACM_IO_EZ": 1,
+    "ACM_Syringe_10": 2,
+    "ACM_Vial_TXA": 1,
+    "ACM_Vial_Morphine": 1,
+    "ACM_BloodBag_ON_500": 2,
+    "ACE_salineIV": 1,
+    "ACM_PulseOximeter": 1,
+    "ACM_Stethoscope": 1
+  },
+  "objectives": [
+    "Tourniquet the mangled leg at once (high on the limb)",
+    "Control the other fragment wounds and seal the chest",
+    "Gain access, give TXA and blood",
+    "Realign and splint the fractured leg",
+    "Patient alive with blood volume at least 5.1 L at the end"
+  ],
+  "rubric": "rubrics/cm7-ied-blast.json"
+}

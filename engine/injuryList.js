@@ -95,6 +95,11 @@ export function injuryList(sim, part) {
     }
     if (i === 1 && p.chestSeal) e.push({ text: "Chest Seal Applied", color: C.seal });
     if ((i === 2 || i === 3) && p.pressureCuff[i - 2]) e.push({ text: "Pressure Cuff", color: C.circulation });
+    if (p.fractures && p.fractures[i] !== 0) {
+        if (p.splints[i] === 2) e.push({ text: "SAM Splint Applied (Wrapped)", color: "rgb(51,51,255)" });
+        else if (p.splints[i] === 1) e.push({ text: "SAM Splint Applied", color: "rgb(51,51,255)" });
+        else if (p.fractures[i] > 0) e.push({ text: "Fractured", color: "#ff0000" });
+    }
     if (p.tourniquets[i]) e.push({ text: `Tourniquet [CAT] [${formatTime(p.t - p.tourniquetTime[i])}]`, color: C.tq });
     // Internal bleeding bruising / hemothorax
     const ib = p.internalWounds[part].reduce((a, w) => a + w.count * w.bleeding, 0);

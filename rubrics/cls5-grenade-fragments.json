@@ -1,0 +1,60 @@
+{
+ "scenario": "cls5-grenade-fragments",
+ "passMark": 0.7,
+ "checks": [
+  {
+   "id": "bleed",
+   "text": "All external bleeding stopped within 2 minutes",
+   "type": "state-within",
+   "state": {
+    "field": "woundBleeding",
+    "op": "==",
+    "value": 0
+   },
+   "within": 120,
+   "weight": 3,
+   "critical": true,
+   "why": "Fragments leave several bleeding wounds on different limbs. Check every body part and stop each bleed.",
+   "guide": "External bleeding"
+  },
+  {
+   "id": "splint",
+   "text": "Fractured arm splinted",
+   "type": "action-done",
+   "actions": [
+    "applysamsplint"
+   ],
+   "parts": [
+    "leftarm"
+   ],
+   "weight": 2,
+   "why": "Inspect for deformity and splint the fractured limb (a medic realigns it first so the splint sets the bone).",
+   "guide": "Fractures"
+  },
+  {
+   "id": "pain",
+   "text": "Pain treated",
+   "type": "action-done",
+   "actions": [
+    "paracetamol"
+   ],
+   "weight": 1,
+   "why": "Fragment wounds and fractures hurt; treat pain once bleeding is controlled.",
+   "guide": "Pain and consciousness"
+  },
+  {
+   "id": "alive",
+   "text": "Casualty alive at handover",
+   "type": "end-state",
+   "state": {
+    "field": "alive",
+    "op": "==",
+    "value": true
+   },
+   "weight": 2,
+   "critical": true,
+   "why": "The casualty must survive.",
+   "guide": "The patient model"
+  }
+ ]
+}

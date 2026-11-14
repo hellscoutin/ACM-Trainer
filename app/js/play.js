@@ -11,6 +11,9 @@ import { drawSyringe, injectSyringe, drugName } from "../../engine/syringes.js";
 import { aedState } from "../../engine/aed.js";
 import { openCric } from "./windows-cric.js";
 import { endProcedure } from "../../engine/surgicalAirway.js";
+import { randomScenario, GENERIC_RUBRIC, captureFrame, pushFrame, makeRecord } from "../../engine/custom.js";
+import { getCustom, addRecord, addReplay, storageOK } from "./store.js";
+import { mountReplay } from "./replay.js";
 
 const $ = (id) => document.getElementById(id);
 const el = (tag, props = {}, ...kids) => { const e = document.createElement(tag); Object.assign(e, props); e.append(...kids); return e; };
@@ -24,15 +27,33 @@ const CAT_ICONS = {
 };
 
 const params = new URLSearchParams(location.search);
+// Scenario sources: ?s=<id> (built-in file), ?c=<id> (custom, from this browser), ?random=1&sev=&cause=&role= (training computer)
+const source = params.has("random") ? "random" : params.has("c") ? "custom" : "file";
 const scenarioId = params.get("s") || "cls1-leg-hemorrhage";
+const randomSeed = () => Math.floor(Math.random() * 1e9);
 const [data, meds, scn] = await Promise.all([
     fetch("../data/acm-1.4.8.json").then((r) => r.json()),
     fetch("../data/medications-1.4.8.json").then((r) => r.json()),
-    fetch(`../scenarios/${encodeURIComponent(scenarioId)}.json`).then((r) => r.json()),
+    source === "random" ? randomScenario({ severity: params.get("sev"), cause: params.get("cause"), role: params.get("role") || "medic", seed: params.has("seed") ? Number(params.get("seed")) : randomSeed() })
+        : source === "custom" ? getCustom(params.get("c"))
+        : fetch(`../scenarios/${encodeURIComponent(scenarioId)}.json`).then((r) => r.json()),
 ]);
-const rubric = scn.rubric ? await fetch(`../${scn.rubric}`).then((r) => (r.ok ? r.json() : null)).catch(() => null) : null;
+if (!scn) {
+    document.body.innerHTML = '<main class="landing"><h1>Scenario not found</h1><p class="lede">This custom scenario is not saved in this browser. Open the scenario editor to import it.</p><a class="btn primary" href="editor.html">Scenario editor</a> <a class="btn" href="index.html">Scenarios</a></main>';
+    throw new Error("Scenario not found");
+}
+const rubric = scn.rubric ? await fetch(`../${scn.rubric}`).then((r) => (r.ok ? r.json() : null)).catch(() => null) : source === "file" ? null : GENERIC_RUBRIC;
 const catalogue = buildCatalogue(data);
 const seed = params.has("seed") ? Number(params.get("seed")) : scn.seed;
+/** URL of this scenario with another seed (retry, new variation). */
+function scenarioUrl(s) {
+    const q = new URLSearchParams();
+    if (source === "random") for (const k of ["random", "sev", "cause", "role"]) { if (params.has(k)) q.set(k, params.get(k)); }
+    else if (source === "custom") q.set("c", params.get("c"));
+    else q.set("s", scn.id);
+    q.set("seed", String(s));
+    return "play.html?" + q;
+}
 
 let sim, ctx, state, body, recorder, ambient;
 
@@ -41,7 +62,7 @@ function start() {
     ctx = { sim, level: ROLE_LEVEL[scn.role || "anyone"], inventory: { ...(scn.loadout || {}) }, name: "You", patientName: "Patient", busy: null };
     state = {
         part: "head", cat: "examine", speed: 1, acc: 0, last: performance.now(), running: false, ended: false,
-        progress: null, cont: null, history: [], activity: [], quick: [], timeline: [], nextBeat: 0, pulseDone: true,
+        progress: null, cont: null, history: [], activity: [], quick: [], timeline: [], nextBeat: 0, pulseDone: true, frames: [],
     };
     sim.on(onSimEvent);
     recorder = createRecorder(sim);
@@ -244,6 +265,7 @@ function setSpeed(s) {
 function record() {
     const p = sim.p;
     state.history.push({ t: p.t, bv: p.bloodVolume, spo2: p.spo2, hr: p.hr, map: p.bp[0] + (p.bp[1] - p.bp[0]) / 3 });
+    pushFrame(state.frames, captureFrame(sim));
 }
 function step() {
     sim.tick();
@@ -364,7 +386,7 @@ function render() {
 function renderTick() {
     $("clock").textContent = formatTime(sim.p.t);
     renderState();
-    body.update(bodyPartColors(sim), state.part, sim.p);
+    body.update(bodyPartColors(sim), state.part, Object.assign(Object.create(sim.p), { splintBone: sim.aceSetting("fractures", 1) >= 2 }));
     renderInjuries();
     renderLogs();
     renderInventory();
@@ -417,6 +439,7 @@ function endScenario(reason) {
     setSpeed(0);
     cancelAction();
     if (state.cont) endContinuous();
+    pushFrame(state.frames, captureFrame(sim));
     debrief(reason);
 }
 function chart(series, key, label, lo, hi, color, marks = [], ticks = []) {
@@ -442,11 +465,14 @@ function debrief(reason) {
     const outcome = p.alive ? (p.woundBleeding > 0 ? "Alive, still bleeding" : "Alive") : `Died: ${p.causeOfDeath}`;
     const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
     const res = rubric ? scoreRun(rubric, sim, recorder) : null;
+    const record = makeRecord(scn, seed, sim, res);
+    const replay = { key: record.date, title: `${scn.module}: ${scn.title}`, seed, date: record.date, frames: state.frames, timeline: state.timeline.slice() };
+    const saved = addRecord({ ...record, replay: addReplay(replay) ? replay.key : null });
     const icon = { pass: "✓", fail: "✗", na: "–" };
     const scoreHtml = res ? `
         <div class="scorecard ${res.passed ? "go" : "nogo"}">
             <div class="verdict">${res.passed ? "GO" : "NO-GO"}</div>
-            <div><div class="pct">${Math.round(res.score * 100)} %</div><div class="muted">pass mark ${Math.round(res.passMark * 100)} %${res.criticalFails.length ? ` · ${res.criticalFails.length} critical check${res.criticalFails.length > 1 ? "s" : ""} failed` : ""}</div></div>
+            <div><div class="pct">${Math.round(res.score * 100)} %</div><div class="muted">pass mark ${Math.round(res.passMark * 100)} %${res.criticalFails.length ? ` · ${res.criticalFails.length} critical check${res.criticalFails.length > 1 ? "s" : ""} failed` : ""}${rubric.generic ? " · general checks (random and custom scenarios)" : ""}</div></div>
         </div>
         <h3>Checks</h3>
         <ul class="checks">${res.results.map((r) => `<li class="${r.status}">
@@ -471,19 +497,29 @@ function debrief(reason) {
         <h3>Timeline</h3>
         <ul class="timeline">${state.timeline.sort((a, b) => a.t - b.t).map((e) => `<li class="${e.kind === "event" ? "ev" : ""}"><time>${formatTime(e.t)}</time>${esc(e.text)}</li>`).join("") || "<li>No actions taken</li>"}</ul>
 
-        <div class="buttons"><a class="btn" href="index.html">Scenarios</a><button class="btn" id="retryBtn">Retry</button><button class="btn primary" id="newSeedBtn">New variation</button></div>`;
+        <p class="muted">${saved ? 'Saved to <a href="records.html">your records</a> in this browser.' : storageOK ? "Could not save this run: browser storage is full." : "This browser blocks storage, so the run is not saved."}</p>
+        <div class="buttons"><a class="btn" href="index.html">Scenarios</a><button class="btn" id="replayBtn">Replay</button><button class="btn" id="retryBtn">Retry</button><button class="btn primary" id="newSeedBtn">New variation</button></div>`;
     $("debrief").classList.add("show");
-    $("retryBtn").addEventListener("click", () => { location.href = `play.html?s=${encodeURIComponent(scn.id)}&seed=${seed}`; });
-    $("newSeedBtn").addEventListener("click", () => { location.href = `play.html?s=${encodeURIComponent(scn.id)}&seed=${Math.floor(Math.random() * 1e9)}`; });
+    $("replayBtn").addEventListener("click", () => openReplayModal(replay));
+    $("retryBtn").addEventListener("click", () => { location.href = scenarioUrl(seed); });
+    $("newSeedBtn").addEventListener("click", () => { location.href = scenarioUrl(randomSeed()); });
     $("retryBtn").focus({ preventScroll: true });
     box.scrollTop = 0;
+}
+
+function openReplayModal(replay) {
+    $("debrief").classList.remove("show");
+    $("replayTitle").textContent = `Replay: ${replay.title}`;
+    const view = mountReplay($("replayHost"), replay);
+    $("replay").classList.add("show");
+    $("replayClose").onclick = () => { view.destroy(); $("replay").classList.remove("show"); $("debrief").classList.add("show"); };
 }
 
 // ------------------------------------------------------------------ wiring
 start();
 document.title = `${scn.title}: ACM Trainer`;
 $("title").innerHTML = "";
-$("title").append(scn.title, el("small", { textContent: scn.module + (seed !== scn.seed ? ` · variation ${seed}` : "") }));
+$("title").append(scn.title, el("small", { textContent: scn.module + (source === "random" ? ` · seed ${seed}` : seed !== scn.seed ? ` · variation ${seed}` : "") }));
 body = createBody($("body"), (part) => { state.part = part; render(); });
 $("speed").addEventListener("click", (e) => { const b = e.target.closest("button"); if (b && !state.ended) setSpeed(Number(b.dataset.speed)); });
 $("showUnavailable").addEventListener("change", render);
@@ -513,5 +549,6 @@ if (params.has("autostart")) {
     if (params.get("cat")) state.cat = params.get("cat");
     render();
     if (!state.ended) setSpeed(1);
+    else if (params.has("openreplay")) $("replayBtn").click();
 } else briefing();
 requestAnimationFrame((t) => { state.last = t; frame(t); });

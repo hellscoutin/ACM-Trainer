@@ -11,10 +11,42 @@
 <main class="landing">
     <h1>ACM Trainer</h1>
     <p class="lede">Practise Advanced Combat Medicine on simulated casualties. The patient model is ported from ACM 1.4.8 and ACE 3.21.2, so wounds, vitals and treatments behave as they do in game. Pick a scenario to start solo practice.</p>
+    <nav class="toolbar top-links"><a class="btn" href="editor.html">Scenario editor</a><a class="btn" href="records.html">Your records</a></nav>
+    <section class="track">
+        <h2>Training computer</h2>
+        <div class="cards"><article class="card tc">
+            <div class="mod">Random casualty</div>
+            <h3>Generate a patient</h3>
+            <p>The ACM training computer rolls a fresh casualty: pick a triage category and a cause, or leave them random. Every patient is different.</p>
+            <div class="tc-grid">
+                <label>Severity <select id="tcSev"><option value="0">Random</option><option value="1">Routine</option><option value="2">Priority</option><option value="3">Immediate</option><option value="4">Expectant</option></select></label>
+                <label>Cause <select id="tcCause"></select></label>
+                <label>Your role <select id="tcRole"><option value="anyone">Combat lifesaver</option><option value="medic" selected>Medic</option><option value="doctor">Doctor</option></select></label>
+            </div>
+            <a class="btn primary" id="tcGo" href="play.html?random=1">Generate and start</a>
+        </article></div>
+    </section>
     <div id="tracks"><p class="lede">Loading scenarios…</p></div>
-    <p class="credits">Advanced Combat Medicine by Blue and the ACM team, used with permission. ACE3 by the ACE team (GPL-2.0). Instructor-led sessions, scoring and sign-in are being built.</p>
+    <section class="track" id="customSection" hidden><h2>Your scenarios</h2><div class="cards" id="customCards"></div></section>
+    <p class="credits">Advanced Combat Medicine by Blue and the ACM team, used with permission. ACE3 by the ACE team (GPL-2.0). Practice records stay in this browser. Instructor-led sessions and sign-in are being built.</p>
 </main>
 <script type="module">
+import { CAUSES, CAUSES_FOR } from "../engine/damage.js";
+import { loadCustom } from "./js/store.js";
+// training computer: causes offered per severity, as in the ACM training computer
+const sev = document.getElementById("tcSev"), cause = document.getElementById("tcCause"), role = document.getElementById("tcRole"), go = document.getElementById("tcGo");
+function causes() {
+    const s = Number(sev.value), cur = cause.value;
+    cause.textContent = "";
+    cause.append(new Option("Random", "0"));
+    for (const c of s ? CAUSES_FOR[s] : Object.keys(CAUSES).map(Number)) cause.append(new Option(CAUSES[c], String(c), false, String(c) === cur));
+    link();
+}
+function link() { go.href = `play.html?random=1&sev=${sev.value}&cause=${cause.value}&role=${role.value}`; }
+sev.addEventListener("change", causes);
+cause.addEventListener("change", link);
+role.addEventListener("change", link);
+causes();
 const base = "../scenarios/";
 const index = await (await fetch(base + "index.json")).json();
 const list = await Promise.all(index.scenarios.map(async (id) => (await fetch(base + id + ".json")).json()));
@@ -50,6 +82,25 @@ for (const track of index.tracks) {
         sec.append(cards);
     }
     root.append(sec);
+}
+const mine = Object.values(loadCustom());
+if (mine.length) {
+    document.getElementById("customSection").hidden = false;
+    const cards = document.getElementById("customCards");
+    for (const s of mine) {
+        const c = document.createElement("article");
+        c.className = "card";
+        const mod = document.createElement("div"); mod.className = "mod"; mod.textContent = s.module || "Custom";
+        const t = document.createElement("h3"); t.textContent = s.title;
+        const d = document.createElement("p"); d.textContent = s.summary || "";
+        const meta = document.createElement("div"); meta.className = "meta"; meta.textContent = `${Math.round(s.timeLimit / 60)} min · role: ${s.role}`;
+        const row = document.createElement("div"); row.className = "row-buttons";
+        const play = document.createElement("a"); play.className = "btn primary"; play.href = "play.html?c=" + encodeURIComponent(s.id); play.textContent = "Start practice";
+        const edit = document.createElement("a"); edit.className = "btn"; edit.href = "editor.html?id=" + encodeURIComponent(s.id); edit.textContent = "Edit";
+        row.append(play, edit);
+        c.append(mod, t, d, meta, row);
+        cards.append(c);
+    }
 }
 </script>
 </body>

@@ -219,3 +219,61 @@ button { font: inherit; color: inherit; }
 .cric-zone { cursor: pointer; border-radius: 6px; }
 .cric-zone:hover, .cric-zone:focus-visible { outline: 2px dashed var(--focus); }
 .cric-ctl { display: flex; gap: 8px; margin-top: 8px; }
+
+/* ---------- step 7: training computer, editor, records, replay ---------- */
+.toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 0 0 16px; }
+.toolbar .spacer { flex: 1; }
+.toolbar label, .tc-grid label, .editor label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--muted); }
+.toolbar label { flex-direction: row; align-items: center; gap: 8px; }
+select, input[type=number], input:not([type]), textarea { font: inherit; color: var(--fg); background: #15171a; border: 1px solid var(--line); border-radius: 4px; padding: 6px 8px; min-height: 36px; }
+textarea { resize: vertical; width: 100%; }
+.top-links { margin-top: -16px; }
+.tc-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.row-buttons { display: flex; gap: 8px; }
+.row-buttons .btn { flex: 1; }
+.wide-page { max-width: 1180px; }
+.section-title { font-size: 15px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--accent); margin: 32px 0 12px; border-bottom: 1px solid var(--line); padding-bottom: 6px; }
+.table-wrap { overflow-x: auto; }
+table.records { width: 100%; border-collapse: collapse; font-size: 14px; font-variant-numeric: tabular-nums; }
+table.records th, table.records td { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+table.records th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; }
+table.records td.go { color: var(--ok); font-weight: 700; }
+table.records td.nogo { color: var(--danger); font-weight: 700; }
+.editor fieldset { border: 1px solid var(--line); border-radius: 6px; margin: 0 0 18px; padding: 14px 16px 16px; background: var(--panel-solid); }
+.editor legend { color: var(--accent); text-transform: uppercase; letter-spacing: 0.1em; font-size: 13px; padding: 0 6px; }
+.editor fieldset > label { margin-top: 12px; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 16px; }
+.grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px 16px; align-items: end; }
+.editor label.check { flex-direction: row; align-items: center; gap: 8px; color: var(--fg); min-height: 36px; }
+.hint-text { font-size: 12px; color: var(--dim); margin: 0 0 10px; }
+.edit-table { width: 100%; border-collapse: collapse; margin: 0 0 10px; }
+.edit-table th { text-align: left; font-size: 12px; color: var(--muted); font-weight: 600; padding: 4px 6px; }
+.edit-table td { padding: 4px 6px; }
+.edit-table select, .edit-table input { width: 100%; }
+.edit-table td:last-child { width: 1%; }
+.edit-table input[type=number] { max-width: 110px; }
+.chest { margin-top: 14px; }
+.errors { color: #ffd2cf; }
+.errors ul { margin: 6px 0 12px; }
+.actions-bar { position: sticky; bottom: 0; background: var(--bg); padding: 12px 0; border-top: 1px solid var(--line); margin: 0; }
+.file-btn { cursor: pointer; }
+.preview-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.preview-grid .panel { background: var(--panel-solid); }
+.warn-text { color: #ffcf8a; }
+.modal.wide { width: min(1180px, 96vw); }
+.replay-controls { display: flex; align-items: center; gap: 10px; margin: 8px 0 14px; flex-wrap: wrap; }
+.replay-slider { flex: 1; min-width: 200px; accent-color: var(--accent); }
+.replay-clock { font-variant-numeric: tabular-nums; color: var(--muted); min-width: 110px; text-align: right; }
+.replay-grid { display: grid; grid-template-columns: 220px 1fr 1.2fr; gap: 16px; align-items: start; }
+.replay-col h4 { margin: 0 0 6px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+.replay-col .injuries { padding: 0; max-height: 320px; }
+.replay-body { height: 420px; }
+.replay-timeline { max-height: 220px; margin-top: 4px; }
+.replay-timeline li { cursor: pointer; }
+.replay-timeline li.future { opacity: 0.4; }
+.replay-timeline li.now { background: rgba(201, 162, 39, 0.18); }
+@media (max-width: 1000px) { .replay-grid { grid-template-columns: 200px 1fr; } .replay-grid .replay-col:last-child { grid-column: 1 / -1; } .preview-grid { grid-template-columns: 1fr 1fr; } }
+[hidden] { display: none !important; }
+.tc-grid label { min-width: 0; }
+.tc-grid select { width: 100%; min-width: 0; }
+.replay-col table + h4 { margin-top: 16px; }

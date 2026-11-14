@@ -21,6 +21,9 @@
     "cm2-tension-chest",
     "cm4-hemothorax",
     "cm5-cardiac-arrest",
-    "cm6-surgical-airway"
+    "cm6-surgical-airway",
+    "cls5-grenade-fragments",
+    "cm7-ied-blast",
+    "cm8-helicopter-crash"
   ]
 }

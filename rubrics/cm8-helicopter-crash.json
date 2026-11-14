@@ -1,0 +1,127 @@
+{
+ "scenario": "cm8-helicopter-crash",
+ "passMark": 0.75,
+ "checks": [
+  {
+   "id": "assess-chest",
+   "text": "Breathing assessed within 2 minutes",
+   "type": "action-within",
+   "actions": [
+    "checkbreathing",
+    "inspectchest",
+    "usestethoscope"
+   ],
+   "within": 120,
+   "weight": 2,
+   "why": "Blunt chest trauma from a crash can cause a pneumothorax with no open wound. Assess breathing early.",
+   "guide": "Assessing breathing"
+  },
+  {
+   "id": "inspect",
+   "text": "Legs inspected for fracture",
+   "type": "action-done",
+   "actions": [
+    "inspectforfracture"
+   ],
+   "weight": 1,
+   "why": "Crush injuries from a crash often break bones; inspect before splinting.",
+   "guide": "Fractures"
+  },
+  {
+   "id": "splint-l",
+   "text": "Left leg realigned and splinted",
+   "type": "action-order",
+   "first": [
+    "fracturerealignment"
+   ],
+   "then": [
+    "applysamsplint"
+   ],
+   "parts": [
+    "leftleg"
+   ],
+   "weight": 2,
+   "why": "Realign, then splint: the splint only sets a realigned fracture.",
+   "guide": "Fractures"
+  },
+  {
+   "id": "splint-r",
+   "text": "Right leg splinted",
+   "type": "action-done",
+   "actions": [
+    "applysamsplint"
+   ],
+   "parts": [
+    "rightleg"
+   ],
+   "weight": 1,
+   "why": "Both legs are injured; splint each fracture.",
+   "guide": "Fractures"
+  },
+  {
+   "id": "txa",
+   "text": "TXA IV within 5 minutes",
+   "type": "action-within",
+   "actions": [
+    "txa_10_iv",
+    "txa_5_iv",
+    "txa_3_iv",
+    "txa_1_iv"
+   ],
+   "within": 300,
+   "weight": 3,
+   "why": "Internal bleeding from the torso impact does not show as external bleeding. TXA lets it clot.",
+   "guide": "Internal bleeding, platelets and TXA"
+  },
+  {
+   "id": "bleed",
+   "text": "External bleeding stopped within 3 minutes",
+   "type": "state-within",
+   "state": {
+    "field": "woundBleeding",
+    "op": "==",
+    "value": 0
+   },
+   "within": 180,
+   "weight": 2,
+   "why": "Dress the lacerations and avulsions.",
+   "guide": "External bleeding"
+  },
+  {
+   "id": "spo2-end",
+   "text": "SpO2 above 90 % at the end",
+   "type": "end-state",
+   "state": {
+    "all": [
+     {
+      "field": "alive",
+      "op": "==",
+      "value": true
+     },
+     {
+      "field": "spo2",
+      "op": ">",
+      "value": 90
+     }
+    ]
+   },
+   "weight": 2,
+   "why": "Treat the chest and support breathing.",
+   "guide": "Ventilation and oxygen"
+  },
+  {
+   "id": "alive",
+   "text": "Casualty alive at the end",
+   "type": "end-state",
+   "state": {
+    "field": "alive",
+    "op": "==",
+    "value": true
+   },
+   "weight": 2,
+   "critical": true,
+   "why": "The casualty must survive.",
+   "guide": "The patient model"
+  }
+ ]
+}

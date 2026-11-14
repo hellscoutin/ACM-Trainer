@@ -155,8 +155,8 @@ Scenario files (JSON in `scenarios/`, versioned in the repo) define:
 - **Debrief view:**
   - timeline of actions against the vitals chart;
   - each failed check with what should have happened and a link to the guide chapter;
-  - a replay (deterministic re-simulation from seed and action log).
-- **Records:** per trainee, per track (passed modules, scores, dates). Exportable as CSV for the unit's own records.
+  - a replay: scrub through the run second by second (body, injuries, true vitals, timeline). Built in step 7 from recorded frames, because procedure windows change state outside the menu path; re-simulation from seed and action log stays the tamper check for menu actions.
+- **Records:** per trainee, per track (passed modules, scores, dates). Exportable as CSV for the unit's own records. Until step 5 (sign-in) they are kept in the browser (localStorage, last 3 replays).
 
 ## 7. Data model (Firestore)
 
@@ -197,7 +197,7 @@ Scenario files (JSON in `scenarios/`, versioned in the repo) define:
 4. Scoring, rubrics and debrief.
 5. Firebase: sessions, live dashboard, commands, stored results.
 6. Pharmacology, AED, surgical airway, transfusion menu; Combat Medic scenarios.
-7. Scenario editor, random patients, replay, records export.
+7. Scenario editor, random patients, replay, records export. Done 2026-11-13, with CLS-5 grenade fragments, CM-7 IED blast and CM-8 helicopter hard landing.
 8. Guidance rules (shared with the ATAK monitor), hints in practice mode.
 9. CBRN (optional), Advanced Medic scenarios.
 

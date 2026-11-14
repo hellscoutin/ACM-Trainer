@@ -14,6 +14,7 @@ import { thoracostomy, insertChestTube, drainChest, closeIncision } from "./brea
 import { wrap, stitch } from "./wounds.js";
 import { SYRINGE_SIZES, SYRINGE_DRUGS, vialItem, drugName, injectSyringe } from "./syringes.js";
 import { canEstablish, canSecure, canStitchIncision, secureStrap, stitchIncision, stitchIncisionTime, startProcedure } from "./surgicalAirway.js";
+import { inspectForFracture, canInspect, canRealign, realign, canSplint, applySplint, canWrapSplint, wrapSplint, canRemoveSplint, removeSplint } from "./disability.js";
 import { aedState, hasAED, connect, disconnect, analyze, manualCharge, shock, cancelCharge, measureBP, canAnalyze, canManualCharge, canShock, canCancelCharge, canMeasureBP } from "./aed.js";
 
 export const CATEGORIES = [
@@ -206,6 +207,12 @@ const DEFS = {
     establishsurgicalairway: { continuous: "cric", show: (c) => airwayOn(c) && canEstablish(c.sim.p), run: (c) => { startProcedure(c.sim); return { window: { type: "cric" } }; } },
     surgicalairway_securestrap: { show: (c) => canSecure(c.sim.p), run: (c) => ({ hint: [secureStrap(c.sim)], log: `${c.name} secured surgical airway neck strap` }) },
     stitchairwayincision: { show: (c) => canStitchIncision(c.sim.p), time: (c) => stitchIncisionTime(c.sim.p, false), run: (c) => ({ hint: [stitchIncision(c.sim)], log: `${c.name} stitched surgical airway incision` }) },
+    // ------------------------------------------------------------------ fractures
+    inspectforfracture: { show: (c, part) => canInspect(c.sim, part), run: (c, part) => { const r = inspectForFracture(c.sim, part); return { hint: r.hint, quick: `${c.name} inspected ${part.replace(/(left|right)/, "$1 ")}: ${r.short}` }; } },
+    fracturerealignment: { show: (c, part) => canRealign(c.sim, part), run: (c, part) => { realign(c.sim, part); return { log: `${c.name} performed fracture realignment` }; } },
+    applysamsplint: { show: (c, part) => canSplint(c.sim.p, part), run: (c, part) => { applySplint(c.sim, part); return { log: `${c.name} applied SAM Splint` }; } },
+    elasticwrapsplint: { show: (c, part) => canWrapSplint(c.sim.p, part), time: (c) => c.sim.setting("ACM_disability_treatmentTimeWrapSplint"), run: (c, part) => { wrapSplint(c.sim, part); return { log: `${c.name} wrapped SAM Splint` }; } },
+    removesamsplint: { show: (c, part) => canRemoveSplint(c.sim.p, part), returnsItem: "ACM_SAMSplint", run: (c, part) => { removeSplint(c.sim, PART_INDEX[part], true); return { log: `${c.name} removed SAM Splint` }; } },
     elasticwrapbandages: wrapDef(false), elasticwrapclots: wrapDef(true),
     surgicalkit: stitchDef("bandaged", 5), stitchclottedwounds: stitchDef("clotted", 5), stitchwrappedwounds: stitchDef("wrapped", 2),
 };

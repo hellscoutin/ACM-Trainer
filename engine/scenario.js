@@ -1,6 +1,7 @@
 // Scenario loader: builds a Simulation from a scenario file (see docs/TRAINER-design.md section 4).
 import { Simulation } from "./sim.js";
 import { handlePneumothorax, handleHemothorax, updateLungState } from "./breathing.js";
+import { applyDamage, generatePatient } from "./damage.js";
 
 /**
  * scenario: {
@@ -20,7 +21,11 @@ export function loadScenario(scn, data, meds, { seed } = {}) {
         settings: scn.settings || {}, aceSettings: scn.aceSettings || {},
         patient: { weight: scn.patient?.weight, bloodType: scn.patient?.bloodType },
     });
-    for (const w of scn.injuries || []) sim.act("wound", { part: w.part, type: w.type, damage: w.damage, count: w.count || 1 });
+    for (const w of scn.injuries || []) {
+        if (w.mechanism) { for (let k = 0; k < (w.count || 1); k++) applyDamage(sim, w.part, w.mechanism, w.damage); }
+        else sim.act("wound", { part: w.part, type: w.type, damage: w.damage, count: w.count || 1 });
+    }
+    if (scn.random) generatePatient(sim, scn.random.severity || 0, scn.random.cause || 0);
     if (scn.chest) {
         const p = sim.p;
         p.chestInjury = true;

@@ -1,0 +1,72 @@
+{
+  "id": "cm8-helicopter-crash",
+  "title": "Helicopter hard landing",
+  "track": "combat-medic",
+  "module": "CM-8",
+  "summary": "A transport helicopter came down hard. The crew chief was thrown around the cabin: both legs are injured, he is guarding his chest and belly, and he is getting worse.",
+  "seed": 67,
+  "timeLimit": 900,
+  "role": "medic",
+  "patient": {
+    "weight": 88,
+    "bloodType": "AB+",
+    "conscious": true
+  },
+  "injuries": [
+    {
+      "part": "body",
+      "mechanism": "vehiclecrash",
+      "damage": 1.4,
+      "count": 4
+    },
+    {
+      "part": "leftleg",
+      "mechanism": "falling",
+      "damage": 2.5
+    },
+    {
+      "part": "rightleg",
+      "mechanism": "falling",
+      "damage": 1.6
+    },
+    {
+      "part": "body",
+      "mechanism": "collision",
+      "damage": 1.6
+    },
+    {
+      "part": "head",
+      "mechanism": "collision",
+      "damage": 0.6
+    }
+  ],
+  "loadout": {
+    "ACE_tourniquet": 2,
+    "ACM_PressureBandage": 10,
+    "ACM_ElasticWrap": 4,
+    "ACM_SAMSplint": 2,
+    "ACM_ChestSeal": 1,
+    "ACM_NCDKit": 1,
+    "ACM_IV_16g": 2,
+    "ACM_IO_FAST": 1,
+    "ACM_Syringe_10": 2,
+    "ACM_Syringe_5": 1,
+    "ACM_Vial_TXA": 1,
+    "ACM_Vial_Lidocaine": 2,
+    "ACM_Vial_Morphine": 1,
+    "ACM_BloodBag_ON_500": 2,
+    "ACE_salineIV": 2,
+    "ACM_PulseOximeter": 1,
+    "ACM_Stethoscope": 1,
+    "ACM_PressureCuff": 1,
+    "ACM_EmergencyTraumaDressing": 3
+  },
+  "objectives": [
+    "Treat the obvious bleeding, then look for the hidden problems (chest, internal bleeding)",
+    "Inspect both legs, realign (lidocaine first is kind) and splint the fractures",
+    "Treat the chest: assess breathing, seal or decompress as needed",
+    "TXA early for internal bleeding; give blood",
+    "Patient alive and stable at the end"
+  ],
+  "rubric": "rubrics/cm8-helicopter-crash.json"
+}

@@ -85,6 +85,27 @@ export function createBody(container, onSelect) {
                     overlay.append(r);
                 }
             });
+            // ACE updateBodyImage: bone icon red when fractured; blue when splinted, only with ACE fractures setting 2 or 3
+            const MID = { leftarm: [161, 172, -8], rightarm: [39, 172, 8], leftleg: [118, 300, 0], rightleg: [82, 300, 0] };
+            order.forEach((id, i) => {
+                if (!MID[id] || !p.fractures) return;
+                const f = p.fractures[i];
+                if (!(f === 1 || (f === -1 && p.splintBone))) return;
+                const [x, y, rot] = MID[id];
+                const color = f === 1 ? "#ff0000" : "#0000ff";
+                const g = document.createElementNS(NS, "g");
+                g.setAttribute("transform", `rotate(${rot} ${x} ${y})`);
+                g.setAttribute("class", "bone");
+                const line = document.createElementNS(NS, "rect");
+                Object.entries({ x: x - 2.5, y: y - 16, width: 5, height: 32, fill: color }).forEach(([a, v]) => line.setAttribute(a, v));
+                g.append(line);
+                for (const [dx, dy] of [[-3, -17], [3, -17], [-3, 17], [3, 17]]) {
+                    const c = document.createElementNS(NS, "circle");
+                    Object.entries({ cx: x + dx, cy: y + dy, r: 3.6, fill: color }).forEach(([a, v]) => c.setAttribute(a, v));
+                    g.append(c);
+                }
+                overlay.append(g);
+            });
             if (p.thoracostomy >= 1) dot(124, 150, p.thoracostomy === 2 ? "#30e8ed" : "#e0574f", 4);
             if (p.chestSeal) {
                 const r = document.createElementNS(NS, "rect");

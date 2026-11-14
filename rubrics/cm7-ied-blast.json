@@ -1,0 +1,119 @@
+{
+ "scenario": "cm7-ied-blast",
+ "passMark": 0.75,
+ "checks": [
+  {
+   "id": "tq",
+   "text": "Tourniquet on the mangled leg within 30 s",
+   "type": "action-within",
+   "actions": [
+    "applytourniquet"
+   ],
+   "parts": [
+    "rightleg"
+   ],
+   "within": 30,
+   "weight": 3,
+   "critical": true,
+   "why": "Several large avulsions bleed out in minutes. Tourniquet first, everything else after.",
+   "guide": "External bleeding"
+  },
+  {
+   "id": "bleed",
+   "text": "All external bleeding stopped within 3 minutes",
+   "type": "state-within",
+   "state": {
+    "field": "woundBleeding",
+    "op": "==",
+    "value": 0
+   },
+   "within": 180,
+   "weight": 2,
+   "why": "Fragment wounds on the other limbs, torso and face keep bleeding until each is dressed.",
+   "guide": "External bleeding"
+  },
+  {
+   "id": "seal",
+   "text": "Chest wound sealed",
+   "type": "action-done",
+   "actions": [
+    "applychestseal"
+   ],
+   "weight": 2,
+   "why": "A torso fragment that penetrates causes a chest injury; seal it.",
+   "guide": "Chest treatment"
+  },
+  {
+   "id": "txa",
+   "text": "TXA IV given",
+   "type": "action-done",
+   "actions": [
+    "txa_10_iv",
+    "txa_5_iv",
+    "txa_3_iv",
+    "txa_1_iv"
+   ],
+   "weight": 2,
+   "why": "Blast casualties have internal bleeding; TXA helps it clot and spares platelets.",
+   "guide": "Internal bleeding, platelets and TXA"
+  },
+  {
+   "id": "blood",
+   "text": "Compatible blood started",
+   "type": "event-within",
+   "event": "bagAdded",
+   "match": {
+    "type": "Blood",
+    "compatible": true
+   },
+   "within": 600,
+   "weight": 2,
+   "why": "Replace lost volume with blood; saline carries no oxygen.",
+   "guide": "Fluids and blood"
+  },
+  {
+   "id": "splint",
+   "text": "Fractured leg realigned before splinting",
+   "type": "action-order",
+   "first": [
+    "fracturerealignment"
+   ],
+   "then": [
+    "applysamsplint"
+   ],
+   "parts": [
+    "leftleg"
+   ],
+   "weight": 1,
+   "why": "A splint only sets the bone if the fracture was realigned first.",
+   "guide": "Fractures"
+  },
+  {
+   "id": "bv",
+   "text": "Blood volume at least 5.1 L at the end",
+   "type": "end-state",
+   "state": {
+    "field": "bloodVolume",
+    "op": ">=",
+    "value": 5.1
+   },
+   "weight": 2,
+   "why": "Below 5.1 L the casualty cannot wake.",
+   "guide": "The patient model"
+  },
+  {
+   "id": "alive",
+   "text": "Casualty alive at the end",
+   "type": "end-state",
+   "state": {
+    "field": "alive",
+    "op": "==",
+    "value": true
+   },
+   "weight": 2,
+   "critical": true,
+   "why": "The casualty must survive.",
+   "guide": "The patient model"
+  }
+ ]
+}

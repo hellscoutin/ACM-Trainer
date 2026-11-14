@@ -311,7 +311,7 @@ export function handleKnockOut(sim) {
     const { p, rng } = sim;
     if (!p.alive) return;
     p.knockOut = true;
-    sim.schedule(15 + rng.random(20), "knockOutEnds", {}); // players always get the timer
+    if (!p.ai || rng.random(1) > sim.setting("ACM_damage_AIStayDownChance")) sim.schedule(15 + rng.random(20), "knockOutEnds", {}); // players always get the timer
 }
 
 /** circulation/handleCardiacArrest. Rhythm deterioration is omitted: its time check is inverted in ACM 1.4.8 and never fires. */
