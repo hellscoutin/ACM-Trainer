@@ -1,7 +1,7 @@
 // Headless trainee session: performs menu actions with their real durations, keeps inventory and the treatment log,
 // records history and scores against the rubric. Used by tests and (later) for replays and instructor re-simulation.
 import { loadScenario, runTimeline, ROLE_LEVEL } from "./scenario.js";
-import { buildCatalogue, available, actionTime, pickItem, markTreated } from "./menu.js";
+import { buildCatalogue, available, actionTime, pickItem, markTreated, triageEntry } from "./menu.js";
 import { addBag as attachBag } from "./circulation.js";
 import { drawSyringe } from "./syringes.js";
 import { updatePulseOximeters } from "./exams.js";
@@ -38,6 +38,7 @@ export function createSession(scn, data, meds, { seed, rubric } = {}) {
         if (a.returnsItem) ctx.inventory[a.returnsItem] = (ctx.inventory[a.returnsItem] || 0) + 1;
         for (const c of r.give || []) ctx.inventory[c] = (ctx.inventory[c] || 0) + 1;
         if (!r.refund) markTreated(sim, a);
+        triageEntry(ctx, a, item, r);
         recorder.action(id, part, !r.refund);
         return r;
     };

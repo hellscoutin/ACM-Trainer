@@ -1,6 +1,7 @@
 // Solo practice: runs a scenario in the browser with the ACM medical menu.
 import { loadScenario, runTimeline, ROLE_LEVEL } from "../../engine/scenario.js";
-import { CATEGORIES, buildCatalogue, available, actionTime, pickItem, itemName, markTreated } from "../../engine/menu.js";
+import { CATEGORIES, buildCatalogue, available, actionTime, pickItem, itemName, markTreated, triageEntry } from "../../engine/menu.js";
+import { addToTriageCard, triageCardLines, TRIAGE_LEVELS } from "../../engine/patient.js";
 import { injuryList, bodyPartColors, formatTime, PART_NAMES } from "../../engine/injuryList.js";
 import { feelPulse, updatePulseOximeters } from "../../engine/exams.js";
 import { createBody } from "./body.js";
@@ -59,6 +60,8 @@ if (!scn) {
     document.body.innerHTML = '<main class="landing"><h1>Scenario not found</h1><p class="lede">This custom scenario is not saved in this browser. Open the scenario editor to import it.</p><a class="btn primary" href="editor.html">Scenario editor</a> <a class="btn" href="index.html">Scenarios</a></main>';
     throw new Error("Scenario not found");
 }
+// ACM_menuIcon: the item picture ACM puts on each action button (showActionItemIcons, on by default)
+const menuIcons = await fetch("../data/menu-icons.json").then((r) => (r.ok ? r.json() : null)).then((j) => j?.actions || {}).catch(() => ({}));
 const guidanceRules = await fetch("../rules/guidance.json").then((r) => (r.ok ? r.json() : null)).catch(() => null);
 const rubric = scn.rubric ? await fetch(`../${scn.rubric}`).then((r) => (r.ok ? r.json() : null)).catch(() => null) : source === "file" ? null : GENERIC_RUBRIC;
 let sessionCtl = null; // set when attached to an instructor-led session
@@ -168,6 +171,7 @@ function finishAction(a, part, item) {
     if (a.returnsItem) ctx.inventory[a.returnsItem] = (ctx.inventory[a.returnsItem] || 0) + 1;
     for (const c of r.give || []) ctx.inventory[c] = (ctx.inventory[c] || 0) + 1;
     if (!r.refund) markTreated(sim, a);
+    triageEntry(ctx, a, item, r);
     recorder.action(a.id, part, !r.refund);
     if (a.id === "applytourniquet") audio.play("tourniquet_apply", 0.8);
     if (a.id === "removetourniquet") audio.play("tourniquet_remove", 0.8);
@@ -200,6 +204,7 @@ function syringeCallbacks(part, size) {
             recorder.action("drawsyringe", part, true, { drug, size, ml });
             startTimed(`${iv ? "Pushing" : "Injecting"} ${drugName(drug)}...`, 2.5, () => {
                 const r = injectSyringe(sim, ctx, part, d.syringe, iv);
+                if (r.ok && r.card) addToTriageCard(sim.p, r.card);
                 recorder.action(`${drug.toLowerCase()}_${size}_${iv ? "iv" : "im"}`, part, r.ok);
                 if (r.hint) hint(r.hint);
                 if (r.ok) log("activity", `${ctx.name} ${r.log}`);
@@ -332,23 +337,32 @@ function frame(now) {
 }
 
 // ------------------------------------------------------------------ rendering
+// ACE medical_gui category pictures; the triage card comes first, as in the menu
+const ACE_CAT = { triage: "triage_card", examine: "examine_patient", bandage: "bandage_fracture", medication: "medication", airway: "airway_management", advanced: "advanced_treatment", drag: "carry" };
+const TABS = [{ id: "triage", label: "Triage Card" }, ...CATEGORIES];
 function renderCats() {
     const cats = $("cats");
     cats.textContent = "";
-    for (const c of CATEGORIES) {
+    for (const c of TABS) {
         if (c.cbrnOnly && !sim.p.cbrn) continue;
-        const b = el("button", { role: "tab", title: c.label });
-        b.innerHTML = CAT_ICONS[c.id];
-        b.append(el("span", { textContent: c.label.split(" ")[0] }));
+        const b = el("button", { role: "tab", title: c.id === "triage" ? "View Triage Card" : c.label, className: c.id === "triage" ? "triage-tab" : "" });
+        b.setAttribute("aria-label", c.label);
+        if (ACE_CAT[c.id]) b.append(el("img", { src: `assets/ace/categories/${ACE_CAT[c.id]}.png`, alt: "" }));
+        else b.innerHTML = CAT_ICONS[c.id];
         b.setAttribute("aria-selected", String(c.id === state.cat));
         b.addEventListener("click", () => { state.cat = c.id; render(); });
         cats.append(b);
     }
-    $("catTitle").textContent = CATEGORIES.find((c) => c.id === state.cat).label;
+    $("catTitle").textContent = TABS.find((c) => c.id === state.cat).label;
 }
 function renderActions() {
     const list = $("actions");
     list.textContent = "";
+    if (state.cat === "triage") {
+        const lines = triageCardLines(sim.p);
+        for (const t of lines.length ? lines : ["No entries on this triage card."]) list.append(el("li", { className: "tcard", textContent: t }));
+        return;
+    }
     const showAll = $("showUnavailable").checked;
     let shown = 0;
     for (const a of catalogue.filter((x) => x.category === state.cat)) {
@@ -356,10 +370,13 @@ function renderActions() {
         const why = available(ctx, a, state.part);
         if (why && !showAll) continue;
         const b = el("button", { disabled: !!why || !!state.progress });
+        if (menuIcons[a.id]) b.append(el("img", { className: "ico", src: `assets/icons/${menuIcons[a.id]}.webp`, alt: "" }));
         b.append(el("span", { textContent: a.label }));
         if (why) b.append(el("span", { className: "why", textContent: why }));
         else if (a.items.length) {
+            // The game shows the item counts as the button's tooltip; the trainer also prints the total
             const n = a.items.reduce((s, i) => s + (ctx.inventory[i] || 0), 0);
+            b.title = a.items.map((i) => `${ctx.inventory[i] || 0}x ${itemName(data, i)}`).join("\n");
             b.append(el("span", { className: "count", textContent: `×${n}` }));
         }
         b.addEventListener("click", () => startAction(a));
@@ -367,6 +384,27 @@ function renderActions() {
         shown++;
     }
     if (!shown) list.append(el("li", { className: "none", textContent: "No actions available on this body part" }));
+}
+// ACE triage status: the button under the body opens the five levels (TriageToggle, TriageSelect)
+function renderTriage() {
+    const lv = TRIAGE_LEVELS[sim.p.triage || 0], btn = $("triageBtn");
+    btn.textContent = lv.name;
+    btn.style.background = lv.bg;
+    btn.style.color = lv.fg;
+}
+function setupTriage() {
+    const sel = $("triageSelect"), btn = $("triageBtn");
+    const toggle = (open) => { sel.hidden = !open; btn.setAttribute("aria-expanded", String(open)); };
+    TRIAGE_LEVELS.forEach((lv, i) => {
+        const o = el("button", { textContent: lv.name });
+        o.setAttribute("role", "option");
+        o.style.background = lv.bg;
+        o.style.color = lv.fg;
+        o.addEventListener("click", () => { sim.p.triage = i; toggle(false); renderTriage(); });
+        sel.append(o);
+    });
+    btn.addEventListener("click", () => toggle(sel.hidden));
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape") toggle(false); });
 }
 function renderState() {
     const p = sim.p, box = $("patientState");
@@ -447,12 +485,13 @@ function render() {
 function renderTick() {
     $("clock").textContent = formatTime(sim.p.t);
     renderState();
+    renderTriage();
     body.update(bodyPartColors(sim), state.part, Object.assign(Object.create(sim.p), { splintBone: sim.aceSetting("fractures", 1) >= 2 }));
     renderInjuries();
     renderLogs();
     renderInventory();
     renderGuidance();
-    if (!state.progress) renderActions();
+    if (!state.progress || state.cat === "triage") renderActions();
 }
 function drawFrame(now) {
     if (state.progress) {
@@ -593,6 +632,8 @@ document.title = `${scn.title}: ACM Trainer`;
 $("title").innerHTML = "";
 $("title").append(scn.title, el("small", { textContent: S ? `Session ${S.code} · ${S.run.name}` : scn.module + (source === "random" ? ` · seed ${seed}` : seed !== scn.seed ? ` · variation ${seed}` : "") }));
 body = createBody($("body"), (part) => { state.part = part; render(); });
+$("patientName").textContent = ctx.patientName;
+setupTriage();
 let clockLocked = false;
 $("speed").addEventListener("click", (e) => { const b = e.target.closest("button"); if (b && !state.ended && !clockLocked) setSpeed(Number(b.dataset.speed)); });
 $("showUnavailable").addEventListener("change", render);

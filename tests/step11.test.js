@@ -100,3 +100,20 @@ test("BVM with portable oxygen needs the tank and ventilates with oxygen", () =>
     assert.equal(s.sim.p.bvm, true);
     assert.equal(s.sim.p.bvmOxygen, true);
 });
+
+test("triage card: treatments leave ACE's lines, repeated items are counted", async () => {
+    const { triageCardLines } = await import("../engine/patient.js");
+    const s = session({ loadout: { ACE_tourniquet: 2, ACE_morphine: 2, ACM_ChestSeal: 1, ACM_PressureBandage: 2 } });
+    s.sim.p.chestInjury = true;
+    assert.deepEqual(triageCardLines(s.sim.p), []);
+    s.act("applytourniquet", "leftleg");
+    s.act("morphine", "leftarm");
+    s.act("morphine", "rightarm");
+    s.act("applychestseal", "body");
+    s.act("checkpulse", "head"); // examinations and bandages leave no line
+    const lines = triageCardLines(s.sim.p);
+    assert.equal(lines.length, 3);
+    assert.match(lines[0], /^1x - Tourniquet \(CAT\) \(\d+m\)$/);
+    assert.match(lines[1], /^2x - Morphine Autoinjector \(0m\)$/);
+    assert.match(lines[2], /^1x - Chest Seal \(0m\)$/);
+});

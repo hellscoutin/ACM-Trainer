@@ -3,7 +3,7 @@
 // SurgicalAirway_action (progress steps), getAirwayIncisionBleedRate, secureSurgicalAirway, stitchAirwayIncision,
 // getStitchAirwayIncisionTime. Geometry is in ACM's GUI grid units (Stethoscope/SurgicalAirway_Dialog layout).
 import { lin } from "./util.js";
-import { cardiacOutput } from "./patient.js";
+import { cardiacOutput, addToTriageCard } from "./patient.js";
 import { addWound } from "./wounds.js";
 
 /** SurgicalAirway_Dialog zones [x, y, w, h] in grid units. */
@@ -112,7 +112,7 @@ export function action(sim, type) {
     if (type === 0) { sa.progress = 1; p.incisionOpen = true; }
     return null;
 }
-function establish(p) { p.surgicalAirway = true; p.surgicalAirwayUnsecure = false; }
+function establish(p) { addToTriageCard(p, "Surgical Airway"); p.surgicalAirway = true; p.surgicalAirwayUnsecure = false; }
 
 /**
  * Closing the dialog (cancel or finish). A failed attempt or one abandoned after cutting turns each incision into a

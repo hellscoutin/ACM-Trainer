@@ -28,25 +28,36 @@
         <button class="btn danger" id="endBtn">End</button>
     </header>
     <div class="menu">
-        <section class="panel" aria-label="Treatments">
-            <div class="cats" role="tablist" id="cats"></div>
-            <div class="cat-title" id="catTitle"></div>
-            <ul class="actions" id="actions"></ul>
-        </section>
-        <div class="center">
-            <section class="panel" aria-label="Patient">
-                <div class="patient-state" id="patientState"></div>
-                <div class="body-wrap" id="body"></div>
-            </section>
-            <section class="panel" aria-label="Injuries" style="min-height:0">
-                <h2>Injuries</h2>
-                <ul class="injuries" id="injuries"></ul>
-            </section>
+        <div class="ace">
+            <div class="ace-title">Medical Menu</div>
+            <div class="ace-main">
+                <section class="ace-col" aria-label="Treatments">
+                    <h2>Examine &amp; Treatment</h2>
+                    <div class="cats" role="tablist" id="cats"></div>
+                    <div class="cat-title" id="catTitle"></div>
+                    <ul class="actions" id="actions"></ul>
+                </section>
+                <section class="ace-col" aria-label="Patient">
+                    <h2 id="patientName">Patient</h2>
+                    <div class="patient-state" id="patientState"></div>
+                    <div class="body-wrap" id="body"></div>
+                    <div class="triage">
+                        <button class="triage-btn" id="triageBtn" aria-haspopup="listbox" aria-expanded="false" title="Triage status"></button>
+                        <div class="triage-select" id="triageSelect" role="listbox" aria-label="Triage status" hidden></div>
+                    </div>
+                </section>
+                <section class="ace-col" aria-label="Injuries">
+                    <h2>Overview</h2>
+                    <ul class="injuries" id="injuries"></ul>
+                </section>
+            </div>
+            <div class="ace-bottom">
+                <section aria-label="Activity log"><h2>Activity Log</h2><ul class="log" id="activity"></ul></section>
+                <section aria-label="Quick view"><h2>Quick View</h2><ul class="log" id="quick"></ul></section>
+            </div>
         </div>
         <div class="right" id="rightCol">
             <section class="panel guidance-panel" aria-label="Guidance"><h2 id="guidanceTitle">Guidance</h2><ul class="guidance" id="guidance" aria-live="polite"></ul></section>
-            <section class="panel" aria-label="Activity log"><h2>Activity Log</h2><ul class="log" id="activity"></ul></section>
-            <section class="panel" aria-label="Quick view"><h2>Quick View</h2><ul class="log" id="quick"></ul></section>
             <section class="panel" aria-label="Inventory"><h2>Your inventory</h2><ul class="inventory" id="inventory"></ul></section>
         </div>
     </div>
@@ -73,7 +84,7 @@
     <h3>Objectives</h3><ul id="briefObjectives"></ul>
     <h3>Your kit</h3><p id="briefKit"></p>
     <h3>How it works</h3>
-    <p>Select a body part on the diagram, choose a category on the left, then an action. Actions take their in-game time and are listed only when they can be done, as in game. Feel Pulse, head tilt-chin lift, BVM and CPR continue until you stop them. Vital signs are hidden unless an examination or a pulse oximeter shows them. Space pauses; the speed buttons fast-forward time. Hints (top bar) suggest the next steps: Basic uses only what the menu and devices show, Intermediate adds your examination findings, Advanced sees the true patient state. Runs with hints are marked in your records.</p>
+    <p>Select a body part on the diagram, choose a category with the icons on the left, then an action. The layout is the game's medical menu; your inventory and the hints are in the strip on the right. Actions take their in-game time and are listed only when they can be done, as in game. Feel Pulse, head tilt-chin lift, BVM and CPR continue until you stop them. Vital signs are hidden unless an examination or a pulse oximeter shows them. Space pauses; the speed buttons fast-forward time. Hints (top bar) suggest the next steps: Basic uses only what the menu and devices show, Intermediate adds your examination findings, Advanced sees the true patient state. Runs with hints are marked in your records.</p>
     <div class="buttons"><a class="btn" href="index.html">Back</a><button class="btn primary" id="startBtn">Start</button></div>
 </div></div>
 <div class="modal-back" id="replay"><div class="modal wide" role="dialog" aria-modal="true" aria-labelledby="replayTitle">

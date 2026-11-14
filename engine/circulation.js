@@ -2,6 +2,7 @@
 // complications), setIVLocal, setIVComplication, handleIVComplication, inspectIV, ivBagLocal (core override),
 // getReturnVolume, updateActiveFluidBags, handleHemolyticReaction, setPressureCuff, and the measureBP per-frame logic.
 import { lin, PART_INDEX } from "./util.js";
+import { addToTriageCard } from "./patient.js";
 import { addMedication, medicationEffect } from "./pharmacology.js";
 import { hasPulse } from "./vitals.js";
 import { isBloodCompatible } from "./blood.js";
@@ -213,6 +214,7 @@ export function addBag(sim, part, site, iv, cls) {
     if (!b) return { ok: false };
     p.ivBags.push({ type: b.type, remaining: b.volume, original: b.volume, part, site: iv ? site : 0, iv, bloodType: b.bloodType, donorAlive: true, collectedAt: p.t });
     const compatible = !b.bloodType || isBloodCompatible(data, p.bloodType, b.bloodType);
+    addToTriageCard(p, bagName(cls));
     sim.emit("bagAdded", { type: b.type, volume: b.volume, bloodType: b.bloodType, compatible, part, iv });
     if (!compatible) sim.schedule(30 + sim.rng.random(30), "hemolyticStart");
     return { ok: true, log: `added ${bagName(cls)} to ${iv ? `IV (${SITE[site]})` : "IO"}` };

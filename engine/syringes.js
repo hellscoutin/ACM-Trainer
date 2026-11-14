@@ -60,5 +60,6 @@ export function injectSyringe(sim, ctx, part, syringe, iv) {
     const how = iv ? "IV" : "IM";
     const hint = [`${iv ? "Pushed" : "Injected"} ${how} ${drugName(syringe.drug)}`];
     if (r?.occluded) hint.push("No effect until tourniquet removed");
-    return { ok: true, hint, log: `${iv ? "pushed" : "injected"} ${drugName(syringe.drug)} ${how} (${doseText(syringe.drug, syringe.ml)})` };
+    const card = `${drugName(syringe.drug)} ${how} (${doseText(syringe.drug, syringe.ml)})`; // Syringe_Inject triage card line
+    return { ok: true, hint, card, log: `${iv ? "pushed" : "injected"} ${drugName(syringe.drug)} ${how} (${doseText(syringe.drug, syringe.ml)})` };
 }

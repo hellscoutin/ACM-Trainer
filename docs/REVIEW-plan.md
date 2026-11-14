@@ -9,7 +9,7 @@ A review of the web trainer against the ACM 1.4.8 and ACE source and artwork, wi
 | 2026-11-14 | Body figure: ACE's own body images with ACM's overlays. The repo is licensed GPL-2.0 (`LICENSE`), with the ACE team credited for the artwork. |
 | 2026-11-14 | Add all the missing ACM actions listed in section 2.2. |
 | 2026-11-14 | Keep the selection outline and the L/R labels on. |
-| open | Menu layout: move to ACE's three columns with the logs along the bottom, or keep the current layout. See section 3.2. |
+| 2026-11-14 | Menu layout: ACE's three columns with the logs along the bottom; the trainer's inventory and guidance sit in a strip on the right. Taken as the recommended option when the owner said to continue with phase 3; it is a stylesheet and page change and can be reverted. |
 
 ## Status
 
@@ -17,16 +17,24 @@ A review of the web trainer against the ACM 1.4.8 and ACE source and artwork, wi
 |---|---|
 | 1. Small fixes (B1, B2, B3, B5) | built 2026-11-14; B4 left (no sitting posture) |
 | 2. Patient model | built 2026-11-14 (`app/js/body.js`, `app/assets/ace/body`, `app/assets/acm/body`); checked against an in-game screenshot of an uninjured casualty and by eye with devices attached |
-| 3. Menu chrome | not started; the layout decision is open |
+| 3. Menu chrome | built 2026-11-14, see "Phase 3 as built" below |
 | 4. Missing actions | built 2026-11-14, see "Phase 4 as built" below; tests in `tests/step11.test.js` |
 | 5. Proof against the game | not started |
+
+**Phase 3 as built.**
+- Layout as ACE's menu: title bar, "Examine & Treatment" / patient name / "Overview" columns under a header line, Activity Log and Quick View along the bottom. Checked at 1500 × 900 and 1100 × 700.
+- ACE's category pictures, with the triage card first. The CBRN interaction tab keeps the trainer's own icon (it is not part of the medical menu).
+- ACM's item picture on each action button: `data/menu-icons.json` maps 205 actions to 43 pictures in `app/assets/icons/`. It was built once from ACM's `ACM_menuIcon` config values and `ACM_gui/ActionButtons.hpp`. ACE's splint has no picture in ACM either.
+- Item counts are the button's tooltip as in game; the trainer also keeps the total on the button.
+- Triage status button under the body with ACE's five levels and colours (ACM names the last one Expectant), and the triage card tab. Card lines are written where the game writes them: medication items, tourniquet, airway adjuncts, chest seal, needle decompression, lozenge, syringe doses, IV bags, surgical airway.
+- Not built: the yellow tourniquet warning tooltip, which is off by default in ACE (`tourniquetWarning`). The triage status is not scored or sent to the instructor view yet.
 
 **Phase 4 as built.** Added: Attempt To Shake Awake, Attempt To Slap Awake, Use Ammonia Inhalant, Use Naloxone Spray, Use Adenosine Autoinjector, Wrap Bruises, Use BVM with Oxygen (Portable). Notes:
 - The drug effects of naloxone and ammonia, and oxygen through the BVM, were already in the engine; only the menu actions were missing.
 - Slap Awake's 1-in-5 head injury is added as a minor bruise of 0.051 damage (ACM's "slap" damage type makes a contusion).
 - An ammonia inhalant pack holds 8 uses in game; in the trainer one inventory item is one use.
 - Not added: BVM with vehicle or facility oxygen (the trainer has no vehicles or facilities), the three suture variants (only offered when ACE's surgical kit setting consumes sutures, off by default), and the oxygen tank's contents running down.
-- Still to do: no built-in scenario carries these items yet, the guidance rules and rubrics don't mention them, and the triage card and status are part of phase 3.
+- Still to do: no built-in scenario carries these items yet, the guidance rules and rubrics don't mention them, and the triage card and status were built in phase 3.
 
 The in-game screenshot settled the palette question in 3.1: an unhurt part is drawn white, so step 0 of both palettes is white in the trainer.
 

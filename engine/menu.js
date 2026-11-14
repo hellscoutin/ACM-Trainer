@@ -3,6 +3,7 @@
 // In game an action whose condition fails is simply not listed; `available()` returns the reason so practice mode
 // can optionally show it.
 import { PART_INDEX } from "./util.js";
+import { addToTriageCard } from "./patient.js";
 import { isBodyPartBleeding, bandageTime } from "./wounds.js";
 const SITES = ["upper", "middle", "lower"];
 import { checkAirway, headTurn, suctionTime, suction, setRecoveryPosition, insertAirwayItem, removeAirwayItem } from "./airway.js";
@@ -341,7 +342,7 @@ function syringeDefs() {
             run: (c, part) => {
                 const s = find(c);
                 const r = injectSyringe(c.sim, c, part, s, iv);
-                return { hint: r.hint, refund: !r.ok, log: r.ok ? `${c.name} ${r.log}` : undefined };
+                return { hint: r.hint, refund: !r.ok, card: r.card, log: r.ok ? `${c.name} ${r.log}` : undefined };
             },
         });
     }
@@ -373,6 +374,21 @@ function interactionDefs() {
             show: (c) => !!c.sim.p.cbrn?.inCloud,
             run: (c) => ({ ...dragOutOfCloud(c.sim), log: `${c.name} dragged the casualty out of the contaminated area` }) },
     ];
+}
+
+const CARD_TEXT = { applychestseal: "Chest Seal", performncd: "Needle Decompression", fentanyllozenge: "Lozenge (OTFC)" };
+const CARD_ITEM = /^(applytourniquet|insertopa|insertnpa|insertigel)$/;
+/**
+ * Writes the triage card line a successful treatment leaves in game (ACE medication, tourniquet; ACM insertAirwayItem,
+ * applyChestSeal, performNCD, setLozenge, Syringe_Inject). Call after a.run with the item that was used and its result.
+ * IV bags and the surgical airway write their own lines where they are connected or established.
+ */
+export function triageEntry(ctx, a, item, r = {}) {
+    if (r.refund || r.error) return;
+    const p = ctx.sim.p;
+    if (r.card) addToTriageCard(p, r.card);
+    else if (CARD_TEXT[a.id]) { if (r.log) addToTriageCard(p, CARD_TEXT[a.id]); }
+    else if (item && (CARD_ITEM.test(a.id) ? r.log : a.category === "medication" && a.consumes && a.id !== "washeyes")) addToTriageCard(p, itemName(ctx.sim.data, item));
 }
 
 /** Builds the catalogue: every supported treatment with its config data. */

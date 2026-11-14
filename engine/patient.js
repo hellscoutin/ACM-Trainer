@@ -56,7 +56,7 @@ export function createPatient(data, rng, opts = {}) {
         ptx: 0, tensionPtx: false, hardcorePtx: false, htxState: 0, htxFluid: 0,
         chestInjury: false, chestSeal: false, thoracostomy: -1, thoracostomyUsedKit: false, tensionTime: null, lungState: [0, 0],
         vomitCount: 3, vomitGrace: -1, airwayCheckedTime: null, airwayEpoch: 0,
-        pulseOx: [false, false], pressureCuff: [false, false], timeOfDeath: null, triage: 0, log: { activity: [], quick: [] },
+        pulseOx: [false, false], pressureCuff: [false, false], timeOfDeath: null, triage: 0, triageCard: [], log: { activity: [], quick: [] },
         bvm: false, bvmOxygen: false, lastBreath: -35, lastBreathOxygen: -35,
         // Medications: [{name, route, added, onset, plateau, total, conc, hr, pain, flow, rr, co2, breathing, type, part, dose}]
         meds: [], occludedMeds: [],
@@ -96,3 +96,19 @@ export function effectiveBloodVolume(p) {
 export function map(bp) {
     return bp[0] + (bp[1] - bp[0]) / 3;
 }
+
+/** ACE addToTriageCard: one line per item, with a count and the time it was last added. */
+export function addToTriageCard(p, item) {
+    p.triageCard ??= [];
+    const e = p.triageCard.find((x) => x.item === item);
+    if (e) { e.count++; e.t = p.t; } else p.triageCard.push({ item, count: 1, t: p.t });
+}
+/** ACE updateTriageCard: "2x - Morphine Autoinjector (3m)" with the minutes since the entry. */
+export const triageCardLines = (p) => (p.triageCard || []).map((e) => `${e.count}x - ${e.item} (${Math.round((p.t - e.t) / 60)}m)`);
+// ACE triage levels (ACM renames Deceased to Expectant); colours from ACE script_macros_medical.hpp
+export const TRIAGE_LEVELS = [
+    { name: "None", bg: "rgba(0, 0, 0, 0.9)", fg: "#fff" }, { name: "Minimal", bg: "rgba(0, 128, 0, 0.9)", fg: "#fff" },
+    { name: "Delayed", bg: "rgba(255, 214, 0, 0.9)", fg: "#000" }, { name: "Immediate", bg: "rgba(255, 0, 0, 0.9)", fg: "#fff" },
+    { name: "Expectant", bg: "rgba(0, 0, 0, 0.9)", fg: "#fff" },
+];
+
