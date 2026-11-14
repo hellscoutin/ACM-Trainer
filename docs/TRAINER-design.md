@@ -200,6 +200,11 @@ Scenario files (JSON in `scenarios/`, versioned in the repo) define:
 7. Scenario editor, random patients, replay, records export. Done 2026-11-13, with CLS-5 grenade fragments, CM-7 IED blast and CM-8 helicopter hard landing.
 8. Guidance rules (shared with the ATAK monitor), hints in practice mode. Done 2026-11-13: 53 rules at three depths, hints selector in practice (remembered per browser, runs with hints marked in records).
 9. CBRN (optional), Advanced Medic scenarios. Done 2026-11-13: CBRN engine module and the Interaction tab; AM-1a massive transfusion, AM-1b wrong blood, AM-2 reversible arrest (PEA), AM-4a nerve agent, AM-4b blister agent.
+10. Training program support (ACM Training repo, 2026-11-14). Built:
+    - scenario module labels follow the program;
+    - new scenarios CLS-4 cardiac arrest and CM-4 access, blood and pain;
+    - the Written test page (`app/test.html`, `engine/written-test.js`), with written-test rounds in instructor sessions. The question bank is loaded from a file and is not in this repo;
+    - `evaluateView` plus guidance fixtures (`rules/fixtures.json`) for the ATAK patient monitor's SQF interpreter.
 
 ## 11. Open questions
 

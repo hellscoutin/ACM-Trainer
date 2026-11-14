@@ -76,4 +76,9 @@ App: `app/js/windows-cric.js` (surgical airway window on ACM's art: tool tray, r
 6. Simplifications to revisit: `bandage()` spreads one bandage's effectiveness by bleeding (approximates ACE findMostEffectiveWounds); clot re-opening uses only the "unstable" delay; scenarios with `type` wounds skip the damage-type multipliers (use `mechanism` for the in-game roll).
 
 ## Next build step
-Step 5 of `docs/TRAINER-design.md`: Firebase sessions (instructor creates a session, trainees join with a code, live dashboard, commands, stored results). Needs the user's `firebase-tools login` (rules deploy) and the Cloudflare Worker for Discord sign-in (`wrangler login`). All planned build steps are built. Step 5 needs the owner checklist in docs/SESSIONS-setup.md before sessions work live. The SQF interpreter for the rules is part of the ATAK patient monitor build (rules/guidance.sqf is ready for it).
+All planned trainer steps are built. The ACM Training repo (private) builds on the trainer:
+- its course materials use the trainer's rubrics for their checklists;
+- its question bank is loaded by `app/test.html`;
+- its ATAK patient monitor runs `rules/guidance.sqf` and must match `rules/fixtures.json`.
+
+After changing the rules or the knowledge view, run `node tools/export_guidance_fixtures.mjs`; the step 10 test fails if the fixtures are stale. Then run `python tools/build_cards.py` in ACM Training, which copies the rules and converts the fixtures.
