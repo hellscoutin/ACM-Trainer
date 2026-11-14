@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ACM Trainer: join a session</title>
+<link rel="stylesheet" href="css/trainer.css">
+</head>
+<body>
+<main class="landing">
+    <p><a class="btn" href="index.html">← Scenarios</a></p>
+    <h1>Join a session</h1>
+    <p class="lede">Enter the code your instructor gives you and the name they should see. No account is needed.</p>
+    <form id="form" class="join-form" autocomplete="off">
+        <label>Session code <input id="code" maxlength="6" required pattern="[A-Za-z0-9]{6}" style="text-transform:uppercase;letter-spacing:0.2em;font-size:22px;width:10ch"></label>
+        <label>Your name <input id="name" maxlength="32" required></label>
+        <button class="btn primary" id="go">Join</button>
+    </form>
+    <p id="status" class="muted" role="status"></p>
+</main>
+<script type="module">
+import { db, doc, getDoc, setDoc, serverTimestamp, signInGuest } from "./js/cloud.js";
+const $ = (id) => document.getElementById(id);
+const params = new URLSearchParams(location.search);
+if (params.get("code")) $("code").value = params.get("code").toUpperCase();
+try { $("name").value = localStorage.getItem("acmt.traineeName") || ""; } catch { /* storage blocked */ }
+$("form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const code = $("code").value.trim().toUpperCase(), name = $("name").value.trim();
+    if (!/^[A-Z0-9]{6}$/.test(code) || !name) { $("status").textContent = "Enter the 6-character code and your name."; return; }
+    $("go").disabled = true;
+    $("status").textContent = "Joining…";
+    try {
+        const user = await signInGuest();
+        const s = await getDoc(doc(db, "sessions", code));
+        if (!s.exists() || s.data().status !== "open") { $("status").textContent = "No open session with that code."; $("go").disabled = false; return; }
+        await setDoc(doc(db, "sessions", code, "runs", user.uid), { uid: user.uid, name, joinedAt: serverTimestamp(), status: "waiting", round: s.data().round || 1 }, { merge: true });
+        try { localStorage.setItem("acmt.traineeName", name); } catch { /* storage blocked */ }
+        location.href = `play.html?session=${code}`;
+    } catch (err) {
+        $("status").textContent = `Could not join (${err.code || err.message}).`;
+        $("go").disabled = false;
+    }
+});
+</script>
+</body>
+</html>

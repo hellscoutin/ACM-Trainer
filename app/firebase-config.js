@@ -11,3 +11,6 @@ export const firebaseConfig = {
 
 // Discord application used for instructor and saved-history sign-in (client ID only; the secret lives in the Cloudflare Worker).
 export const discordClientId = "1570937903364702290";
+
+// Cloudflare worker that exchanges a Discord sign-in for a Firebase custom token (worker/src/index.js).
+export const authWorkerUrl = "https://acm-trainer-auth.acm-trainer.workers.dev";

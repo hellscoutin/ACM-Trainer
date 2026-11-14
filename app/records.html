@@ -18,6 +18,7 @@
         <button class="btn primary" id="csvBtn">Export CSV</button>
         <button class="btn danger" id="clearBtn">Clear records</button>
     </div>
+    <p id="cloud" class="muted"></p>
     <p id="summary" class="muted"></p>
     <div class="table-wrap"><table class="records" id="table">
         <thead><tr><th>Date</th><th>Scenario</th><th>Role</th><th>Seed</th><th>Result</th><th>Score</th><th>Outcome</th><th>Time</th><th>Failed checks</th><th>Hints</th><th></th></tr></thead>
@@ -35,15 +36,45 @@ import { formatTime } from "../engine/injuryList.js";
 import { mountReplay } from "./js/replay.js";
 
 const $ = (id) => document.getElementById(id);
+let cloudRecords = [];
+// Saved history: Discord-signed-in users also keep their runs in Firestore (any device)
+(async () => {
+    let c;
+    try { c = await import("./js/cloud.js"); } catch { $("cloud").textContent = "Cloud history is unavailable offline."; return; }
+    const back = await c.completeDiscordSignIn();
+    const u = await c.ready;
+    const box = $("cloud");
+    box.textContent = "";
+    if (!c.isDiscord(u)) {
+        const b = document.createElement("button");
+        b.className = "btn"; b.textContent = "Sign in with Discord to keep your history on every device";
+        b.addEventListener("click", c.discordSignIn);
+        box.append(b);
+        if (back?.error) box.append(` Sign-in failed: ${back.error}`);
+        return;
+    }
+    box.textContent = `Signed in as ${c.displayName(u)}: runs you finish are also saved to your account. `;
+    const out = document.createElement("button");
+    out.className = "btn"; out.textContent = "Sign out";
+    out.addEventListener("click", async () => { await c.signOut(); try { localStorage.removeItem("acmt.discordName"); } catch {} location.reload(); });
+    box.append(out);
+    try {
+        const snap = await c.getDocs(c.collection(c.db, "history", u.uid, "runs"));
+        const local = new Set(loadRecords().map((r) => r.date));
+        cloudRecords = snap.docs.map((d) => d.data()).filter((r) => !local.has(r.date)).map((r) => ({ ...r, cloud: true }));
+        render();
+    } catch (e) { box.append(` (Could not load cloud history: ${e.code || e.message})`); }
+})();
 const el = (tag, props = {}, ...kids) => { const e = document.createElement(tag); Object.assign(e, props); e.append(...kids); return e; };
 let view = null;
 
+const allRecords = () => [...loadRecords(), ...cloudRecords].sort((a, b) => a.date.localeCompare(b.date));
 function filtered() {
     const s = $("fScenario").value, r = $("fResult").value;
-    return loadRecords().filter((x) => (!s || x.scenario === s) && (!r || x.result === r));
+    return allRecords().filter((x) => (!s || x.scenario === s) && (!r || x.result === r));
 }
 function render() {
-    const all = loadRecords();
+    const all = allRecords();
     const sel = $("fScenario"), cur = sel.value;
     sel.length = 1;
     for (const [id, title] of new Map(all.map((r) => [r.scenario, `${r.module}: ${r.title}`]))) sel.append(el("option", { value: id, textContent: title, selected: id === cur }));

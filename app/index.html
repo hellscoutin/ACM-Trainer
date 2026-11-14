@@ -11,7 +11,7 @@
 <main class="landing">
     <h1>ACM Trainer</h1>
     <p class="lede">Practise Advanced Combat Medicine on simulated casualties. The patient model is ported from ACM 1.4.8 and ACE 3.21.2, so wounds, vitals and treatments behave as they do in game. Pick a scenario to start solo practice.</p>
-    <nav class="toolbar top-links"><a class="btn" href="editor.html">Scenario editor</a><a class="btn" href="records.html">Your records</a></nav>
+    <nav class="toolbar top-links"><a class="btn primary" href="join.html">Join a session</a><a class="btn" href="instructor.html">Instructor</a><a class="btn" href="editor.html">Scenario editor</a><a class="btn" href="records.html">Your records</a></nav>
     <section class="track">
         <h2>Training computer</h2>
         <div class="cards"><article class="card tc">
@@ -28,7 +28,7 @@
     </section>
     <div id="tracks"><p class="lede">Loading scenarios…</p></div>
     <section class="track" id="customSection" hidden><h2>Your scenarios</h2><div class="cards" id="customCards"></div></section>
-    <p class="credits">Advanced Combat Medicine by Blue and the ACM team, used with permission. ACE3 by the ACE team (GPL-2.0). Practice records stay in this browser. Instructor-led sessions and sign-in are being built.</p>
+    <p class="credits">Advanced Combat Medicine by Blue and the ACM team, used with permission. ACE3 by the ACE team (GPL-2.0). Practice records stay in this browser unless you sign in with Discord on the records page. Instructor-led sessions use Firebase and a Cloudflare worker for Discord sign-in.</p>
 </main>
 <script type="module">
 import { CAUSES, CAUSES_FOR } from "../engine/damage.js";

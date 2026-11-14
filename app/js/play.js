@@ -30,14 +30,26 @@ const CAT_ICONS = {
 };
 
 const params = new URLSearchParams(location.search);
-// Scenario sources: ?s=<id> (built-in file), ?c=<id> (custom, from this browser), ?random=1&sev=&cause=&role= (training computer)
-const source = params.has("random") ? "random" : params.has("c") ? "custom" : "file";
+// Scenario sources: ?s=<id> (built-in file), ?c=<id> (custom, from this browser), ?random=1&sev=&cause=&role= (training computer),
+// ?session=CODE (instructor-led session: the scenario, seed, hints and clock come from the session)
+const sessionCode = params.get("session");
+let S = null;
+if (sessionCode) {
+    try { S = await (await import("./play-session.js")).joinSession(sessionCode.toUpperCase()); }
+    catch (e) {
+        document.body.innerHTML = `<main class="landing"><h1>Session not available</h1><p class="lede"></p><a class="btn primary" href="join.html">Join a session</a></main>`;
+        document.querySelector(".lede").textContent = e.message;
+        throw e;
+    }
+}
+const source = S ? "session" : params.has("random") ? "random" : params.has("c") ? "custom" : "file";
 const scenarioId = params.get("s") || "cls1-leg-hemorrhage";
 const randomSeed = () => Math.floor(Math.random() * 1e9);
 const [data, meds, scn] = await Promise.all([
     fetch("../data/acm-1.4.8.json").then((r) => r.json()),
     fetch("../data/medications-1.4.8.json").then((r) => r.json()),
-    source === "random" ? randomScenario({ severity: params.get("sev"), cause: params.get("cause"), role: params.get("role") || "medic", seed: params.has("seed") ? Number(params.get("seed")) : randomSeed() })
+    source === "session" ? S.scn
+        : source === "random" ? randomScenario({ severity: params.get("sev"), cause: params.get("cause"), role: params.get("role") || "medic", seed: params.has("seed") ? Number(params.get("seed")) : randomSeed() })
         : source === "custom" ? getCustom(params.get("c"))
         : fetch(`../scenarios/${encodeURIComponent(scenarioId)}.json`).then((r) => r.json()),
 ]);
@@ -47,8 +59,9 @@ if (!scn) {
 }
 const guidanceRules = await fetch("../rules/guidance.json").then((r) => (r.ok ? r.json() : null)).catch(() => null);
 const rubric = scn.rubric ? await fetch(`../${scn.rubric}`).then((r) => (r.ok ? r.json() : null)).catch(() => null) : source === "file" ? null : GENERIC_RUBRIC;
+let sessionCtl = null; // set when attached to an instructor-led session
 const catalogue = buildCatalogue(data);
-const seed = params.has("seed") ? Number(params.get("seed")) : scn.seed;
+const seed = S ? S.seed : params.has("seed") ? Number(params.get("seed")) : scn.seed;
 /** URL of this scenario with another seed (retry, new variation). */
 function scenarioUrl(s) {
     const q = new URLSearchParams();
@@ -509,7 +522,9 @@ function debrief(reason) {
     const res = rubric ? scoreRun(rubric, sim, recorder) : null;
     const record = { ...makeRecord(scn, seed, sim, res), hints: DEPTHS[state.hintsMax] };
     const replay = { key: record.date, title: `${scn.module}: ${scn.title}`, seed, date: record.date, frames: state.frames, timeline: state.timeline.slice() };
-    const saved = addRecord({ ...record, replay: addReplay(replay) ? replay.key : null });
+    const saved = addRecord({ ...record, replay: addReplay(replay) ? replay.key : null, session: sessionCode || undefined });
+    sessionCtl?.finish(record);
+    saveCloudHistory(record);
     const icon = { pass: "✓", fail: "✗", na: "–" };
     const scoreHtml = res ? `
         <div class="scorecard ${res.passed ? "go" : "nogo"}">
@@ -541,12 +556,13 @@ function debrief(reason) {
         <ul class="timeline">${state.timeline.sort((a, b) => a.t - b.t).map((e) => `<li class="${e.kind === "event" ? "ev" : ""}"><time>${formatTime(e.t)}</time>${esc(e.text)}</li>`).join("") || "<li>No actions taken</li>"}</ul>
 
         <p class="muted">${saved ? 'Saved to <a href="records.html">your records</a> in this browser.' : storageOK ? "Could not save this run: browser storage is full." : "This browser blocks storage, so the run is not saved."}</p>
-        <div class="buttons"><a class="btn" href="index.html">Scenarios</a><button class="btn" id="replayBtn">Replay</button><button class="btn" id="retryBtn">Retry</button><button class="btn primary" id="newSeedBtn">New variation</button></div>`;
+        ${S ? '<p class="muted">Your result has been sent to the instructor. Stay on this page: it reloads when the instructor starts the next round.</p>' : ""}
+        <div class="buttons"><a class="btn" href="index.html">Scenarios</a><button class="btn" id="replayBtn">Replay</button>${S ? "" : '<button class="btn" id="retryBtn">Retry</button><button class="btn primary" id="newSeedBtn">New variation</button>'}</div>`;
     $("debrief").classList.add("show");
     $("replayBtn").addEventListener("click", () => openReplayModal(replay));
-    $("retryBtn").addEventListener("click", () => { location.href = scenarioUrl(seed); });
-    $("newSeedBtn").addEventListener("click", () => { location.href = scenarioUrl(randomSeed()); });
-    $("retryBtn").focus({ preventScroll: true });
+    $("retryBtn")?.addEventListener("click", () => { location.href = scenarioUrl(seed); });
+    $("newSeedBtn")?.addEventListener("click", () => { location.href = scenarioUrl(randomSeed()); });
+    ($("retryBtn") || $("replayBtn")).focus({ preventScroll: true });
     box.scrollTop = 0;
 }
 
@@ -562,9 +578,10 @@ function openReplayModal(replay) {
 start();
 document.title = `${scn.title}: ACM Trainer`;
 $("title").innerHTML = "";
-$("title").append(scn.title, el("small", { textContent: scn.module + (source === "random" ? ` · seed ${seed}` : seed !== scn.seed ? ` · variation ${seed}` : "") }));
+$("title").append(scn.title, el("small", { textContent: S ? `Session ${S.code} · ${S.run.name}` : scn.module + (source === "random" ? ` · seed ${seed}` : seed !== scn.seed ? ` · variation ${seed}` : "") }));
 body = createBody($("body"), (part) => { state.part = part; render(); });
-$("speed").addEventListener("click", (e) => { const b = e.target.closest("button"); if (b && !state.ended) setSpeed(Number(b.dataset.speed)); });
+let clockLocked = false;
+$("speed").addEventListener("click", (e) => { const b = e.target.closest("button"); if (b && !state.ended && !clockLocked) setSpeed(Number(b.dataset.speed)); });
 $("showUnavailable").addEventListener("change", render);
 $("cancelBtn").addEventListener("click", () => cancelAction("Cancelled"));
 $("pulseStop").addEventListener("click", endContinuous);
@@ -573,9 +590,13 @@ $("soundToggle").addEventListener("change", (e) => { audio.enabled = e.target.ch
 $("hintsSel").addEventListener("change", (e) => setHints(Number(e.target.value)));
 if (!guidanceRules) $("hintsSel").disabled = true;
 $("endBtn").addEventListener("click", () => endScenario("You ended the scenario."));
-$("startBtn").addEventListener("click", () => { $("briefing").classList.remove("show"); setSpeed(1); });
+$("startBtn").addEventListener("click", () => {
+    if (S && !sessionCtl?.canStart()) return;
+    $("briefing").classList.remove("show");
+    if (S) { sessionApi.onStart?.(); if (!clockLocked) setSpeed(1); } else setSpeed(1);
+});
 document.addEventListener("keydown", (e) => {
-    if (e.code === "Space" && !e.target.closest("button, input, a, [role=button]")) { e.preventDefault(); setSpeed(state.speed > 0 ? 0 : 1); }
+    if (e.code === "Space" && !e.target.closest("button, input, a, [role=button]") && !clockLocked) { e.preventDefault(); setSpeed(state.speed > 0 ? 0 : 1); }
     if (e.key === "Escape" && state.progress) cancelAction("Cancelled");
 });
 setSpeed(0);
@@ -597,4 +618,55 @@ if (params.has("autostart")) {
     if (!state.ended) setSpeed(1);
     else if (params.has("openreplay")) $("replayBtn").click();
 } else briefing();
+/** Saved history (design 5.2): kept in Firestore for Discord-signed-in users; Firebase loads only for them. */
+async function saveCloudHistory(record) {
+    if (S) return;
+    let name = "";
+    try { name = localStorage.getItem("acmt.discordName") || ""; } catch { /* storage blocked */ }
+    if (!name) return;
+    try {
+        const c = await import("./cloud.js");
+        const u = await c.ready;
+        if (c.isDiscord(u)) await c.addDoc(c.collection(c.db, "history", u.uid, "runs"), { ...record, uid: u.uid, at: c.serverTimestamp() });
+    } catch { /* offline: the local record is still there */ }
+}
+
+// ------------------------------------------------------------------ instructor-led session
+let noticeTimer = 0;
+function notice(text) {
+    const n = $("notice");
+    n.textContent = text;
+    n.classList.add("show");
+    clearTimeout(noticeTimer);
+    noticeTimer = setTimeout(() => n.classList.remove("show"), 8000);
+}
+const sessionApi = {
+    getSim: () => sim, getState: () => state, recorder: null,
+    setClock: (s) => { if (!state.ended) setSpeed(s); },
+    lockClock: (on) => {
+        clockLocked = on;
+        for (const b of $("speed").querySelectorAll("button")) b.disabled = on;
+        $("speed").title = on ? "The instructor controls the clock" : "";
+    },
+    enableStart: (on) => {
+        $("startBtn").disabled = !on;
+        $("startBtn").textContent = on ? "Start" : "Waiting for the instructor…";
+    },
+    autoStart: () => { $("briefing").classList.remove("show"); },
+    end: (reason) => endScenario(reason),
+    notice,
+    timeline: (text) => { state.timeline.push({ t: sim.p.t, text, kind: "event" }); },
+    limitHints: (depth) => {
+        for (const o of $("hintsSel").options) o.disabled = Number(o.value) > depth;
+        if (state.hints > depth) setHints(depth);
+        if (depth === 0) $("hintsSel").title = "Hints are off in this session";
+    },
+    currentAction: () => state.progress?.a?.label || state.progress?.label || (state.cont ? state.cont.type : null),
+};
+if (S) {
+    sessionApi.recorder = recorder;
+    $("endBtn").hidden = true; // the instructor ends the scenario
+    sessionApi.enableStart(false);
+    sessionCtl = S.attach(sessionApi);
+}
 requestAnimationFrame((t) => { state.last = t; frame(t); });

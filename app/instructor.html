@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ACM Trainer: instructor</title>
+<link rel="stylesheet" href="css/trainer.css">
+</head>
+<body>
+<main class="landing wide-page instructor">
+    <p><a class="btn" href="index.html">← Scenarios</a></p>
+    <h1>Instructor</h1>
+    <div id="auth" class="toolbar"></div>
+
+    <section id="setup" hidden>
+        <h2 class="section-title">New session</h2>
+        <form id="newForm" class="editor" autocomplete="off">
+            <fieldset>
+                <legend>Scenario</legend>
+                <div class="grid3">
+                    <label>Scenario <select id="scenario"></select></label>
+                    <label>Patients <select id="sameSeed"><option value="1">Same patient for everyone</option><option value="0">A different variation each</option></select></label>
+                    <label>Clock <select id="timeControl"><option value="instructor">Instructor controls the clock</option><option value="trainee">Trainees control their own speed</option></select></label>
+                    <label>Hints allowed <select id="hints"><option value="0">Off</option><option value="1">Up to Basic</option><option value="2">Up to Intermediate</option><option value="3">Up to Advanced</option></select></label>
+                </div>
+                <div class="grid3" id="randomOpts" hidden>
+                    <label>Severity <select id="rSev"><option value="0">Random</option><option value="1">Routine</option><option value="2">Priority</option><option value="3">Immediate</option><option value="4">Expectant</option></select></label>
+                    <label>Cause <select id="rCause"><option value="0">Random</option><option value="1">Gunshot</option><option value="2">Shrapnel</option><option value="3">Explosion</option><option value="4">Collision</option><option value="5">Falling</option><option value="6">Backblast</option></select></label>
+                    <label>Trainee role <select id="rRole"><option value="anyone">Combat lifesaver</option><option value="medic" selected>Medic</option><option value="doctor">Doctor</option></select></label>
+                </div>
+            </fieldset>
+            <div class="toolbar"><button class="btn primary" id="createBtn">Create session</button><span id="createStatus" class="muted"></span></div>
+        </form>
+        <h2 class="section-title">Your recent sessions</h2>
+        <ul id="recent" class="recent"></ul>
+    </section>
+
+    <section id="dash" hidden>
+        <div class="dash-head">
+            <div><div class="muted">Session code</div><div class="code" id="dCode"></div><div class="muted" id="dJoin"></div></div>
+            <div class="dash-info"><div id="dScenario"></div><div class="muted" id="dPhase"></div></div>
+        </div>
+        <div class="toolbar">
+            <button class="btn primary" id="startBtn">Start</button>
+            <button class="btn" id="pauseBtn">Pause all</button>
+            <span class="speed" role="group" aria-label="Session speed" id="speedGroup">
+                <button data-speed="1">1×</button><button data-speed="2">2×</button><button data-speed="5">5×</button><button data-speed="10">10×</button>
+            </span>
+            <button class="btn" id="msgAllBtn">Message all</button>
+            <button class="btn danger" id="endBtn">End scenario</button>
+            <span class="spacer"></span>
+            <button class="btn" id="roundBtn">New round…</button>
+            <button class="btn" id="csvBtn">Export results</button>
+            <button class="btn danger" id="closeBtn">Close session</button>
+        </div>
+        <div class="tiles" id="tiles"></div>
+        <section id="detail" class="detail" hidden>
+            <div class="detail-head"><h2 id="tName"></h2><button class="btn" id="detailClose">Close</button></div>
+            <div class="detail-grid">
+                <div class="body-wrap replay-body" id="tBody"></div>
+                <div><h4 id="tPart"></h4><ul class="injuries" id="tInj"></ul></div>
+                <div>
+                    <h4>True vitals</h4><table class="vitals-table" id="tVitals"></table>
+                    <h4>Actions</h4><ul class="timeline" id="tActions"></ul>
+                </div>
+            </div>
+            <div class="controls-row">
+                <button class="btn" id="tPause">Pause</button>
+                <label>Inject <select id="injKind"></select></label>
+                <select id="injPart" aria-label="Body part"></select>
+                <select id="injMech" aria-label="Mechanism"></select>
+                <input id="injDmg" type="number" min="0.05" max="10" step="0.1" value="1" aria-label="Damage" style="width:80px">
+                <button class="btn" id="injBtn">Send inject</button>
+                <label>Set <select id="setField"></select></label>
+                <input id="setValue" type="number" step="0.1" aria-label="Value" style="width:90px">
+                <button class="btn" id="setBtn">Set</button>
+                <button class="btn" id="tMsg">Message</button>
+                <button class="btn danger" id="tEnd">End for this trainee</button>
+            </div>
+        </section>
+    </section>
+</main>
+<script type="module" src="js/instructor.js"></script>
+</body>
+</html>
