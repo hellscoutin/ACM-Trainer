@@ -178,25 +178,30 @@ function finishAction(a, part, item) {
 
 /** Syringe window steps: Draw (4 s) keeps the filled syringe; Push/Inject (2.5 s) draws and gives it at once. */
 function syringeCallbacks(part, size) {
+    // As in ACM (Syringe_Draw_Button): every button starts an ACE progress bar, which closes the dialog (closeDialog 0).
+    // Draw fills the syringe at the end of 4 s; push it later from the Medication menu. Push/Inject fill it at once,
+    // then give it after 2.5 s (cancelled, the filled syringe stays in your inventory).
     return {
         draw(drug, ml) {
+            endContinuous();
             startTimed(`Drawing ${drugName(drug)}...`, 4, () => {
                 const r = drawSyringe(ctx, size, drug, ml);
                 recorder.action("drawsyringe", part, r.ok, { drug, size, ml });
                 if (r.ok) { hint(r.hint); log("activity", `${ctx.name} drew ${drugName(drug)} into a ${size}ml syringe`); }
-                state.cont?.win?.refresh?.();
                 render();
             });
         },
         inject(drug, ml, iv) {
+            const d = drawSyringe(ctx, size, drug, ml);
+            endContinuous();
+            if (!d.ok) { render(); return; }
+            recorder.action("drawsyringe", part, true, { drug, size, ml });
             startTimed(`${iv ? "Pushing" : "Injecting"} ${drugName(drug)}...`, 2.5, () => {
-                const d = drawSyringe(ctx, size, drug, ml);
-                if (!d.ok) return;
                 const r = injectSyringe(sim, ctx, part, d.syringe, iv);
                 recorder.action(`${drug.toLowerCase()}_${size}_${iv ? "iv" : "im"}`, part, r.ok);
                 if (r.hint) hint(r.hint);
                 if (r.ok) log("activity", `${ctx.name} ${r.log}`);
-                endContinuous();
+                render();
             });
         },
     };
