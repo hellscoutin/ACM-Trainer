@@ -46,6 +46,13 @@ async function customToken(sa, uid, claims) {
 
 export default {
     async fetch(request, env) {
+        try { return await handle(request, env); }
+        catch (e) { console.log("unhandled:", e.name, e.message); return page(500, `Sign-in failed (${e.name}). Please try again; if it keeps happening, tell the site owner.`); }
+    },
+};
+
+async function handle(request, env) {
+    {
         const url = new URL(request.url);
         const redirectUri = `${url.origin}/callback`;
         if (!env.DISCORD_CLIENT_SECRET || !env.FIREBASE_SERVICE_ACCOUNT) return page(503, "Sign-in is not configured yet (the worker secrets are missing).");
@@ -80,12 +87,30 @@ export default {
             if (!me.ok) return page(502, "Could not read your Discord profile.");
             const user = await me.json();
             const name = user.global_name || user.username || "Discord user";
-            const sa = JSON.parse(env.FIREBASE_SERVICE_ACCOUNT);
-            const token = await customToken(sa, `discord:${user.id}`, { provider: "discord", name });
+            // The service account secret: tolerate a byte-order mark or surrounding whitespace from how it was pasted or piped
+            let sa;
+            try {
+                sa = JSON.parse(String(env.FIREBASE_SERVICE_ACCOUNT).replace(/^﻿/, "").trim());
+                if (typeof sa === "string") sa = JSON.parse(sa); // stored as a JSON string of the JSON
+            } catch (e) {
+                console.log("service account parse failed:", e.name, "length", String(env.FIREBASE_SERVICE_ACCOUNT).length, "starts", JSON.stringify(String(env.FIREBASE_SERVICE_ACCOUNT).slice(0, 2)));
+                return page(500, "Sign-in is misconfigured: the FIREBASE_SERVICE_ACCOUNT secret is not valid JSON. Set it again from the downloaded key file.");
+            }
+            if (!sa.client_email || !sa.private_key) {
+                console.log("service account fields missing:", Object.keys(sa).join(","));
+                return page(500, "Sign-in is misconfigured: the FIREBASE_SERVICE_ACCOUNT secret has no client_email or private_key.");
+            }
+            sa.private_key = sa.private_key.replace(/\\n/g, "\n");
+            let token;
+            try { token = await customToken(sa, `discord:${user.id}`, { provider: "discord", name }); }
+            catch (e) {
+                console.log("custom token failed:", e.name, e.message);
+                return page(500, "Sign-in is misconfigured: the service account private key could not be used.");
+            }
             const frag = new URLSearchParams({ acmt_token: token, acmt_name: name });
             return Response.redirect(`${ret.href.split("#")[0]}#${frag}`, 302);
         }
 
         return page(404, "Nothing here. Open the ACM Trainer and use its sign-in button.");
-    },
-};
+    }
+}
