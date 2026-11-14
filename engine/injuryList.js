@@ -44,9 +44,9 @@ export function injuryList(sim, part) {
     if (lost) e.push({ text: lost, color: lostColor });
     const bags = { Blood: 0, Plasma: 0, Saline: 0 };
     for (const b of p.ivBags) if (b.type in bags) bags[b.type]++;
-    if (bags.Blood) e.push({ text: `Transfusing Blood (${bags.Blood})`, color: C.white });
-    if (bags.Plasma) e.push({ text: `Transfusing Plasma (${bags.Plasma})`, color: C.white });
-    if (bags.Saline) e.push({ text: `Transfusing Saline (${bags.Saline})`, color: C.white });
+    if (bags.Blood) e.push({ text: `Transfusing Blood [${bags.Blood}x]`, color: C.white });
+    if (bags.Plasma) e.push({ text: `Transfusing Plasma [${bags.Plasma}x]`, color: C.white });
+    if (bags.Saline) e.push({ text: `Transfusing Saline [${bags.Saline}x]`, color: C.white });
     if (!p.unconscious && p.alive) {
         const pain = Math.max(0, Math.min(1, p.pain - p.painSuppress));
         if (pain > 0) e.push({ text: pain > 0.5 ? "In severe pain" : pain > 0.1 ? "In pain" : "In mild pain", color: C.white });
@@ -79,18 +79,20 @@ export function injuryList(sim, part) {
     }
     if (i === 0 && p.tensionTime !== null && p.t - p.tensionTime > 300) e.push({ text: "Noticable Tracheal Deviation", color: rgb(0.5, 0.1, 0.9) });
     if (i === 0 && p.bvm) e.push({ text: "BVM Active (You)", color: C.white });
-    if (p.ioAccess[i]) e.push({ text: p.ioAccess[i] === "IO_FAST1" ? "FAST1 IO" : "EZ-IO", color: C.circulation });
-    p.ivAccess[i].forEach((a, s) => { if (a) e.push({ text: `${a === "IV_14g" ? "14g IV" : "16g IV"} (${["Upper", "Middle", "Lower"][s]})`, color: C.circulation }); });
+    if (p.ioAccess[i]) e.push({ text: withBags(p.ioAccess[i] === "IO_FAST1" ? "FAST1 IO" : "EZ-IO", bagLabel(p, part, false)), color: C.circulation });
+    p.ivAccess[i].forEach((a, s) => { if (a) e.push({ text: withBags(`${a === "IV_14g" ? "14g IV" : "16g IV"} (${["Upper", "Middle", "Lower"][s]})`, bagLabel(p, part, true, s)), color: C.circulation }); });
     if ((i === 2 || i === 3) && p.pulseOx[i - 2]) {
         const [sp, pr] = (p.pulseOxDisplay || [[0, 0], [0, 0]])[i - 2];
         e.push({ text: `Pulse Oximeter [PR: ${sp < 1 || pr < 1 ? "--" : pr} SpO2: ${sp < 1 || pr < 1 ? "--" : sp}]`, color: C.circulation });
     }
     if (i === 1 && p.chestSeal) e.push({ text: "Chest Seal Applied", color: C.seal });
+    if ((i === 2 || i === 3) && p.pressureCuff[i - 2]) e.push({ text: "Pressure Cuff", color: C.circulation });
     if (p.tourniquets[i]) e.push({ text: `Tourniquet [CAT] [${formatTime(p.t - p.tourniquetTime[i])}]`, color: C.tq });
     // Internal bleeding bruising / hemothorax
     const ib = p.internalWounds[part].reduce((a, w) => a + w.count * w.bleeding, 0);
     if (i === 1 && p.htxFluid > 0.5) e.push({ text: `Extensive Bruising (${ib > 0.15 ? "Lower & Upper Chest" : "Upper Chest"})`, color: rgb(0.6, 0.1, 0.6) });
     else if (ib > 0.15) e.push({ text: "Extensive Bruising", color: rgb(0.6, 0.1, 0.6) });
+    if (i === 1 && p.thoracostomy >= 0) e.push({ text: `Thoracostomy Incision (${["Sealed", "Open", "Sealed Chest Tube", "Unsealed Chest Tube"][p.thoracostomy]})`, color: C.airway });
     // Wounds
     const w = [];
     const add = (list, fmt, color) => {
@@ -110,6 +112,15 @@ export function injuryList(sim, part) {
     else e.push(...w);
     return e;
 }
+
+/** getBodyPartIVBags: "B: 450ml S: 1000ml" for one IV site (iv) or all IO bags on the part. */
+function bagLabel(p, part, iv, site) {
+    const v = { FBTK: 0, FreshBlood: 0, Blood: 0, Plasma: 0, Saline: 0 };
+    for (const b of p.ivBags) if (b.part === part && b.iv === iv && (!iv || b.site === site)) v[b.type] += b.remaining;
+    const short = { FBTK: "FBTK", FreshBlood: "FWB", Blood: "B", Plasma: "P", Saline: "S" };
+    return Object.entries(v).filter(([, x]) => x > 0).map(([k, x]) => `${short[k]}: ${Math.floor(x)}ml`).join(" ");
+}
+const withBags = (text, bags) => (bags ? `${text} [${bags}]` : text);
 
 export function formatTime(s) {
     s = Math.max(0, Math.floor(s));

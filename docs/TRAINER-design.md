@@ -20,6 +20,7 @@ A web application that simulates ACM casualties in a browser with an interface m
 | 2026-11-13 | Menu lists only actions that are possible now, as in game; a "Show unavailable actions" switch (off by default) shows the rest with the reason (fidelity first; the switch is a training aid). |
 | 2026-11-13 | In solo practice the speed buttons (pause to 10x) also shorten progress bars, since they run on simulation time (one clock for everything; instructor control of this comes with sessions). |
 | 2026-11-13 | Menu text uses the ACM and ACE English stringtables (`data/acm-strings-en.json`, `data/ace-strings-en.json`); body diagram is our own drawing (exact wording without copying ACE artwork). |
+| 2026-11-13 | The transfusion menu moved forward from step 6 to step 3 so IV/IO access is usable; procedure windows use ACM's artwork and sounds, converted to web formats in `app/assets/acm/` (allowed under the ACM team's permission). |
 
 ## 1. Architecture
 

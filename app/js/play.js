@@ -4,6 +4,7 @@ import { CATEGORIES, buildCatalogue, available, actionTime, pickItem, itemName }
 import { injuryList, bodyPartColors, formatTime, PART_NAMES } from "../../engine/injuryList.js";
 import { feelPulse, updatePulseOximeters } from "../../engine/exams.js";
 import { createBody } from "./body.js";
+import { audio, openBP, openStethoscope, openTransfusion } from "./windows.js";
 
 const $ = (id) => document.getElementById(id);
 const el = (tag, props = {}, ...kids) => { const e = document.createElement(tag); Object.assign(e, props); e.append(...kids); return e; };
@@ -57,7 +58,8 @@ function onSimEvent(e) {
     if (e.event in cue) {
         state.timeline.push({ t: e.t, text: eventName(e), kind: "event" });
         if (cue[e.event]) hint([cue[e.event]]);
-    } else if (["pneumothorax", "hemothorax", "criticalGrace", "rhythmChange", "bagEmpty"].includes(e.event)) {
+        if (e.event === "vomit") audio.play(`vomit${1 + Math.floor(Math.random() * 6)}`, 0.9);
+    } else if (["pneumothorax", "hemothorax", "criticalGrace", "rhythmChange", "bagEmpty", "hemolyticReaction", "chestTubeUnsealed"].includes(e.event)) {
         state.timeline.push({ t: e.t, text: eventName(e), kind: "event" });
     }
 }
@@ -67,6 +69,7 @@ function eventName(e) {
         death: `Died (${e.cause})`, tensionPneumothorax: "Tension pneumothorax", cardiacArrest: "Cardiac arrest", rosc: "Return of circulation",
         pneumothorax: `Pneumothorax level ${e.level}${e.tension ? " (tension)" : ""}`, hemothorax: `Hemothorax level ${e.level}`,
         criticalGrace: "Critical vitals (grace period)", rhythmChange: `Rhythm: ${e.rhythm}`, bagEmpty: "IV bag empty",
+        hemolyticReaction: "Hemolytic reaction (incompatible blood)", chestTubeUnsealed: "Chest tube unsealed",
     }[e.event] || e.event;
 }
 
@@ -93,6 +96,13 @@ function startAction(a) {
     $("progress").classList.add("show");
     if (!state.running) setSpeed(state.speed || 1);
 }
+/** A timed step that is not a menu action (transfusion menu add/remove). */
+function startTimed(label, seconds, fn) {
+    if (state.ended || state.progress) return;
+    state.progress = { fn, label, total: seconds, start: sim.p.t + state.acc, end: sim.p.t + state.acc + seconds };
+    $("progressLabel").textContent = label;
+    $("progress").classList.add("show");
+}
 function cancelAction(reason) {
     if (!state.progress) return;
     state.progress = null;
@@ -104,16 +114,29 @@ function finishAction(a, part, item) {
     const r = a.run(ctx, part) || {};
     if (item && a.consumes && !r.refund) ctx.inventory[item] = Math.max(0, (ctx.inventory[item] || 0) - 1);
     if (a.returnsItem) ctx.inventory[a.returnsItem] = (ctx.inventory[a.returnsItem] || 0) + 1;
+    for (const c of r.give || []) ctx.inventory[c] = (ctx.inventory[c] || 0) + 1;
+    if (a.id === "applytourniquet") audio.play("tourniquet_apply", 0.8);
+    if (a.id === "removetourniquet") audio.play("tourniquet_remove", 0.8);
     if (r.hint) hint(r.hint);
     if (r.log) log("activity", r.log);
     if (r.quick) log("quick", r.quick);
-    if (a.continuous) beginContinuous(a.continuous, part);
+    if (a.continuous) beginContinuous(a.continuous, part, r.window);
     render();
 }
 
-function beginContinuous(type, part) {
+function beginContinuous(type, part, win) {
     state.cont = { type, part, nextSqueeze: sim.p.t + 6 };
     ctx.busy = type;
+    if (win && ["bp", "stethoscope", "transfusion"].includes(type)) {
+        const host = $("procHost");
+        const speed = () => (state.running ? state.speed : 0);
+        if (type === "bp") state.cont.win = openBP(host, sim, part, win.stethoscope, speed);
+        if (type === "stethoscope") state.cont.win = openStethoscope(host, sim, speed);
+        if (type === "transfusion") state.cont.win = openTransfusion(host, sim, part, ctx, { startTimed, onChange: (text) => { log("activity", text); render(); } });
+        $("procClose").textContent = { bp: "Stop measuring", stethoscope: "Stop using stethoscope", transfusion: "Close" }[type];
+        $("procWindow").classList.add("show");
+        return;
+    }
     const label = $("continuousLabel"), btns = $("continuousButtons");
     btns.textContent = "";
     const b = (text, fn, cls = "btn") => { const x = el("button", { className: cls, textContent: text }); x.addEventListener("click", fn); btns.append(x); return x; };
@@ -139,6 +162,9 @@ function endContinuous() {
     const c = state.cont;
     if (!c) return;
     if (c.type === "pulse") { $("pulseWindow").classList.remove("show"); hint(["Stopped feeling pulse"]); }
+    if (c.win) { c.win.close(); $("procWindow").classList.remove("show"); }
+    if (c.type === "bp") hint(["Stopped measuring blood pressure"]);
+    if (c.type === "stethoscope") hint(["Stopped using stethoscope"]);
     if (c.type === "headTilt") { sim.p.headTilt = false; log("activity", "You released head tilt-chin lift"); }
     if (c.type === "bvm") { sim.act("bvmStop"); log("activity", "You stopped using BVM"); }
     if (c.type === "cpr") { sim.act("cprStop"); log("activity", "You stopped CPR"); }
@@ -164,12 +190,15 @@ function step() {
     updatePulseOximeters(sim);
     const p = sim.p, c = state.cont;
     if (c) {
-        if (c.type === "bvm" && p.t >= c.nextSqueeze) { sim.act("bvmBreath"); c.nextSqueeze = p.t + 6; }
+        if (c.type === "bvm" && p.t >= c.nextSqueeze) { sim.act("bvmBreath"); audio.play("bvm_squeeze", 0.6); c.nextSqueeze = p.t + 6; }
         // Continuous actions end on their own as in game: patient wakes (head tilt, BVM, CPR) or dies
         if ((c.type === "headTilt" && (!p.headTilt || !p.unconscious)) || (c.type === "bvm" && (!p.bvm || (!p.unconscious && !p.lying))) || (c.type === "cpr" && !p.unconscious)) endContinuous();
         if (!p.alive && c.type !== "pulse") endContinuous();
     }
-    if (state.progress) {
+    if (state.progress?.fn) {
+        const pr = state.progress;
+        if (p.t >= pr.end) { state.progress = null; $("progress").classList.remove("show"); pr.fn(); render(); }
+    } else if (state.progress) {
         const pr = state.progress;
         const why = available(ctx, pr.a, pr.part);
         if (why && !why.startsWith("Requires")) cancelAction(`${pr.a.label} interrupted`);
@@ -379,6 +408,8 @@ $("speed").addEventListener("click", (e) => { const b = e.target.closest("button
 $("showUnavailable").addEventListener("change", render);
 $("cancelBtn").addEventListener("click", () => cancelAction("Cancelled"));
 $("pulseStop").addEventListener("click", endContinuous);
+$("procClose").addEventListener("click", endContinuous);
+$("soundToggle").addEventListener("change", (e) => { audio.enabled = e.target.checked; });
 $("endBtn").addEventListener("click", () => endScenario("You ended the scenario."));
 $("startBtn").addEventListener("click", () => { $("briefing").classList.remove("show"); setSpeed(1); });
 document.addEventListener("keydown", (e) => {

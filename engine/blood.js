@@ -103,10 +103,16 @@ export function bloodVolumeStep(sim, dt) {
             const on = b.iv ? p.ivFlow[pi][b.site] : p.ioFlow[pi];
             return tqOk && on && (b.type !== "FBTK" || (b.remaining <= b.original && b.iv));
         };
-        // Bags sharing one site split its flow (circulation/updateActiveFluidBags counts them)
+        // circulation/updateActiveFluidBags: a site's flow is split by the number of DIFFERENT fluid types on it
+        // (two saline bags on one site both run at full rate); with fewer than 2 bags on the part, or a tourniquet, 1.
         const siteKey = (b) => `${b.part}|${b.iv ? "iv" + b.site : "io"}`;
         const perSite = {};
-        for (const b of p.ivBags) perSite[siteKey(b)] = (perSite[siteKey(b)] || 0) + 1;
+        const typesAt = {};
+        for (const b of p.ivBags) (typesAt[siteKey(b)] ??= new Set()).add(b.type);
+        for (const b of p.ivBags) {
+            const onPart = p.ivBags.filter((x) => x.part === b.part).length;
+            perSite[siteKey(b)] = onPart < 2 || p.tourniquets[PART_INDEX[b.part]] ? 1 : typesAt[siteKey(b)].size;
+        }
 
         for (const b of p.ivBags) {
             if (!flowing(b)) continue;

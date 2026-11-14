@@ -173,3 +173,85 @@ export function inspectChest(sim) {
     }
     return { hint: lines, log: log.join(", ") };
 }
+
+// ------------------------------------------------------------------ thoracostomy (Thoracostomy_*Local)
+const ANAESTHETIC = (sim) => sim.medCount("Lidocaine", 1); // local lidocaine in the torso
+
+/** Thoracostomy_startLocal: finger sweep report, opens the chest (PTX 3, tension relieved). */
+export function thoracostomy(sim, usedKit) {
+    const { p } = sim;
+    const lines = ["Finger Thoracostomy Performed"], log = [];
+    if (p.htxFluid > 0.8) { lines.push("Large amount of blood in pleural space", "Lung is severely collapsed"); log.push("Lung is collapsed", "large amount of blood"); }
+    else if (p.tensionPtx) {
+        lines.push("Lung is severely collapsed"); log.push("Lung is collapsed");
+        if (p.htxState > 0) { lines.push("Noticable bleeding inside pleural space"); log.push("Bleeding in pleural space"); }
+    } else if (p.htxState > 0) { lines.push("Noticable bleeding inside pleural space"); log.push("Bleeding in pleural space"); }
+    else if (p.htxFluid > 0) {
+        lines.push("Found blood in pleural space"); log.push("Blood in pleural space");
+        if (p.rr < 1) { lines.push("Lung is not inflating"); log.push("Lung is not inflating"); }
+        else { lines.push("Lung is inflating normally"); log.push("lung inflating normally"); }
+    } else if (p.rr < 1 || !p.alive) { lines.push("Lung is not inflating"); log.push("Lung is not inflating"); }
+    else { lines.push("Lung is inflating normally"); log.push("Lung is inflating normally"); }
+    p.thoracostomy = 1;
+    const a = ANAESTHETIC(sim);
+    if (a < 0.7) {
+        pain(p, 1 - a);
+        if (a < 0.5) sim.criticalVitals(); // the sweep knocks an unanaesthetised patient out
+    }
+    p.ptx = 3;
+    p.tensionPtx = false;
+    p.tensionTime = null;
+    p.thoracostomyUsedKit = usedKit;
+    updateLungState(sim);
+    return { hint: lines, quick: `Thoracostomy Sweep: ${log.join(", ")}` };
+}
+
+/** Thoracostomy_insertChestTubeLocal / resealChestTubeLocal: PTX 0; the tube unseals 60-120 s after the patient is up. */
+export function insertChestTube(sim, reseal = false) {
+    const { p } = sim;
+    p.ptx = 0;
+    p.thoracostomy = 2;
+    p.chestTubeEpoch = (p.chestTubeEpoch || 0) + 1;
+    sim.schedule(1, "chestTubeWatch", { epoch: p.chestTubeEpoch });
+    updateLungState(sim);
+    return { hint: [reseal ? "Chest Tube re-sealed" : "Chest Tube inserted"] };
+}
+
+/** Thoracostomy_drainLocal. type 0 = suction bag (rough amount), 1 = ACCUVAC (exact ml). */
+export function drainChest(sim, type) {
+    const { p } = sim;
+    const f = p.htxFluid;
+    let amount;
+    if (type === 0) amount = f <= 0 ? "No blood drained" : f < 0.3 ? "Small amount of blood drained" : f < 0.8 ? "Significant amount of blood drained" : "Large amount of blood drained";
+    else amount = f <= 0 ? "No blood drained" : `~${Math.ceil(f * 1000)} ml of blood drained`;
+    p.htxFluid = 0;
+    updateLungState(sim);
+    return { hint: ["Fluid draining complete", amount], quick: `Thoracostomy Drain: ${amount}` };
+}
+
+/** Thoracostomy_closeLocal */
+export function closeIncision(sim) {
+    const { p } = sim;
+    p.thoracostomy = 0;
+    p.ptx = 0;
+    p.thoracostomyUsedKit = false;
+    updateLungState(sim);
+    return { hint: ["Thoracostomy incision sealed and one-way valve placed"] };
+}
+
+breathingTimers.chestTubeWatch = (sim, { epoch }) => {
+    // waitUntil: patient awake and not lying, or the tube state changed -> 60-120 s later the tube unseals
+    const { p, rng } = sim;
+    if (epoch !== p.chestTubeEpoch || p.thoracostomy !== 2 || !p.alive) return;
+    if (!p.unconscious && !p.lying) sim.schedule(60 + rng.random(60), "chestTubeFail", { epoch });
+    else sim.schedule(1, "chestTubeWatch", { epoch });
+};
+breathingTimers.chestTubeFail = (sim, { epoch }) => {
+    const { p } = sim;
+    if (epoch !== p.chestTubeEpoch || p.thoracostomy !== 2 || !p.alive) return;
+    p.ptx = 3;
+    p.thoracostomy = 3;
+    updateLungState(sim);
+    pain(p, 0.5);
+    sim.emit("chestTubeUnsealed", {});
+};

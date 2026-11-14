@@ -54,9 +54,9 @@ export function createPatient(data, rng, opts = {}) {
         surgicalAirway: false, surgicalAirwayUnsecure: false, incisionBleedRate: 0, incisionStitched: false,
         // Breathing (ACM_breathing): pneumothorax 0-4, tension, hemothorax level 0-10 and chest fluid (L)
         ptx: 0, tensionPtx: false, hardcorePtx: false, htxState: 0, htxFluid: 0,
-        chestInjury: false, chestSeal: false, thoracostomy: 0, tensionTime: null, lungState: [0, 0],
+        chestInjury: false, chestSeal: false, thoracostomy: -1, thoracostomyUsedKit: false, tensionTime: null, lungState: [0, 0],
         vomitCount: 3, vomitGrace: -1, airwayCheckedTime: null, airwayEpoch: 0,
-        pulseOx: [false, false], triage: 0, log: { activity: [], quick: [] },
+        pulseOx: [false, false], pressureCuff: [false, false], timeOfDeath: null, triage: 0, log: { activity: [], quick: [] },
         bvm: false, bvmOxygen: false, lastBreath: -35, lastBreathOxygen: -35,
         // Medications: [{name, route, added, onset, plateau, total, conc, hr, pain, flow, rr, co2, breathing, type, part, dose}]
         meds: [], occludedMeds: [],

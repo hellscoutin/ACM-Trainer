@@ -13,6 +13,7 @@
         <a class="btn" href="index.html" aria-label="Back to scenarios">←</a>
         <div class="title" id="title">Loading…</div>
         <div class="spacer"></div>
+        <label class="toggle"><input type="checkbox" id="soundToggle" checked> Sound</label>
         <label class="toggle"><input type="checkbox" id="showUnavailable"> Show unavailable actions</label>
         <div class="speed" role="group" aria-label="Time speed" id="speed">
             <button data-speed="0" aria-pressed="false" title="Pause (Space)">❚❚</button>
@@ -55,9 +56,13 @@
 <div class="continuous" id="continuous"><span id="continuousLabel"></span><span id="continuousButtons"></span></div>
 <div class="pulse-window" id="pulseWindow" aria-live="off">
     <div class="site" id="pulseSite"></div>
-    <div class="heart-box"><svg class="heart" id="heart" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 21s-7.5-4.6-10-9.3C.4 8.5 2.3 4.5 6 4.5c2.2 0 3.6 1.2 4.4 2.4h3.2c.8-1.2 2.2-2.4 4.4-2.4 3.7 0 5.6 4 4 7.2C19.5 16.4 12 21 12 21z"/></svg></div>
+    <div class="heart-box"><img class="heart" id="heart" src="assets/acm/ui/heart.png" alt=""></div>
     <div class="nothing" id="pulseNothing"></div>
     <button class="btn" id="pulseStop">Stop feeling pulse</button>
+</div>
+<div class="proc-window" id="procWindow" role="dialog" aria-modal="false" aria-label="Procedure">
+    <div id="procHost"></div>
+    <div class="buttons"><button class="btn" id="procClose">Close</button></div>
 </div>
 <div class="modal-back" id="briefing"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="briefTitle">
     <h2 id="briefTitle"></h2><p id="briefSummary"></p>

@@ -63,6 +63,29 @@ export function createBody(container, onSelect) {
                     overlay.append(r);
                 }
             });
+            // IV sites (upper/middle/lower), IO and pressure cuff markers
+            const SITE_POS = {
+                leftarm: [[150, 120], [158, 160], [163, 200]], rightarm: [[50, 120], [42, 160], [37, 200]],
+                leftleg: [[116, 260], [118, 310], [119, 370]], rightleg: [[84, 260], [82, 310], [81, 370]],
+            };
+            const dot = (x, y, fill, r = 4.5) => {
+                const c = document.createElementNS(NS, "circle");
+                Object.entries({ cx: x, cy: y, r, fill, stroke: "#000", "stroke-width": 1.2 }).forEach(([a, v]) => c.setAttribute(a, v));
+                overlay.append(c);
+            };
+            order.forEach((id, i) => {
+                (p.ivAccess[i] || []).forEach((dev, s) => { if (dev && SITE_POS[id]) dot(...SITE_POS[id][s], dev === "IV_14g" ? "#9be36b" : "#5fb35f"); });
+                if (p.ioAccess[i]) id === "body" ? dot(100, 96, "#b07be0", 5.5) : SITE_POS[id] && dot(...SITE_POS[id][1], "#b07be0", 5.5);
+            });
+            ["leftarm", "rightarm"].forEach((id, k) => {
+                if (p.pressureCuff?.[k]) {
+                    const [x, y] = SITE_POS[id][0];
+                    const r = document.createElementNS(NS, "rect");
+                    Object.entries({ x: x - 12, y: y - 8, width: 24, height: 12, rx: 3, fill: "#2a2a2a", stroke: "#ddd", "stroke-width": 1, transform: `rotate(${k ? -12 : 12} ${x} ${y})` }).forEach(([a, v]) => r.setAttribute(a, v));
+                    overlay.append(r);
+                }
+            });
+            if (p.thoracostomy >= 1) dot(124, 150, p.thoracostomy === 2 ? "#30e8ed" : "#e0574f", 4);
             if (p.chestSeal) {
                 const r = document.createElementNS(NS, "rect");
                 Object.entries({ x: 106, y: 100, width: 18, height: 18, rx: 3, fill: "#fff200", stroke: "#000" }).forEach(([a, v]) => r.setAttribute(a, v));

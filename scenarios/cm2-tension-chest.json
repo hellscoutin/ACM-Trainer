@@ -1,0 +1,44 @@
+{
+  "id": "cm2-tension-chest",
+  "title": "Tension pneumothorax",
+  "track": "combat-medic",
+  "module": "CM-3",
+  "summary": "A vehicle commander took a rifle round to the right chest. He is struggling to breathe and getting worse as air builds up in the chest.",
+  "seed": 5203,
+  "timeLimit": 600,
+  "role": "medic",
+  "patient": {
+    "weight": 86,
+    "bloodType": "O+",
+    "conscious": true
+  },
+  "injuries": [
+    {
+      "part": "body",
+      "type": "VelocityWound",
+      "damage": 0.55
+    }
+  ],
+  "chest": {
+    "ptx": 3
+  },
+  "loadout": {
+    "ACM_ChestSeal": 1,
+    "ACM_NCDKit": 2,
+    "ACM_ThoracostomyKit": 1,
+    "ACM_ChestTubeKit": 1,
+    "ACM_SuctionBag": 1,
+    "ACM_PressureBandage": 3,
+    "ACM_Stethoscope": 1,
+    "ACM_PulseOximeter": 1,
+    "ACM_BVM": 1,
+    "ACM_NPA": 1
+  },
+  "objectives": [
+    "Seal the chest wound",
+    "Recognise tension pneumothorax (breathing, chest inspection, stethoscope) and decompress it",
+    "Know what a decompression does without tension: it makes the pneumothorax worse",
+    "Definitive care: thoracostomy, chest tube, keep the patient lying",
+    "Support airway and breathing while unconscious; SpO2 above 90 % at the end"
+  ]
+}

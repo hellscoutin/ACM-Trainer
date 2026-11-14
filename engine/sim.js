@@ -7,10 +7,18 @@ import { addMedication, medicationCount, medicationTypeMap } from "./pharmacolog
 import { airwayState } from "./oxygen.js";
 import { airwayTimers, resetAirway, onUnconsciousAirway } from "./airway.js";
 import { breathingTimers, handleChestInjury } from "./breathing.js";
+import { circulationTimers } from "./circulation.js";
 import {
     handleUnitVitals, vitalsTimers, onCardiacArrest, administerShock, wakeUpCheck, hasPulse, bloodPressure,
     updateCirculationState, recentAEDShock,
 } from "./vitals.js";
+
+/** ACE 3.21.2 setting defaults used by the engine (initSettings.inc.sqf of each ACE medical component). */
+export const ACE_DEFAULTS = {
+    ivFlowRate: 1, bleedingCoefficient: 1, woundReopenChance: 1, spontaneousWakeUpChance: 0.1,
+    cardiacArrestBleedoutEnabled: true, treatmentTimeTourniquet: 7, treatmentTimeAutoinjector: 5,
+    medicMorphine: 0, medicEpinephrine: 0, medicSurgicalKit: 1, consumeSurgicalKit: 0, allowSelfStitch: 0, woundStitchTime: 5,
+};
 
 export class Simulation {
     /**
@@ -36,7 +44,7 @@ export class Simulation {
         this.events = [];
         this.actions = [];
         this.listeners = [];
-        this.handlers = { ...woundTimers, ...vitalsTimers, ...airwayTimers, ...breathingTimers, ...simTimers };
+        this.handlers = { ...woundTimers, ...vitalsTimers, ...airwayTimers, ...breathingTimers, ...circulationTimers, ...simTimers };
         resetAirway(this);
     }
 
@@ -46,7 +54,7 @@ export class Simulation {
         if (name in this.settingDefaults) return this.settingDefaults[name];
         throw new Error("Unknown ACM setting " + name);
     }
-    aceSetting(name, fallback) { return name in this.aceSettings ? this.aceSettings[name] : fallback; }
+    aceSetting(name, fallback) { return name in this.aceSettings ? this.aceSettings[name] : name in ACE_DEFAULTS ? ACE_DEFAULTS[name] : fallback; }
     medCount(name, partIndex = -1) { return medicationCount(this.p, name, partIndex); }
     emit(event, args = {}) {
         const e = { t: this.p.t, event, ...args };
@@ -140,6 +148,7 @@ export class Simulation {
         if (!p.alive) return;
         p.alive = false;
         p.causeOfDeath = cause;
+        p.timeOfDeath = p.t;
         p.hr = 0; p.rr = 0; p.cpr = false; p.bvm = false;
         p.rhythm = "Asystole";
         this.emit("death", { cause });

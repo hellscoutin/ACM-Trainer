@@ -4,10 +4,14 @@
 // can optionally show it.
 import { PART_INDEX } from "./util.js";
 import { isBodyPartBleeding, bandageTime } from "./wounds.js";
+const SITES = ["upper", "middle", "lower"];
 import { checkAirway, headTurn, suctionTime, suction, setRecoveryPosition, insertAirwayItem, removeAirwayItem } from "./airway.js";
 import { checkBreathing, inspectChest, applyChestSeal, performNCD } from "./breathing.js";
 import { capillaryRefill, checkResponse, checkDogTag } from "./exams.js";
 import { addMedication } from "./pharmacology.js";
+import { insertIV, removeIV, insertIO, removeIO, inspectIV, attachCuff, removeCuff, canInsertIV, bagInfo, bagName } from "./circulation.js";
+import { thoracostomy, insertChestTube, drainChest, closeIncision } from "./breathing.js";
+import { wrap, stitch } from "./wounds.js";
 
 export const CATEGORIES = [
     { id: "examine", label: "Examine Patient" },
@@ -25,6 +29,7 @@ export const ACE_ITEM_NAMES = {
 };
 export function itemName(data, cls) {
     if (ACE_ITEM_NAMES[cls]) return ACE_ITEM_NAMES[cls];
+    if (bagInfo(cls)) return bagName(cls);
     const it = data.items.find((i) => i.class === cls.toLowerCase());
     return it?.name || cls;
 }
@@ -127,7 +132,90 @@ const DEFS = {
         show: (c) => notAwake(c.sim.p) && c.sim.p.alive && !c.sim.p.cpr && (c.sim.p.airwayOral === "SGA" || !c.sim.p.bvm),
         run: (c) => { c.sim.act("cprStart", { skill: c.level }); return { log: `${c.name} started CPR` }; },
     },
+
+    // ------------------------------------------------------------------ step 3: circulation, chest procedures, stitching
+    ...Object.fromEntries(SITES.map((site, k) => [`inspectiv_${site}`, {
+        show: (c, part) => !!c.sim.p.ivAccess[PART_INDEX[part]][k],
+        run: (c, part) => { const r = inspectIV(c.sim, part, k); return { hint: r.hint, quick: `${c.name} ${r.quick}` }; },
+    }])),
+    pressurecuff_attach: {
+        show: (c, part) => !c.sim.p.pressureCuff[PART_INDEX[part] - 2] && !c.sim.p.ivAccess[PART_INDEX[part]][0],
+        run: (c, part) => outcome(c, attachCuff(c.sim, part)),
+    },
+    pressurecuff_remove: {
+        show: (c, part) => c.sim.p.pressureCuff[PART_INDEX[part] - 2], returnsItem: "ACM_PressureCuff",
+        run: (c, part) => outcome(c, removeCuff(c.sim, part)),
+    },
+    measurebloodpressure: { continuous: "bp", show: (c, part) => c.sim.p.pressureCuff[PART_INDEX[part] - 2], run: (c, part) => ({ window: { type: "bp", part, stethoscope: false } }) },
+    measurebloodpressurestethoscope: { continuous: "bp", show: (c, part) => c.sim.p.pressureCuff[PART_INDEX[part] - 2], run: (c, part) => ({ window: { type: "bp", part, stethoscope: true } }) },
+    usestethoscope: { continuous: "stethoscope", show: (c) => !c.sim.p.cpr, run: (c) => ({ window: { type: "stethoscope", part: "body" }, log: `${c.name} used Stethoscope` }) },
+    ...Object.fromEntries(["16", "14"].flatMap((g) => SITES.map((site, k) => [`insertiv_${g}_${site}`, {
+        show: (c, part) => canInsertIV(c.sim.p, part, k),
+        run: (c, part) => outcome(c, insertIV(c.sim, part, k, `IV_${g}g`, c.level)),
+    }]))),
+    ...Object.fromEntries(["16", "14"].flatMap((g) => SITES.map((site, k) => [`removeiv_${g}_${site}`, {
+        show: (c, part) => c.sim.p.ivAccess[PART_INDEX[part]][k] === `IV_${g}g`,
+        run: (c, part) => outcome(c, removeIV(c.sim, part, k)),
+    }]))),
+    insertio_fast1: { show: (c, part) => !c.sim.p.ioAccess[PART_INDEX[part]], run: (c, part) => outcome(c, insertIO(c.sim, part, "IO_FAST1")) },
+    insertio_ez: { show: (c, part) => !c.sim.p.ioAccess[PART_INDEX[part]], run: (c, part) => outcome(c, insertIO(c.sim, part, "IO_EZ")) },
+    removeio_fast1: { show: (c, part) => c.sim.p.ioAccess[PART_INDEX[part]] === "IO_FAST1", run: (c, part) => outcome(c, removeIO(c.sim, part)) },
+    removeio_ez: { show: (c, part) => c.sim.p.ioAccess[PART_INDEX[part]] === "IO_EZ", run: (c, part) => outcome(c, removeIO(c.sim, part)) },
+    opentransfusionmenu: {
+        continuous: "transfusion",
+        show: (c, part) => c.sim.p.ivAccess[PART_INDEX[part]].some(Boolean) || !!c.sim.p.ioAccess[PART_INDEX[part]],
+        run: (c, part) => ({ window: { type: "transfusion", part } }),
+    },
+    performthoracostomy: chestProc((p) => p.chestInjury && p.thoracostomy < 1, (c) => thoracostomy(c.sim, false), "performed thoracostomy"),
+    performthoracostomy_kit: chestProc((p) => p.chestInjury && p.thoracostomy < 1, (c) => thoracostomy(c.sim, true), "performed thoracostomy (Thoracostomy Kit)"),
+    insertchesttube: chestProc((p) => p.thoracostomy === 1, (c) => insertChestTube(c.sim), "inserted Chest Tube"),
+    resealchesttube: chestProc((p) => p.thoracostomy === 3, (c) => insertChestTube(c.sim, true), "re-sealed Chest Tube"),
+    drainfluid_accuvac: chestProc((p) => p.thoracostomy === 2 || p.thoracostomy === 3, (c) => drainChest(c.sim, 1), "drained pleural space"),
+    drainfluid_suctionbag: chestProc((p) => p.thoracostomy === 2 || p.thoracostomy === 3, (c) => drainChest(c.sim, 0), "drained pleural space"),
+    closeincision: {
+        // needs a surgical kit unless the thoracostomy kit was used
+        show: (c) => breathingOn(c) && !c.sim.p.cpr && !c.sim.p.bvm && c.sim.p.thoracostomy > 0 && ((c.inventory.ACE_surgicalKit || 0) > 0 || c.sim.p.thoracostomyUsedKit),
+        run: (c) => ({ ...closeIncision(c.sim), log: `${c.name} closed up thoracostomy incision` }),
+    },
+    useaccuvac: {
+        show: (c) => airwayOn(c) && notAwake(c.sim.p) && !c.sim.p.bvm,
+        time: (c) => suctionTime(c.sim.p, 1),
+        run: (c) => ({ ...suction(c.sim), log: `${c.name} used ACCUVAC` }),
+    },
+    elasticwrapbandages: wrapDef(false), elasticwrapclots: wrapDef(true),
+    surgicalkit: stitchDef("bandaged", 5), stitchclottedwounds: stitchDef("clotted", 5), stitchwrappedwounds: stitchDef("wrapped", 2),
 };
+
+function outcome(c, r) {
+    const out = { hint: r.hint, refund: r.refund || !r.ok, give: r.returned };
+    if (r.ok && r.log) out.log = `${c.name} ${r.log}`;
+    return out;
+}
+function chestProc(cond, fn, logText) {
+    return {
+        show: (c) => breathingOn(c) && !c.sim.p.cpr && !c.sim.p.bvm && cond(c.sim.p),
+        run: (c) => { const r = fn(c); return { hint: r.hint, quick: r.quick, log: `${c.name} ${logText}` }; },
+    };
+}
+const entries = (p, key, part) => p[key][part].filter((w) => w.count > 0).length;
+function wrapDef(clotted) {
+    const key = clotted ? "clottedWounds" : "bandagedWounds";
+    return {
+        show: (c, part) => !isBodyPartBleeding(c.sim.p, part) && entries(c.sim.p, key, part) > 0,
+        // damage/getWrapTime: min(12, 5 per wound entry), medic -2, min 1
+        time: (c, part) => Math.max(1, Math.min(12, 5 * entries(c.sim.p, key, part)) + (c.level >= 1 ? -2 : 0)),
+        run: (c, part) => { wrap(c.sim, part, clotted); return { log: `${c.name} wrapped ${clotted ? "clotted" : "bandaged"} wounds` }; },
+    };
+}
+function stitchDef(state, perWound) {
+    const key = state + "Wounds";
+    return {
+        show: (c, part) => !isBodyPartBleeding(c.sim.p, part) && entries(c.sim.p, key, part) > 0,
+        // ACE woundStitchTime 5 s per wound entry; ACM wrapped stitch 2 s per entry
+        time: (c, part) => perWound * entries(c.sim.p, key, part),
+        run: (c, part) => { stitch(c.sim, part, state); return { log: `${c.name} stitched ${state} wounds` }; },
+    };
+}
 
 function med(c, part, name, dose, label) {
     const r = addMedication(c.sim, part, name, dose, false);
