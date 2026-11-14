@@ -136,3 +136,11 @@ test("CM-4: two quick morphine doses overdose (the trap the scenario teaches)", 
     const r = s.score();
     assert.ok(s.sim.events.some((e) => e.event === "overdose") === r.results.some((x) => x.check.id === "no-overdose" && x.status === "fail"));
 });
+
+import { buildFixtures } from "../tools/export_guidance_fixtures.mjs";
+
+test("guidance fixtures for the ATAK patient monitor are up to date (node tools/export_guidance_fixtures.mjs)", () => {
+    const file = read("../rules/fixtures.json");
+    assert.deepEqual(JSON.parse(JSON.stringify(buildFixtures())), file);
+    assert.ok(file.count > 100 && file.fixtures.some((f) => f.expect.length > 3));
+});

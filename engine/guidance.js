@@ -194,7 +194,11 @@ const EACH = { parts: BODY_PARTS, limbs: LIMBS, core: ["head", "body"] };
  */
 export function evaluateGuidance(rules, sim, { depth, level = 0 }) {
     if (!depth) return [];
-    const v = knowledgeView(sim, depth, { level });
+    return evaluateView(rules, knowledgeView(sim, depth, { level }), { depth, level });
+}
+
+/** Evaluates the rules on a ready knowledge view (the ATAK monitor builds the view in SQF; fixtures check parity). */
+export function evaluateView(rules, v, { depth, level = 0 }) {
     const out = [];
     rules.rules.forEach((r, order) => {
         if (r.depth > depth || (!!r.dead !== !v.alive)) return;
