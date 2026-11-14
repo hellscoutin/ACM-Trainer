@@ -2,7 +2,7 @@
   "id": "cls1-leg-hemorrhage",
   "title": "Gunshot to the thigh",
   "track": "combat-lifesaver",
-  "module": "CLS-2",
+  "module": "CLS-1",
   "summary": "A rifleman takes a round to the left thigh and a graze to the right forearm. He is awake and bleeding heavily. You are the nearest combat lifesaver.",
   "seed": 1101,
   "timeLimit": 300,

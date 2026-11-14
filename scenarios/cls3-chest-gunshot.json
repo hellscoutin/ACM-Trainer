@@ -2,7 +2,7 @@
   "id": "cls3-chest-gunshot",
   "title": "Gunshot to the chest",
   "track": "combat-lifesaver",
-  "module": "CLS-4",
+  "module": "CLS-3",
   "summary": "A machine gunner is hit in the chest and the right leg. He is awake, short of breath and in pain.",
   "seed": 3307,
   "timeLimit": 480,

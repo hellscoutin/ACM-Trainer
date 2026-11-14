@@ -2,7 +2,7 @@
   "id": "cls2-unconscious-airway",
   "title": "Unconscious after a blast",
   "track": "combat-lifesaver",
-  "module": "CLS-3",
+  "module": "CLS-2",
   "summary": "A soldier was thrown by an explosion. He is unconscious with a head injury and fragment wounds to the left arm. Keep his airway open until the medic arrives.",
   "seed": 2201,
   "timeLimit": 600,

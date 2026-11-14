@@ -1,0 +1,38 @@
+{
+  "id": "cls4-cardiac-arrest",
+  "title": "Collapse with no pulse",
+  "track": "combat-lifesaver",
+  "module": "CLS-4",
+  "summary": "A soldier went down after a blast wave hit him in the chest. He does not respond, is not breathing and you cannot feel a pulse. You carry an AED, a pocket BVM and a pulse oximeter. Keep him going until the medic arrives.",
+  "seed": 4401,
+  "timeLimit": 600,
+  "role": "anyone",
+  "patient": {
+    "weight": 82,
+    "bloodType": "O+",
+    "conscious": false
+  },
+  "injuries": [
+    {
+      "part": "body",
+      "type": "Contusion",
+      "damage": 0.8
+    }
+  ],
+  "arrest": "VF",
+  "loadout": {
+    "ACM_AED": 1,
+    "ACM_PocketBVM": 1,
+    "ACM_SuctionBag": 1,
+    "ACM_OPA": 1,
+    "ACM_PulseOximeter": 1
+  },
+  "objectives": [
+    "Recognise cardiac arrest: no response, no breathing, no carotid pulse",
+    "Start CPR at once and keep it going: every pause stops the restart chances",
+    "AED: pads on, stop compressions to analyze, shock when advised, straight back to CPR",
+    "Never shock a patient who has a pulse",
+    "When the pulse returns: check and clear the airway, then ventilate with the pocket BVM until SpO2 recovers"
+  ],
+  "rubric": "rubrics/cls4-cardiac-arrest.json"
+}

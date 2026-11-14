@@ -2,7 +2,7 @@
   "id": "cm2-tension-chest",
   "title": "Tension pneumothorax",
   "track": "combat-medic",
-  "module": "CM-3",
+  "module": "CM-3a",
   "summary": "A vehicle commander took a rifle round to the right chest. He is struggling to breathe and getting worse as air builds up in the chest.",
   "seed": 5203,
   "timeLimit": 600,

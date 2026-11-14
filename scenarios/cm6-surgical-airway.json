@@ -2,7 +2,7 @@
   "id": "cm6-surgical-airway",
   "title": "Blood in the airway",
   "track": "combat-medic",
-  "module": "CM-6",
+  "module": "CM-2",
   "summary": "A gunner took fragments to the face and scalp and is unconscious. Blood keeps running into his airway faster than you can clear it, and you have one suction bag. Secure the airway for good.",
   "seed": 7301,
   "timeLimit": 720,

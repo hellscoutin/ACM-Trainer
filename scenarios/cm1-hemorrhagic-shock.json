@@ -2,7 +2,7 @@
   "id": "cm1-hemorrhagic-shock",
   "title": "Hemorrhagic shock",
   "track": "combat-medic",
-  "module": "CM-2",
+  "module": "CM-1a",
   "summary": "A rifleman was hit by fragments from a grenade several minutes ago. A buddy slowed the leg bleeding with his hands but he has lost a lot of blood. He is pale and confused. You are the platoon medic.",
   "seed": 4102,
   "timeLimit": 600,
