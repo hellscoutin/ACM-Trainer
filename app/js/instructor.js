@@ -9,7 +9,8 @@ import { MECHANISMS, MECHANISM_NAMES, recordsToCSV, RECORD_COLUMNS } from "../..
 import { formatTime, PART_NAMES } from "../../engine/injuryList.js";
 import { BODY_PARTS } from "../../engine/util.js";
 import { createBody } from "./body.js";
-import { loadCustom, download } from "./store.js";
+import { loadCustom, download, loadBankRaw, saveBank } from "./store.js";
+import { validateBank, tracksIn, drawTest, scoreTest } from "../../engine/written-test.js";
 import { labelProblems, renderProblems, renderClinical } from "./clinical-view.js";
 
 const $ = (id) => document.getElementById(id);
@@ -48,13 +49,49 @@ async function renderAuth() {
 }
 const ok = await renderAuth();
 
+// ------------------------------------------------------------------ written tests (question bank loaded from a file)
+function loadBank() { try { const b = loadBankRaw(); return b ? validateBank(b) : null; } catch { return null; } }
+/** Bank loader and track picker, shown when "Written test" is chosen. Returns { box, track() }. */
+function testOptions() {
+    const status = el("span", { className: "muted" }), sel = el("select", {}), file = el("input", { type: "file", accept: ".json,application/json", hidden: true });
+    const fill = () => {
+        const bank = loadBank();
+        status.textContent = bank ? `Bank loaded: ${bank.questions.length} questions` : "Load questions-bank.json (from the ACM Training build) to run a written test.";
+        sel.textContent = "";
+        if (bank) for (const [k, title] of tracksIn(bank)) sel.append(el("option", { value: k, textContent: `${title} (${bank.testSize?.[k] ?? 15} questions)` }));
+        sel.hidden = !bank;
+    };
+    file.addEventListener("change", async () => {
+        try { saveBank(validateBank(JSON.parse(await file.files[0].text()))); } catch (e) { alert(e.message); }
+        fill();
+    });
+    fill();
+    const box = el("div", { className: "toolbar test-opts" }, el("label", { className: "btn" }, "Load bank file", file), sel, status);
+    return { box, track: () => sel.value };
+}
+/** The session's scenario spec for a written test: questions without answers (the key stays in this browser). */
+function testSpec(track) {
+    const bank = loadBank();
+    if (!bank || !track) throw new Error("Load the question bank and pick a track first.");
+    const seed = Math.floor(Math.random() * 1e9);
+    return { test: { track, title: `${bank.tracks[track]} written test`, seed, questions: drawTest(bank, track, seed) } };
+}
+function testResult(r) {
+    const spec = session?.tests?.[r.round || 1] || (session?.scenario?.test && (r.round || 1) === (session.round || 1) ? session.scenario.test : null);
+    if (!spec || !r.test) return null;
+    const bank = loadBank();
+    return bank ? scoreTest(bank, spec.questions, r.test.answers || {}) : "no-bank";
+}
+
 // ------------------------------------------------------------------ setup
 function scenarioOptions(sel) {
     sel.textContent = "";
+    sel.append(el("option", { value: "test", textContent: "Written test (question bank)" }));
     const groups = {};
     for (const t of index.tracks) groups[t.id] = el("optgroup", { label: t.title });
     for (const s of builtIn) groups[s.track]?.append(el("option", { value: "b:" + s.id, textContent: `${s.module}: ${s.title}` }));
     sel.append(el("option", { value: "random", textContent: "Training computer (random casualty)" }), ...Object.values(groups));
+    sel.value = "random";
     const mine = Object.values(loadCustom());
     if (mine.length) sel.append(el("optgroup", { label: "Your custom scenarios (this browser)" }, ...mine.map((s) => el("option", { value: "c:" + s.id, textContent: s.title }))));
 }
@@ -63,22 +100,28 @@ function scenarioSpec(v) {
     if (v.startsWith("c:")) { const { custom, ...s } = loadCustom()[v.slice(2)]; return { custom: s }; }
     return { id: v.slice(2) };
 }
-const specTitle = (sc) => (sc.random ? "Training computer (random)" : sc.custom ? sc.custom.title : builtIn.find((s) => s.id === sc.id)?.title || sc.id);
+const specTitle = (sc) => (sc.test ? sc.test.title : sc.random ? "Training computer (random)" : sc.custom ? sc.custom.title : builtIn.find((s) => s.id === sc.id)?.title || sc.id);
 
 async function setup() {
     $("setup").hidden = false;
     scenarioOptions($("scenario"));
-    $("scenario").addEventListener("change", () => { $("randomOpts").hidden = $("scenario").value !== "random"; });
+    const topts = testOptions();
+    $("testOpts").append(topts.box);
+    const showOpts = () => { $("randomOpts").hidden = $("scenario").value !== "random"; $("testOpts").hidden = $("scenario").value !== "test"; };
+    $("scenario").addEventListener("change", showOpts);
+    showOpts();
     $("newForm").addEventListener("submit", async (e) => {
         e.preventDefault();
         $("createBtn").disabled = true;
         $("createStatus").textContent = "Creating…";
         try {
+            const isTest = $("scenario").value === "test";
+            const spec = isTest ? testSpec(topts.track()) : scenarioSpec($("scenario").value);
             let code;
             for (let i = 0; i < 5; i++) { code = newCode(); if (!(await getDoc(doc(db, "sessions", code))).exists()) break; }
             await setDoc(doc(db, "sessions", code), {
-                code, instructor: user.uid, instructorName: displayName(user), createdAt: serverTimestamp(), status: "open", phase: "lobby",
-                paused: false, speed: 1, round: 1, scenario: scenarioSpec($("scenario").value), seed: $("scenario").value === "random" ? Math.floor(Math.random() * 1e9) : null,
+                code, instructor: user.uid, instructorName: displayName(user), createdAt: serverTimestamp(), status: "open", phase: "lobby", ...(isTest ? { tests: { 1: spec.test } } : {}),
+                paused: false, speed: 1, round: 1, scenario: spec, seed: $("scenario").value === "random" ? Math.floor(Math.random() * 1e9) : null,
                 sameSeed: $("sameSeed").value === "1", hints: Number($("hints").value), timeControl: $("timeControl").value,
             });
             location.href = `instructor.html?code=${code}`;
@@ -134,13 +177,19 @@ function newRound() {
     const dlg = el("div", { className: "modal-back show" });
     const sel = el("select", {});
     scenarioOptions(sel);
+    const topts = testOptions();
+    topts.box.hidden = true;
+    sel.addEventListener("change", () => { topts.box.hidden = sel.value !== "test"; });
     const go = el("button", { className: "btn primary", textContent: "Start new round" }), cancel = el("button", { className: "btn", textContent: "Cancel" });
-    dlg.append(el("div", { className: "modal" }, el("h2", { textContent: "New round" }), el("p", { textContent: "Trainees on the session page reload into the new scenario. Random casualties use the severity, cause and role set in the new-session form." }),
-        el("label", {}, "Scenario ", sel), el("div", { className: "buttons" }, cancel, go)));
+    dlg.append(el("div", { className: "modal" }, el("h2", { textContent: "New round" }), el("p", { textContent: "Trainees on the session page reload into the new scenario or test. Random casualties use the severity, cause and role set in the new-session form." }),
+        el("label", {}, "Scenario ", sel), topts.box, el("div", { className: "buttons" }, cancel, go)));
     document.body.append(dlg);
     cancel.addEventListener("click", () => dlg.remove());
     go.addEventListener("click", async () => {
-        await updateDoc(sessionRef, { scenario: scenarioSpec(sel.value), round: (session.round || 1) + 1, phase: "lobby", paused: false, seed: sel.value === "random" ? Math.floor(Math.random() * 1e9) : null });
+        const next = (session.round || 1) + 1;
+        let spec;
+        try { spec = sel.value === "test" ? testSpec(topts.track()) : scenarioSpec(sel.value); } catch (e) { alert(e.message); return; }
+        await updateDoc(sessionRef, { scenario: spec, round: next, phase: "lobby", paused: false, seed: sel.value === "random" ? Math.floor(Math.random() * 1e9) : null, ...(spec.test ? { [`tests.${next}`]: spec.test } : {}) });
         dlg.remove();
     });
 }
@@ -154,6 +203,7 @@ function renderTiles() {
     if (!list.length) box.append(el("p", { className: "muted", textContent: "No trainees yet. Give them the code above." }));
     for (const r of list) {
         const v = r.vitals || {};
+        if (session.scenario?.test) { box.append(testTile(r)); continue; }
         const state = !r.status || r.status === "waiting" ? "Waiting" : !r.alive ? "Dead" : r.cardiacArrest ? "Arrest" : r.unconscious ? "Unconscious" : "Conscious";
         const tile = el("button", { className: "tile" + (r.alerts?.length ? " alert" : "") + (selected === r.uid ? " selected" : "") });
         tile.append(
@@ -166,6 +216,19 @@ function renderTiles() {
         tile.addEventListener("click", () => { selected = r.uid; renderTiles(); renderDetail(); });
         box.append(tile);
     }
+}
+
+function testTile(r) {
+    const res = testResult(r);
+    const state = r.test ? `Submitted${r.test.auto ? " (when the round ended)" : ""}` : r.status === "running" ? "Answering" : "Waiting";
+    const text = res === "no-bank" ? "Load the question bank in this browser to score" : res ? `${res.got} / ${res.total} · ${res.passed ? "PASS" : "NOT PASSED"}` : "";
+    const tile = el("div", { className: "tile" + (res && res !== "no-bank" && !res.passed ? " alert" : "") });
+    tile.append(el("div", { className: "tile-head" }, el("strong", { textContent: r.name })), el("div", { className: "tile-state", textContent: state }), el("div", { className: "tile-result", textContent: text }));
+    if (res && res !== "no-bank") {
+        const missed = res.items.filter((i) => !i.correct).map((i) => i.module);
+        if (missed.length) tile.append(el("div", { className: "tile-current", textContent: `Missed: ${[...new Set(missed)].join(", ")}` }));
+    }
+    return tile;
 }
 
 let mirror = null, mirrorPart = "body", fullView = false;
@@ -222,6 +285,13 @@ function exportCSV() {
         date: new Date().toISOString(), scenario: r.scenarioId, module: r.module, title: r.title, role: r.role || "", seed: r.seed, result: r.result.result, score: r.result.score,
         outcome: r.result.outcome, duration: r.result.duration, criticalFails: r.result.criticalFails || [], failedChecks: r.result.failedChecks || [], hints: r.result.hints, trainee: r.name, round: r.round,
     }));
+    for (const r of runs.values()) {
+        const res = r.test ? testResult(r) : null;
+        if (!res || res === "no-bank") continue;
+        const spec = session.tests?.[r.round || 1] || session.scenario.test;
+        rows.push({ date: new Date().toISOString(), scenario: `test-${spec.track}`, module: "Written test", title: spec.title, role: "", seed: spec.seed, result: res.passed ? "GO" : "NO-GO",
+            score: Math.round(res.score * 100), outcome: `${res.got}/${res.total} correct`, duration: "", criticalFails: [], failedChecks: res.items.filter((i) => !i.correct).map((i) => i.id), hints: "Off", trainee: r.name, round: r.round });
+    }
     download(`acm-trainer-session-${session.code}.csv`, recordsToCSV(rows, ["trainee", "round", ...RECORD_COLUMNS]), "text/csv");
 }
 

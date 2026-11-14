@@ -1,6 +1,6 @@
 // Browser storage for solo practice: records, custom scenarios and the last few replays. Everything stays in this
 // browser (localStorage). Every access is guarded: private windows and blocked storage simply keep nothing.
-const KEYS = { records: "acmt.records.v1", custom: "acmt.custom.v1", replays: "acmt.replays.v1" };
+const KEYS = { records: "acmt.records.v1", custom: "acmt.custom.v1", replays: "acmt.replays.v1", bank: "acmt.bank.v1" };
 const MAX_RECORDS = 1000, MAX_REPLAYS = 3;
 
 function read(key, fallback) {
@@ -36,6 +36,10 @@ export function deleteCustom(id) {
     return write(KEYS.custom, all);
 }
 export const newCustomId = () => "custom-" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+
+// ------------------------------------------------------------------ question bank (written tests; loaded from a file)
+export const loadBankRaw = () => read(KEYS.bank, null);
+export const saveBank = (bank) => write(KEYS.bank, bank);
 
 // ------------------------------------------------------------------ replays (newest first; dropped when space runs out)
 export const loadReplays = () => read(KEYS.replays, []);

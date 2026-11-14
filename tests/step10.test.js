@@ -64,3 +64,39 @@ test("CLS-4 arrest: the textbook sequence restarts the heart in most variations"
     }
     assert.ok(rosc >= 9, `ROSC in ${rosc} of 12`);
 });
+
+import { validateBank, drawTest, scoreTest, BANK_FORMAT } from "../engine/written-test.js";
+
+const bank = {
+    format: BANK_FORMAT, passMark: 0.8, testSize: { cls: 6 }, tracks: { cls: "Combat Lifesaver" },
+    questions: ["A", "B", "C"].flatMap((m) => [1, 2, 3, 4].map((n) => ({ id: `${m}${n}`, track: "cls", module: m, type: n === 4 ? "multi" : "single",
+        stem: `${m}${n}?`, options: ["w", "x", "y", "z"], answer: n === 4 ? [1, 2] : [n % 4], why: "because", guide: "Chapter 1" }))),
+};
+
+test("written test: a draw is deterministic per seed, spread over modules, and carries no answers", () => {
+    validateBank(bank);
+    const a = drawTest(bank, "cls", 42), b = drawTest(bank, "cls", 42);
+    assert.deepEqual(a, b);
+    assert.equal(a.length, 6);
+    const perModule = a.reduce((m, q) => ({ ...m, [q.module]: (m[q.module] || 0) + 1 }), {});
+    assert.deepEqual(Object.values(perModule).sort(), [2, 2, 2]);
+    assert.ok(a.every((q) => !("answer" in q) && !("why" in q)));
+    assert.notDeepEqual(drawTest(bank, "cls", 43).map((q) => q.id), a.map((q) => q.id));
+});
+
+test("written test: scoring maps shuffled options back; multi needs exactly the right set; pass mark 80 %", () => {
+    const t = drawTest(bank, "cls", 7);
+    const byId = Object.fromEntries(bank.questions.map((q) => [q.id, q]));
+    const right = Object.fromEntries(t.map((q) => [q.id, byId[q.id].answer.map((a) => q.order.indexOf(a))]));
+    assert.equal(scoreTest(bank, t, right).got, 6);
+    assert.equal(scoreTest(bank, t, right).passed, true);
+    const oneWrong = { ...right, [t[0].id]: [(right[t[0].id][0] + 1) % 4] };
+    const r = scoreTest(bank, t, oneWrong);
+    assert.equal(r.got, 5);
+    assert.equal(r.need, 5);
+    assert.equal(r.passed, true);
+    const multi = t.find((q) => q.type === "multi");
+    if (multi) assert.equal(scoreTest(bank, t, { ...right, [multi.id]: right[multi.id].slice(0, 1) }).got, 5);
+    assert.equal(scoreTest(bank, t, {}).passed, false);
+    assert.throws(() => validateBank({ format: "x" }));
+});

@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ACM Trainer: written test</title>
+<link rel="stylesheet" href="css/trainer.css">
+</head>
+<body>
+<main class="landing wide-page written-test">
+    <p><a class="btn" href="index.html">← Scenarios</a></p>
+    <h1 id="title">Written test</h1>
+
+    <section id="setup" hidden>
+        <p class="lede">A test drawn from the ACM Training question bank, spread over the modules of a track. Instructors hand out the bank file (<code>questions-bank.json</code>); it stays in this browser once loaded.</p>
+        <div class="editor">
+            <fieldset>
+                <legend>Question bank</legend>
+                <div class="toolbar"><label class="btn">Load bank file <input type="file" id="bankFile" accept=".json,application/json" hidden></label><span id="bankStatus" class="muted"></span></div>
+            </fieldset>
+            <fieldset id="trackBox" hidden>
+                <legend>Track</legend>
+                <div class="toolbar"><select id="track"></select><button class="btn primary" id="startBtn">Start test</button></div>
+            </fieldset>
+        </div>
+    </section>
+
+    <section id="waiting" hidden><p class="lede" id="waitText">Waiting for the instructor to start the test…</p></section>
+
+    <form id="test" class="test-form" hidden autocomplete="off">
+        <p class="muted" id="testInfo"></p>
+        <ol id="questions" class="questions"></ol>
+        <div class="toolbar"><button class="btn primary" id="submitBtn">Submit answers</button><span id="answered" class="muted"></span></div>
+    </form>
+
+    <section id="result" hidden>
+        <div id="scoreBox" class="score-box"></div>
+        <h2 class="section-title">Review</h2>
+        <ol id="review" class="review"></ol>
+        <div class="toolbar"><a class="btn" href="test.html">New test</a><a class="btn" href="records.html">Your records</a></div>
+    </section>
+    <p id="status" class="muted" role="status"></p>
+</main>
+<script type="module" src="js/test.js"></script>
+</body>
+</html>

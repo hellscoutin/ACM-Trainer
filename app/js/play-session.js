@@ -19,6 +19,7 @@ export async function joinSession(code) {
     const run = r.data();
     const round = session.round || 1;
     const sc = session.scenario || {};
+    if (sc.test) { location.href = `test.html?session=${code}`; throw new Error("Written test round"); }
     let scn;
     if (sc.custom) scn = sc.custom;
     else if (!sc.random) scn = await fetch(`../scenarios/${encodeURIComponent(sc.id)}.json`).then((x) => x.json());

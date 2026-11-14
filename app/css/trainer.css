@@ -344,3 +344,27 @@ table.meds { font-size: 13px; }
 .view-toggle button[aria-pressed="true"] { background: var(--accent); color: var(--accent-fg); font-weight: 600; }
 .detail-full { margin-top: 12px; display: grid; grid-template-columns: 1.3fr 1fr; gap: 18px; }
 .detail-full h4 { margin: 10px 0 4px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); }
+
+/* ---------- written test (test.html) ---------- */
+.questions { padding-left: 24px; }
+.question { margin: 0 0 22px; }
+.question .stem { margin: 0 0 8px; font-weight: 600; }
+.question .opts { display: flex; flex-direction: column; gap: 6px; }
+.question .opt { display: flex; align-items: flex-start; gap: 8px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 4px; background: var(--panel-solid); cursor: pointer; }
+.question .opt:hover { background: rgba(255, 255, 255, 0.08); }
+.question .opt input { margin-top: 3px; }
+.question .opt .letter { color: var(--muted); font-weight: 700; min-width: 1.2em; }
+.score-box { border: 1px solid var(--line); border-radius: 6px; padding: 16px 20px; margin: 0 0 20px; background: var(--panel-solid); }
+.score-box .big { font-size: 34px; font-weight: 700; }
+.score-box.pass { border-color: var(--ok); background: rgba(95, 179, 95, 0.12); }
+.score-box.fail { border-color: var(--danger); background: rgba(224, 87, 79, 0.12); }
+.review { padding-left: 24px; }
+.review > li { margin: 0 0 18px; padding-left: 10px; border-left: 3px solid var(--line); }
+.review > li.ok { border-left-color: var(--ok); }
+.review > li.bad { border-left-color: var(--danger); }
+.review .stem { font-weight: 600; margin: 0 0 6px; }
+.review ul { margin: 0 0 6px; padding-left: 18px; color: var(--muted); }
+.review li.right { color: var(--ok); }
+.review li.wrong { color: #ffb3ad; }
+.review .why { color: var(--muted); font-size: 14px; margin: 0; }
+.test-opts { margin-top: 8px; }
