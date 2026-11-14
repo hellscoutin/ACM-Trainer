@@ -5,6 +5,7 @@
 // Checks are data (rubrics/*.json), so instructors can write their own later.
 import { BODY_PARTS } from "./util.js";
 import { airwayState } from "./oxygen.js";
+import { noteFinding } from "./guidance.js";
 
 /** Flat snapshot of the state that checks can test. */
 export function keyState(sim) {
@@ -29,7 +30,7 @@ export function createRecorder(sim) {
     sim.menuLog ??= [];
     const rec = { history: [keyState(sim)] };
     rec.tick = () => rec.history.push(keyState(sim));
-    rec.action = (id, part, ok = true, detail) => sim.menuLog.push({ t: sim.p.t, id, part, ok, detail, state: keyState(sim) });
+    rec.action = (id, part, ok = true, detail) => { if (ok) noteFinding(sim, id, part); sim.menuLog.push({ t: sim.p.t, id, part, ok, detail, state: keyState(sim) }); };
     return rec;
 }
 

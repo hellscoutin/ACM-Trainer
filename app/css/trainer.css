@@ -277,3 +277,15 @@ table.records td.nogo { color: var(--danger); font-weight: 700; }
 .tc-grid label { min-width: 0; }
 .tc-grid select { width: 100%; min-width: 0; }
 .replay-col table + h4 { margin-top: 16px; }
+
+/* ---------- step 8: guidance panel ---------- */
+.guidance-panel { display: none; }
+.right.with-guidance { grid-template-rows: auto minmax(0, 1fr) minmax(0, 1fr) auto; }
+.right.with-guidance .guidance-panel { display: flex; }
+.guidance { list-style: none; margin: 0; padding: 6px 10px 10px; display: flex; flex-direction: column; gap: 6px; max-height: 34vh; overflow-y: auto; }
+.guidance li { padding: 6px 8px; border-left: 3px solid var(--muted); background: rgba(255, 255, 255, 0.04); border-radius: 0 3px 3px 0; font-size: 13.5px; line-height: 1.35; }
+.guidance li.urgent { border-left-color: var(--danger); background: rgba(224, 87, 79, 0.12); }
+.guidance li.soon { border-left-color: var(--accent); }
+.guidance li.none { border-left-color: var(--ok); color: var(--muted); }
+.guidance .gguide { display: block; font-size: 11.5px; color: var(--dim); margin-top: 2px; }
+.topbar select { min-height: 30px; padding: 2px 6px; }

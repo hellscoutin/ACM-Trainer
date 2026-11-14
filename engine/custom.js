@@ -141,7 +141,7 @@ export function frameAt(frames, t) {
 }
 
 // ------------------------------------------------------------------ records
-export const RECORD_COLUMNS = ["date", "scenario", "module", "title", "role", "seed", "result", "score", "outcome", "duration", "criticalFails", "failedChecks"];
+export const RECORD_COLUMNS = ["date", "scenario", "module", "title", "role", "seed", "result", "score", "outcome", "duration", "criticalFails", "failedChecks", "hints"];
 const csvCell = (v) => { const s = v === undefined || v === null ? "" : String(v); return /[",\n\r]/.test(s) || /^[=+\-@]/.test(s) ? `"${(/^[=+\-@]/.test(s) ? "'" : "") + s.replace(/"/g, '""')}"` : s; };
 /** CSV (RFC 4180, formula-safe) of practice records. */
 export function recordsToCSV(records) {

@@ -20,7 +20,7 @@
     </div>
     <p id="summary" class="muted"></p>
     <div class="table-wrap"><table class="records" id="table">
-        <thead><tr><th>Date</th><th>Scenario</th><th>Role</th><th>Seed</th><th>Result</th><th>Score</th><th>Outcome</th><th>Time</th><th>Failed checks</th><th></th></tr></thead>
+        <thead><tr><th>Date</th><th>Scenario</th><th>Role</th><th>Seed</th><th>Result</th><th>Score</th><th>Outcome</th><th>Time</th><th>Failed checks</th><th>Hints</th><th></th></tr></thead>
         <tbody></tbody>
     </table></div>
     <section id="replaySection" hidden>
@@ -55,7 +55,7 @@ function render() {
             el("td", { textContent: new Date(r.date).toLocaleString() }), el("td", { textContent: `${r.module}: ${r.title}` }), el("td", { textContent: r.role }),
             el("td", { textContent: r.seed }), el("td", { className: r.result === "GO" ? "go" : r.result ? "nogo" : "", textContent: r.result || "–" }),
             el("td", { textContent: r.score === "" ? "–" : `${r.score} %` }), el("td", { textContent: r.outcome }), el("td", { textContent: formatTime(r.duration) }),
-            el("td", { textContent: (r.failedChecks || []).join(", ") || "–" }));
+            el("td", { textContent: (r.failedChecks || []).join(", ") || "–" }), el("td", { textContent: r.hints && r.hints !== "Off" ? r.hints : "–" }));
         const cell = el("td");
         if (r.replay && getReplay(r.replay)) {
             const b = el("button", { className: "btn", textContent: "Replay" });
@@ -65,7 +65,7 @@ function render() {
         tr.append(cell);
         tb.append(tr);
     }
-    if (!rows.length) tb.append(el("tr", {}, el("td", { colSpan: 10, className: "muted", textContent: storageOK ? "No records yet. Finish a scenario to add one." : "This browser blocks storage, so no records can be kept." })));
+    if (!rows.length) tb.append(el("tr", {}, el("td", { colSpan: 11, className: "muted", textContent: storageOK ? "No records yet. Finish a scenario to add one." : "This browser blocks storage, so no records can be kept." })));
     const go = rows.filter((r) => r.result === "GO").length;
     $("summary").textContent = rows.length ? `${rows.length} run${rows.length > 1 ? "s" : ""}, ${go} GO (${Math.round((go / rows.length) * 100)} %).` : "";
 }

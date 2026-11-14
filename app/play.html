@@ -15,6 +15,8 @@
         <div class="spacer"></div>
         <label class="toggle"><input type="checkbox" id="soundToggle" checked> Sound</label>
         <label class="toggle"><input type="checkbox" id="showUnavailable"> Show unavailable actions</label>
+        <label class="toggle">Hints <select id="hintsSel" title="Guidance depth: Basic uses only what the menu and devices show; Intermediate adds your examination findings; Advanced sees the true patient state">
+            <option value="0">Off</option><option value="1">Basic</option><option value="2">Intermediate</option><option value="3">Advanced</option></select></label>
         <div class="speed" role="group" aria-label="Time speed" id="speed">
             <button data-speed="0" aria-pressed="false" title="Pause (Space)">❚❚</button>
             <button data-speed="1" aria-pressed="true">1×</button>
@@ -41,7 +43,8 @@
                 <ul class="injuries" id="injuries"></ul>
             </section>
         </div>
-        <div class="right">
+        <div class="right" id="rightCol">
+            <section class="panel guidance-panel" aria-label="Guidance"><h2 id="guidanceTitle">Guidance</h2><ul class="guidance" id="guidance" aria-live="polite"></ul></section>
             <section class="panel" aria-label="Activity log"><h2>Activity Log</h2><ul class="log" id="activity"></ul></section>
             <section class="panel" aria-label="Quick view"><h2>Quick View</h2><ul class="log" id="quick"></ul></section>
             <section class="panel" aria-label="Inventory"><h2>Your inventory</h2><ul class="inventory" id="inventory"></ul></section>
@@ -69,7 +72,7 @@
     <h3>Objectives</h3><ul id="briefObjectives"></ul>
     <h3>Your kit</h3><p id="briefKit"></p>
     <h3>How it works</h3>
-    <p>Select a body part on the diagram, choose a category on the left, then an action. Actions take their in-game time and are listed only when they can be done, as in game. Feel Pulse, head tilt-chin lift, BVM and CPR continue until you stop them. Vital signs are hidden unless an examination or a pulse oximeter shows them. Space pauses; the speed buttons fast-forward time.</p>
+    <p>Select a body part on the diagram, choose a category on the left, then an action. Actions take their in-game time and are listed only when they can be done, as in game. Feel Pulse, head tilt-chin lift, BVM and CPR continue until you stop them. Vital signs are hidden unless an examination or a pulse oximeter shows them. Space pauses; the speed buttons fast-forward time. Hints (top bar) suggest the next steps: Basic uses only what the menu and devices show, Intermediate adds your examination findings, Advanced sees the true patient state. Runs with hints are marked in your records.</p>
     <div class="buttons"><a class="btn" href="index.html">Back</a><button class="btn primary" id="startBtn">Start</button></div>
 </div></div>
 <div class="modal-back" id="replay"><div class="modal wide" role="dialog" aria-modal="true" aria-labelledby="replayTitle">

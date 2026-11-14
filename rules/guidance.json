@@ -1,0 +1,1225 @@
+{
+ "format": "acm-guidance-rules",
+ "version": 1,
+ "acm": "1.4.8",
+ "rules": [
+  {
+   "id": "dead",
+   "depth": 1,
+   "priority": 0,
+   "when": {
+    "field": "alive",
+    "op": "==",
+    "value": false
+   },
+   "text": "The casualty has died. Move on to the next casualty.",
+   "guide": "The patient model",
+   "dead": true
+  },
+  {
+   "id": "m-tourniquet",
+   "depth": 1,
+   "priority": 10,
+   "when": {
+    "all": [
+     {
+      "field": "heavy_{part}",
+      "op": "==",
+      "value": true
+     },
+     {
+      "not": {
+       "field": "tourniquet_{part}",
+       "op": "==",
+       "value": true
+      }
+     }
+    ]
+   },
+   "text": "Heavy bleeding from the {part}: apply a tourniquet high on the limb.",
+   "guide": "External bleeding",
+   "each": "limbs"
+  },
+  {
+   "id": "m-core-heavy",
+   "depth": 1,
+   "priority": 12,
+   "when": {
+    "field": "heavy_{part}",
+    "op": "==",
+    "value": true
+   },
+   "text": "Heavy bleeding from the {part}: dress it now (packing or emergency trauma dressing). A tourniquet cannot go here.",
+   "guide": "External bleeding",
+   "each": "core"
+  },
+  {
+   "id": "m-bandage",
+   "depth": 1,
+   "priority": 20,
+   "when": {
+    "all": [
+     {
+      "field": "bleeding_{part}",
+      "op": "==",
+      "value": true
+     },
+     {
+      "not": {
+       "field": "heavy_{part}",
+       "op": "==",
+       "value": true
+      }
+     },
+     {
+      "not": {
+       "field": "tourniquet_{part}",
+       "op": "==",
+       "value": true
+      }
+     }
+    ]
+   },
+   "text": "The {part} is still bleeding: bandage it.",
+   "guide": "External bleeding",
+   "each": "parts"
+  },
+  {
+   "id": "m-dress-under-tq",
+   "depth": 1,
+   "priority": 58,
+   "when": {
+    "all": [
+     {
+      "field": "tourniquet_{part}",
+      "op": "==",
+      "value": true
+     },
+     {
+      "field": "openWounds_{part}",
+      "op": "==",
+      "value": true
+     }
+    ]
+   },
+   "text": "Tourniquet on the {part}: dress its wounds while the tourniquet holds, then consider taking it off.",
+   "guide": "External bleeding",
+   "each": "limbs"
+  },
+  {
+   "id": "a-check",
+   "depth": 1,
+   "priority": 30,
+   "when": {
+    "all": [
+     {
+      "field": "unconscious",
+      "op": "==",
+      "value": true
+     },
+     {
+      "field": "since_checkairway",
+      "op": ">",
+      "value": 120
+     }
+    ]
+   },
+   "text": "Unconscious casualty: check the airway.",
+   "guide": "Airway management"
+  },
+  {
+   "id": "a-open",
+   "depth": 1,
+   "priority": 34,
+   "when": {
+    "all": [
+     {
+      "field": "unconscious",
+      "op": "==",
+      "value": true
+     },
+     {
+      "not": {
+       "field": "airwayManaged",
+       "op": "==",
+       "value": true
+      }
+     }
+    ]
+   },
+   "text": "Keep the airway open: head tilt-chin lift, an NPA or OPA, or the recovery position.",
+   "guide": "Airway management"
+  },
+  {
+   "id": "r-check",
+   "depth": 1,
+   "priority": 40,
+   "when": {
+    "all": [
+     {
+      "field": "unconscious",
+      "op": "==",
+      "value": true
+     },
+     {
+      "field": "since_chestexam",
+      "op": ">",
+      "value": 180
+     }
+    ]
+   },
+   "text": "Check breathing and inspect the chest.",
+   "guide": "Assessing breathing"
+  },
+  {
+   "id": "r-check-awake",
+   "depth": 1,
+   "priority": 40,
+   "when": {
+    "all": [
+     {
+      "not": {
+       "field": "unconscious",
+       "op": "==",
+       "value": true
+      }
+     },
+     {
+      "field": "torsoWound",
+      "op": "==",
+      "value": true
+     },
+     {
+      "field": "since_chestexam",
+      "op": ">",
+      "value": 180
+     }
+    ]
+   },
+   "text": "Torso wound: check breathing and listen with the stethoscope (Inspect Chest works only on an unconscious casualty).",
+   "guide": "Assessing breathing"
+  },
+  {
+   "id": "r-spo2-low",
+   "depth": 1,
+   "priority": 42,
+   "when": {
+    "field": "spo2",
+    "op": "<",
+    "value": 90
+   },
+   "text": "SpO2 {spo2} %: find the cause (airway, chest, blood loss) and support breathing with the BVM if it is poor.",
+   "guide": "Ventilation and oxygen"
+  },
+  {
+   "id": "c-pulse",
+   "depth": 1,
+   "priority": 44,
+   "when": {
+    "all": [
+     {
+      "field": "unconscious",
+      "op": "==",
+      "value": true
+     },
+     {
+      "field": "since_checkpulse",
+      "op": ">",
+      "value": 120
+     },
+     {
+      "not": {
+       "field": "aedPads",
+       "op": "==",
+       "value": true
+      }
+     },
+     {
+      "not": {
+       "field": "cpr",
+       "op": "==",
+       "value": true
+      }
+     }
+    ]
+   },
+   "text": "Feel a pulse (carotid, at the head).",
+   "guide": "Assessment"
+  },
+  {
+   "id": "c-sys-low",
+   "depth": 1,
+   "priority": 46,
+   "when": {
+    "field": "sys",
+    "op": "<",
+    "value": 90
+   },
+   "text": "Systolic {sys}: the casualty is in shock. Stop all bleeding and give blood.",
+   "guide": "Fluids and blood"
+  },
+  {
+   "id": "c-access",
+   "depth": 1,
+   "priority": 50,
+   "when": {
+    "all": [
+     {
+      "field": "bloodLoss",
+      "op": ">=",
+      "value": 1
+     },
+     {
+      "not": {
+       "field": "hasAccess",
+       "op": "==",
+       "value": true
+      }
+     }
+    ]
+   },
+   "text": "Blood has been lost: get IV or IO access.",
+   "guide": "IV and IO access",
+   "minLevel": 1
+  },
+  {
+   "id": "c-dogtag",
+   "depth": 1,
+   "priority": 52,
+   "when": {
+    "all": [
+     {
+      "field": "bloodLoss",
+      "op": ">=",
+      "value": 2
+     },
+     {
+      "field": "bagsRunning",
+      "op": "==",
+      "value": 0
+     },
+     {
+      "not": {
+       "field": "bloodTypeKnown",
+       "op": "==",
+       "value": true
+      }
+     }
+    ]
+   },
+   "text": "Check the dog tag for the blood type before hanging blood (O- suits anyone).",
+   "guide": "Fluids and blood",
+   "minLevel": 1
+  },
+  {
+   "id": "c-fluids",
+   "depth": 1,
+   "priority": 54,
+   "when": {
+    "all": [
+     {
+      "field": "bloodLoss",
+      "op": ">=",
+      "value": 2
+     },
+     {
+      "field": "hasAccess",
+      "op": "==",
+      "value": true
+     },
+     {
+      "field": "bagsRunning",
+      "op": "==",
+      "value": 0
+     }
+    ]
+   },
+   "text": "A lot of blood lost: hang blood (compatible type, or O-).",
+   "guide": "Fluids and blood",
+   "minLevel": 1
+  },
+  {
+   "id": "c-casevac",
+   "depth": 1,
+   "priority": 56,
+   "when": {
+    "all": [
+     {
+      "field": "bloodLoss",
+      "op": ">=",
+      "value": 2
+     }
+    ]
+   },
+   "text": "A lot of blood lost: call for a medic and keep the bleeding stopped.",
+   "guide": "External bleeding",
+   "maxLevel": 0
+  },
+  {
+   "id": "d-fracture",
+   "depth": 1,
+   "priority": 60,
+   "when": {
+    "all": [
+     {
+      "field": "fractured_{part}",
+      "op": "==",
+      "value": true
+     },
+     {
+      "not": {
+       "field": "splinted_{part}",
+       "op": "==",
+       "value": true
+      }
+     }
+    ]
+   },
+   "text": "The {part} is fractured: splint it (a medic realigns it first).",
+   "guide": "Fractures",
+   "each": "limbs",
+   "maxLevel": 0
+  },
+  {
+   "id": "d-fracture-medic",
+   "depth": 1,
+   "priority": 60,
+   "when": {
+    "all": [
+     {
+      "field": "fractured_{part}",
+      "op": "==",
+      "value": true
+     },
+     {
+      "not": {
+       "field": "splinted_{part}",
+       "op": "==",
+       "value": true
+      }
+     },
+     {
+      "not": {
+       "field": "realigned_{part}",
+       "op": "==",
+       "value": true
+      }
+     }
+    ]
+   },
+   "text": "The {part} is fractured: realign it (lidocaine first eases the pain), then splint it.",
+   "guide": "Fractures",
+   "each": "limbs",
+   "minLevel": 1
+  },
+  {
+   "id": "d-splint",
+   "depth": 1,
+   "priority": 61,
+   "when": {
+    "all": [
+     {
+      "field": "fractured_{part}",
+      "op": "==",
+      "value": true
+     },
+     {
+      "field": "realigned_{part}",
+      "op": "==",
+      "value": true
+     }
+    ]
+   },
+   "text": "The {part} is realigned: apply the SAM splint now.",
+   "guide": "Fractures",
+   "each": "limbs",
+   "minLevel": 1
+  },
+  {
+   "id": "monitor",
+   "depth": 1,
+   "priority": 70,
+   "when": {
+    "all": [
+     {
+      "not": {
+       "field": "pulseOx",
+       "op": "==",
+       "value": true
+      }
+     },
+     {
+      "any": [
+       {
+        "field": "unconscious",
+        "op": "==",
+        "value": true
+       },
+       {
+        "field": "bloodLoss",
+        "op": ">=",
+        "value": 1
+       }
+      ]
+     }
+    ]
+   },
+   "text": "Place a pulse oximeter to watch SpO2 and heart rate.",
+   "guide": "Assessment"
+  },
+  {
+   "id": "e-pain",
+   "depth": 1,
+   "priority": 80,
+   "when": {
+    "field": "inPain",
+    "op": "==",
+    "value": true
+   },
+   "text": "Treat the pain: paracetamol, or morphine for severe pain.",
+   "guide": "Pain and consciousness",
+   "maxLevel": 0
+  },
+  {
+   "id": "e-pain-medic",
+   "depth": 1,
+   "priority": 80,
+   "when": {
+    "field": "inPain",
+    "op": "==",
+    "value": true
+   },
+   "text": "Treat the pain: paracetamol for mild pain, a small IV morphine or fentanyl dose for severe pain (watch the total).",
+   "guide": "Pain and consciousness",
+   "minLevel": 1
+  },
+  {
+   "id": "i-no-carotid",
+   "depth": 2,
+   "priority": 3,
+   "when": {
+    "all": [
+     {
+      "field": "f_carotid",
+      "op": "==",
+      "value": 0
+     },
+     {
+      "field": "since_checkpulse",
+      "op": "<",
+      "value": 120
+     },
+     {
+      "not": {
+       "field": "cpr",
+       "op": "==",
+       "value": true
+      }
+     }
+    ]
+   },
+   "text": "No carotid pulse: start CPR now and connect the AED.",
+   "guide": "Cardiac arrest",
+   "supersedes": [
+    "c-pulse"
+   ]
+  },
+  {
+   "id": "i-shockable",
+   "depth": 2,
+   "priority": 4,
+   "when": {
+    "all": [
+     {
+      "field": "f_shockable",
+      "op": "==",
+      "value": true
+     },
+     {
+      "field": "aedPads",
+      "op": "==",
+      "value": true
+     }
+    ]
+   },
+   "text": "Shockable rhythm: charge and shock, then resume CPR at once for 2 minutes.",
+   "guide": "Cardiac arrest"
+  },
+  {
+   "id": "i-not-breathing",
+   "depth": 2,
+   "priority": 6,
+   "when": {
+    "all": [
+     {
+      "field": "f_noBreathing",
+      "op": "==",
+      "value": true
+     },
+     {
+      "not": {
+       "field": "bvm",
+       "op": "==",
+       "value": true
+      }
+     }
+    ]
+   },
+   "text": "Not breathing: open the airway and ventilate with the BVM; feel for a pulse.",
+   "guide": "Ventilation and oxygen"
+  },
+  {
+   "id": "i-deviation",
+   "depth": 2,
+   "priority": 15,
+   "when": {
+    "all": [
+     {
+      "field": "f_deviation",
+      "op": "==",
+      "value": true
+     },
+     {
+      "field": "chestSeal",
+      "op": "==",
+      "value": true
+     }
+    ]
+   },
+   "text": "Tracheal deviation: tension pneumothorax. Needle decompression (NCD) now.",
+   "guide": "Chest treatment",
+   "minLevel": 1
+  },
+  {
+   "id": "i-deviation-noseal",
+   "depth": 2,
+   "priority": 15,
+   "when": {
+    "all": [
+     {
+      "field": "f_deviation",
+      "op": "==",
+      "value": true
+     },
+     {
+      "not": {
+       "field": "chestSeal",
+       "op": "==",
+       "value": true
+      }
+     }
+    ]
+   },
+   "text": "Tracheal deviation: tension pneumothorax. Chest seal first, then needle decompression (NCD); without the seal the pneumothorax builds up again.",
+   "guide": "Chest treatment",
+   "minLevel": 1
+  },
+  {
+   "id": "i-deviation-cls",
+   "depth": 2,
+   "priority": 15,
+   "when": {
+    "field": "f_deviation",
+    "op": "==",
+    "value": true
+   },
+   "text": "Tracheal deviation: tension pneumothorax. Get a medic for needle decompression now.",
+   "guide": "Chest treatment",
+   "maxLevel": 0
+  },
+  {
+   "id": "i-obstructed",
+   "depth": 2,
+   "priority": 24,
+   "when": {
+    "all": [
+     {
+      "field": "f_obstructed",
+      "op": "==",
+      "value": true
+     },
+     {
+      "not": {
+       "field": "recoveryPosition",
+       "op": "==",
+       "value": true
+      }
+     }
+    ]
+   },
+   "text": "Airway obstructed (vomit or blood): suction it or turn the head, then the recovery position.",
+   "guide": "Airway management"
+  },
+  {
+   "id": "i-collapse",
+   "depth": 2,
+   "priority": 26,
+   "when": {
+    "all": [
+     {
+      "field": "f_collapse",
+      "op": "==",
+      "value": true
+     },
+     {
+      "not": {
+       "field": "airwayManaged",
+       "op": "==",
+       "value": true
+      }
+     }
+    ]
+   },
+   "text": "Airway collapsing: head tilt-chin lift now, then an NPA, OPA or i-gel.",
+   "guide": "Airway management",
+   "supersedes": [
+    "a-open"
+   ]
+  },
+  {
+   "id": "i-uneven-seal",
+   "depth": 2,
+   "priority": 35,
+   "when": {
+    "all": [
+     {
+      "field": "f_uneven",
+      "op": "==",
+      "value": true
+     },
+     {
+      "not": {
+       "field": "chestSeal",
+       "op": "==",
+       "value": true
+      }
+     },
+     {
+      "field": "torsoWound",
+      "op": "==",
+      "value": true
+     }
+    ]
+   },
+   "text": "Uneven chest rise: apply a chest seal, then inspect the chest again.",
+   "guide": "Chest treatment"
+  },
+  {
+   "id": "i-uneven-sealed",
+   "depth": 2,
+   "priority": 45,
+   "when": {
+    "all": [
+     {
+      "field": "f_uneven",
+      "op": "==",
+      "value": true
+     },
+     {
+      "field": "chestSeal",
+      "op": "==",
+      "value": true
+     }
+    ]
+   },
+   "text": "Chest still uneven after the seal: watch for tension (tracheal deviation, worse breathing) and decompress only then; NCD on a chest without tension makes it worse.",
+   "guide": "Chest treatment"
+  },
+  {
+   "id": "i-bruising",
+   "depth": 2,
+   "priority": 38,
+   "when": {
+    "field": "f_bruising",
+    "op": "==",
+    "value": true
+   },
+   "text": "Extensive chest bruising: more than 0.5 L of blood in the chest (hemothorax). TXA 1 g IV, then a thoracostomy (lidocaine first) and chest tube to drain it.",
+   "guide": "Chest injuries",
+   "minLevel": 1
+  },
+  {
+   "id": "i-shallow-chest",
+   "depth": 2,
+   "priority": 36,
+   "when": {
+    "all": [
+     {
+      "field": "f_shallow",
+      "op": "==",
+      "value": true
+     },
+     {
+      "field": "torsoWound",
+      "op": "==",
+      "value": true
+     },
+     {
+      "not": {
+       "field": "chestSeal",
+       "op": "==",
+       "value": true
+      }
+     }
+    ]
+   },
+   "text": "Shallow breathing with a torso wound: suspect a pneumothorax. Apply a chest seal, then check breathing again.",
+   "guide": "Chest treatment"
+  },
+  {
+   "id": "i-shallow",
+   "depth": 2,
+   "priority": 41,
+   "when": {
+    "all": [
+     {
+      "field": "f_shallow",
+      "op": "==",
+      "value": true
+     },
+     {
+      "not": {
+       "field": "f_uneven",
+       "op": "==",
+       "value": true
+      }
+     },
+     {
+      "any": [
+       {
+        "not": {
+         "field": "torsoWound",
+         "op": "==",
+         "value": true
+        }
+       },
+       {
+        "field": "chestSeal",
+        "op": "==",
+        "value": true
+       }
+      ]
+     }
+    ]
+   },
+   "text": "Shallow breathing: check the airway and look for the cause in the chest.",
+   "guide": "Assessing breathing"
+  },
+  {
+   "id": "i-crt",
+   "depth": 2,
+   "priority": 47,
+   "when": {
+    "all": [
+     {
+      "field": "f_crtSlow",
+      "op": "==",
+      "value": true
+     },
+     {
+      "field": "bloodBags",
+      "op": "==",
+      "value": 0
+     }
+    ]
+   },
+   "text": "Capillary refill {f_crt} s: poor circulation. Stop bleeding and give blood.",
+   "guide": "Fluids and blood",
+   "minLevel": 1
+  },
+  {
+   "id": "i-limb-pulse",
+   "depth": 2,
+   "priority": 48,
+   "when": {
+    "all": [
+     {
+      "field": "f_limbPulse",
+      "op": "==",
+      "value": 0
+     },
+     {
+      "field": "since_checkpulse",
+      "op": "<",
+      "value": 120
+     }
+    ]
+   },
+   "text": "No pulse in that limb: blood pressure is very low (or a tourniquet is on). Feel the carotid.",
+   "guide": "Assessment"
+  },
+  {
+   "id": "i-fx-severe",
+   "depth": 2,
+   "priority": 59,
+   "when": {
+    "all": [
+     {
+      "field": "f_fx_{part}",
+      "op": ">=",
+      "value": 2
+     },
+     {
+      "not": {
+       "field": "splinted_{part}",
+       "op": "==",
+       "value": true
+      }
+     }
+    ]
+   },
+   "text": "Severe fracture of the {part}: lidocaine, realign, then splint; expect it to hurt again.",
+   "guide": "Fractures",
+   "each": "limbs",
+   "minLevel": 1
+  },
+  {
+   "id": "x-hemolytic",
+   "depth": 3,
+   "priority": 1,
+   "when": {
+    "field": "hemolytic",
+    "op": "==",
+    "value": true
+   },
+   "text": "Incompatible blood reaction: remove the blood bag now (transfusion menu) and switch to O- or the right type ({bloodType}).",
+   "guide": "Fluids and blood"
+  },
+  {
+   "id": "x-arrest-shock",
+   "depth": 3,
+   "priority": 2,
+   "when": {
+    "all": [
+     {
+      "field": "cardiacArrest",
+      "op": "==",
+      "value": true
+     },
+     {
+      "field": "shockable",
+      "op": "==",
+      "value": true
+     }
+    ]
+   },
+   "text": "Cardiac arrest ({rhythm}, shockable): continuous CPR (pausing ends the restart rolls), AED shock, then CPR again for 2 minutes; epinephrine 1 mg IV and amiodarone IV early.",
+   "guide": "Cardiac arrest",
+   "supersedes": [
+    "c-pulse",
+    "a-check",
+    "r-check",
+    "i-no-carotid",
+    "i-not-breathing",
+    "i-shockable"
+   ]
+  },
+  {
+   "id": "x-arrest-asystole",
+   "depth": 3,
+   "priority": 2,
+   "when": {
+    "all": [
+     {
+      "field": "cardiacArrest",
+      "op": "==",
+      "value": true
+     },
+     {
+      "field": "rhythm",
+      "op": "==",
+      "value": "Asystole"
+     }
+    ]
+   },
+   "text": "Cardiac arrest (asystole): do not shock. Raise the blood volume ({bloodVolume} L; below 3.1 L causes asystole), CPR and epinephrine 1 mg IV; CPR can turn it into a shockable rhythm.",
+   "guide": "Cardiac arrest",
+   "supersedes": [
+    "c-pulse",
+    "a-check",
+    "r-check",
+    "i-no-carotid",
+    "i-not-breathing"
+   ]
+  },
+  {
+   "id": "x-arrest-pea",
+   "depth": 3,
+   "priority": 2,
+   "when": {
+    "all": [
+     {
+      "field": "cardiacArrest",
+      "op": "==",
+      "value": true
+     },
+     {
+      "field": "rhythm",
+      "op": "==",
+      "value": "PEA"
+     }
+    ]
+   },
+   "text": "Reversible arrest (PEA): CPR will not restart it and a shock makes it asystole. Fix every cause within 6 minutes (blood volume above 4.2 L, SpO2 above 67 %, tension, more than 1.2 L of chest blood) and the heart restarts by itself.",
+   "guide": "Cardiac arrest",
+   "supersedes": [
+    "c-pulse",
+    "a-check",
+    "r-check",
+    "i-no-carotid",
+    "i-not-breathing"
+   ]
+  },
+  {
+   "id": "x-bv-critical",
+   "depth": 3,
+   "priority": 7,
+   "when": {
+    "all": [
+     {
+      "field": "bloodVolume",
+      "op": "<",
+      "value": 3.6
+     },
+     {
+      "field": "cardiacArrest",
+      "op": "==",
+      "value": false
+     }
+    ]
+   },
+   "text": "Blood volume {bloodVolume} L (class IV): blood now, on two lines if you can. Below 3.1 L the heart stops in asystole.",
+   "guide": "Fluids and blood"
+  },
+  {
+   "id": "x-tension",
+   "depth": 3,
+   "priority": 8,
+   "when": {
+    "all": [
+     {
+      "field": "tensionPtx",
+      "op": "==",
+      "value": true
+     },
+     {
+      "field": "chestSeal",
+      "op": "==",
+      "value": true
+     }
+    ]
+   },
+   "text": "Tension pneumothorax: needle decompression (NCD) now, then check breathing again.",
+   "guide": "Chest treatment",
+   "supersedes": [
+    "i-deviation",
+    "i-deviation-noseal",
+    "i-deviation-cls"
+   ]
+  },
+  {
+   "id": "x-tension-noseal",
+   "depth": 3,
+   "priority": 8,
+   "when": {
+    "all": [
+     {
+      "field": "tensionPtx",
+      "op": "==",
+      "value": true
+     },
+     {
+      "not": {
+       "field": "chestSeal",
+       "op": "==",
+       "value": true
+      }
+     }
+    ]
+   },
+   "text": "Tension pneumothorax: chest seal, then needle decompression (NCD). Without the seal the pneumothorax starts again after the NCD.",
+   "guide": "Chest treatment",
+   "supersedes": [
+    "i-deviation",
+    "i-deviation-noseal",
+    "i-deviation-cls"
+   ]
+  },
+  {
+   "id": "x-airway-closed",
+   "depth": 3,
+   "priority": 9,
+   "when": {
+    "field": "airwayBlocked",
+    "op": "==",
+    "value": true
+   },
+   "text": "Airway closed right now: head tilt-chin lift, then an NPA/OPA or i-gel (or the recovery position).",
+   "guide": "Airway management",
+   "supersedes": [
+    "a-open",
+    "i-collapse"
+   ]
+  },
+  {
+   "id": "x-obstructed",
+   "depth": 3,
+   "priority": 11,
+   "when": {
+    "field": "obstructed",
+    "op": "==",
+    "value": true
+   },
+   "text": "Airway obstructed: suction (suction bag or ACCUVAC) or turn the head; the recovery position stops more vomit blocking it.",
+   "guide": "Airway management",
+   "supersedes": [
+    "i-obstructed"
+   ]
+  },
+  {
+   "id": "x-spo2",
+   "depth": 3,
+   "priority": 16,
+   "when": {
+    "all": [
+     {
+      "field": "spo2True",
+      "op": "<",
+      "value": 85
+     },
+     {
+      "field": "unconscious",
+      "op": "==",
+      "value": true
+     },
+     {
+      "not": {
+       "field": "bvm",
+       "op": "==",
+       "value": true
+      }
+     },
+     {
+      "field": "cardiacArrest",
+      "op": "==",
+      "value": false
+     }
+    ]
+   },
+   "text": "True SpO2 {spo2True} %: ventilate with the BVM and treat the cause (airway, chest, blood volume).",
+   "guide": "Ventilation and oxygen"
+  },
+  {
+   "id": "x-ib",
+   "depth": 3,
+   "priority": 27,
+   "when": {
+    "all": [
+     {
+      "field": "internalBleeding",
+      "op": ">",
+      "value": 0
+     },
+     {
+      "field": "txa",
+      "op": "<",
+      "value": 0.1
+     }
+    ]
+   },
+   "text": "Internal bleeding ({ibRate} ml/min): TXA 1 g IV (the 10 ml vial in a 10 ml syringe).",
+   "guide": "Internal bleeding, platelets and TXA"
+  },
+  {
+   "id": "x-htx",
+   "depth": 3,
+   "priority": 28,
+   "when": {
+    "field": "htxFluid",
+    "op": ">=",
+    "value": 0.5
+   },
+   "text": "Hemothorax: {htxFluid} L in the chest (tension and arrest above 1.2 L). TXA 1 g IV, thoracostomy (lidocaine first), chest tube, drain.",
+   "guide": "Chest injuries",
+   "supersedes": [
+    "i-bruising"
+   ]
+  },
+  {
+   "id": "x-bv-low",
+   "depth": 3,
+   "priority": 29,
+   "when": {
+    "all": [
+     {
+      "field": "bloodVolume",
+      "op": "<",
+      "value": 5.1
+     },
+     {
+      "field": "bloodBags",
+      "op": "==",
+      "value": 0
+     }
+    ]
+   },
+   "text": "Blood volume {bloodVolume} L: transfuse {bloodType} or O- blood. Below 5.1 L the casualty cannot wake up.",
+   "guide": "Fluids and blood",
+   "supersedes": [
+    "c-fluids",
+    "i-crt"
+   ]
+  },
+  {
+   "id": "x-open-ptx",
+   "depth": 3,
+   "priority": 33,
+   "when": {
+    "all": [
+     {
+      "field": "ptx",
+      "op": ">",
+      "value": 0
+     },
+     {
+      "field": "chestInjury",
+      "op": "==",
+      "value": true
+     },
+     {
+      "not": {
+       "field": "chestSeal",
+       "op": "==",
+       "value": true
+      }
+     },
+     {
+      "not": {
+       "field": "tensionPtx",
+       "op": "==",
+       "value": true
+      }
+     }
+    ]
+   },
+   "text": "Open pneumothorax (level {ptx}): chest seal now; it stops the pneumothorax getting worse.",
+   "guide": "Chest treatment",
+   "supersedes": [
+    "i-uneven-seal",
+    "i-shallow-chest"
+   ]
+  },
+  {
+   "id": "x-severe-pain",
+   "depth": 3,
+   "priority": 81,
+   "when": {
+    "field": "severePain",
+    "op": "==",
+    "value": true
+   },
+   "text": "Pain {painLevel} %: it keeps the casualty from settling. Analgesia once the bleeding is controlled.",
+   "guide": "Pain and consciousness"
+  }
+ ]
+}

@@ -14,6 +14,7 @@ import { endProcedure } from "../../engine/surgicalAirway.js";
 import { randomScenario, GENERIC_RUBRIC, captureFrame, pushFrame, makeRecord } from "../../engine/custom.js";
 import { getCustom, addRecord, addReplay, storageOK } from "./store.js";
 import { mountReplay } from "./replay.js";
+import { evaluateGuidance, DEPTHS } from "../../engine/guidance.js";
 
 const $ = (id) => document.getElementById(id);
 const el = (tag, props = {}, ...kids) => { const e = document.createElement(tag); Object.assign(e, props); e.append(...kids); return e; };
@@ -42,6 +43,7 @@ if (!scn) {
     document.body.innerHTML = '<main class="landing"><h1>Scenario not found</h1><p class="lede">This custom scenario is not saved in this browser. Open the scenario editor to import it.</p><a class="btn primary" href="editor.html">Scenario editor</a> <a class="btn" href="index.html">Scenarios</a></main>';
     throw new Error("Scenario not found");
 }
+const guidanceRules = await fetch("../rules/guidance.json").then((r) => (r.ok ? r.json() : null)).catch(() => null);
 const rubric = scn.rubric ? await fetch(`../${scn.rubric}`).then((r) => (r.ok ? r.json() : null)).catch(() => null) : source === "file" ? null : GENERIC_RUBRIC;
 const catalogue = buildCatalogue(data);
 const seed = params.has("seed") ? Number(params.get("seed")) : scn.seed;
@@ -63,6 +65,7 @@ function start() {
     state = {
         part: "head", cat: "examine", speed: 1, acc: 0, last: performance.now(), running: false, ended: false,
         progress: null, cont: null, history: [], activity: [], quick: [], timeline: [], nextBeat: 0, pulseDone: true, frames: [],
+        hints: 0, hintsMax: 0, guidanceKey: "",
     };
     sim.on(onSimEvent);
     recorder = createRecorder(sim);
@@ -378,6 +381,36 @@ function renderInventory() {
     }
     for (const sy of ctx.syringes || []) ul.append(el("li", {}, el("span", { textContent: `Syringe ${sy.size}ml: ${drugName(sy.drug)}` }), el("span", { textContent: `${sy.ml.toFixed(1)} ml` })));
 }
+// ------------------------------------------------------------------ guidance (hints)
+let hintPref = 0;
+try { hintPref = Number(localStorage.getItem("acmt.hints") || 0); } catch { /* storage blocked */ }
+if (params.has("hints")) hintPref = Number(params.get("hints"));
+function setHints(depth) {
+    state.hints = guidanceRules ? Math.max(0, Math.min(3, depth)) : 0;
+    if (!state.ended) state.hintsMax = Math.max(state.hintsMax, state.hints);
+    $("hintsSel").value = String(state.hints);
+    $("rightCol").classList.toggle("with-guidance", state.hints > 0);
+    state.guidanceKey = "";
+    try { localStorage.setItem("acmt.hints", String(state.hints)); } catch { /* storage blocked */ }
+    renderGuidance();
+}
+function renderGuidance() {
+    if (!state.hints) return;
+    const items = evaluateGuidance(guidanceRules, sim, { depth: state.hints, level: ctx.level }).slice(0, 4);
+    const key = state.hints + "|" + items.map((i) => i.id + i.text).join("|");
+    if (key === state.guidanceKey) return;
+    state.guidanceKey = key;
+    $("guidanceTitle").textContent = `Guidance · ${DEPTHS[state.hints]}`;
+    const ul = $("guidance");
+    ul.textContent = "";
+    for (const it of items) {
+        const li = el("li", { className: it.priority < 10 ? "urgent" : it.priority < 40 ? "soon" : "" }, el("span", { className: "gtext", textContent: it.text }));
+        if (it.guide) li.append(el("span", { className: "gguide", textContent: `Guide: ${it.guide}` }));
+        ul.append(li);
+    }
+    if (!items.length) ul.append(el("li", { className: "none", textContent: "Nothing urgent found. Keep reassessing." }));
+}
+
 function render() {
     renderCats();
     renderActions();
@@ -390,6 +423,7 @@ function renderTick() {
     renderInjuries();
     renderLogs();
     renderInventory();
+    renderGuidance();
     if (!state.progress) renderActions();
 }
 function drawFrame(now) {
@@ -465,7 +499,7 @@ function debrief(reason) {
     const outcome = p.alive ? (p.woundBleeding > 0 ? "Alive, still bleeding" : "Alive") : `Died: ${p.causeOfDeath}`;
     const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
     const res = rubric ? scoreRun(rubric, sim, recorder) : null;
-    const record = makeRecord(scn, seed, sim, res);
+    const record = { ...makeRecord(scn, seed, sim, res), hints: DEPTHS[state.hintsMax] };
     const replay = { key: record.date, title: `${scn.module}: ${scn.title}`, seed, date: record.date, frames: state.frames, timeline: state.timeline.slice() };
     const saved = addRecord({ ...record, replay: addReplay(replay) ? replay.key : null });
     const icon = { pass: "✓", fail: "✗", na: "–" };
@@ -485,6 +519,7 @@ function debrief(reason) {
         <h2 id="debriefTitle">Debrief: ${esc(scn.title)}</h2>
         <p>${esc(reason)}</p>
         <div class="outcome ${p.alive ? "alive" : "dead"}">${esc(outcome)}</div>
+        ${state.hintsMax ? `<p class="muted">Hints were on during this run (up to ${DEPTHS[state.hintsMax]}).</p>` : ""}
         ${scoreHtml}
         <h3>Patient at the end (true values)</h3>
         <table class="vitals-table"><tr><th>Blood volume</th><td>${p.bloodVolume.toFixed(2)} L</td><th>Heart rate</th><td>${Math.round(p.hr)}</td></tr>
@@ -527,6 +562,8 @@ $("cancelBtn").addEventListener("click", () => cancelAction("Cancelled"));
 $("pulseStop").addEventListener("click", endContinuous);
 $("procClose").addEventListener("click", endContinuous);
 $("soundToggle").addEventListener("change", (e) => { audio.enabled = e.target.checked; });
+$("hintsSel").addEventListener("change", (e) => setHints(Number(e.target.value)));
+if (!guidanceRules) $("hintsSel").disabled = true;
 $("endBtn").addEventListener("click", () => endScenario("You ended the scenario."));
 $("startBtn").addEventListener("click", () => { $("briefing").classList.remove("show"); setSpeed(1); });
 document.addEventListener("keydown", (e) => {
@@ -534,6 +571,7 @@ document.addEventListener("keydown", (e) => {
     if (e.key === "Escape" && state.progress) cancelAction("Cancelled");
 });
 setSpeed(0);
+setHints(hintPref);
 render();
 if (params.has("autostart")) {
     // Testing aid: skip the briefing, optionally fast-forward (ff seconds) and select a part

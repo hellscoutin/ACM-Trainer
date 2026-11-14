@@ -198,7 +198,7 @@ Scenario files (JSON in `scenarios/`, versioned in the repo) define:
 5. Firebase: sessions, live dashboard, commands, stored results.
 6. Pharmacology, AED, surgical airway, transfusion menu; Combat Medic scenarios.
 7. Scenario editor, random patients, replay, records export. Done 2026-11-13, with CLS-5 grenade fragments, CM-7 IED blast and CM-8 helicopter hard landing.
-8. Guidance rules (shared with the ATAK monitor), hints in practice mode.
+8. Guidance rules (shared with the ATAK monitor), hints in practice mode. Done 2026-11-13: 53 rules at three depths, hints selector in practice (remembered per browser, runs with hints marked in records).
 9. CBRN (optional), Advanced Medic scenarios.
 
 ## 11. Open questions
