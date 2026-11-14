@@ -1,0 +1,74 @@
+{
+ "scenario": "am1-incompatible-blood",
+ "passMark": 0.75,
+ "checks": [
+  {
+   "id": "remove",
+   "text": "Incompatible bag removed within 45 s",
+   "type": "event-within",
+   "event": "bagRemoved",
+   "match": {
+    "compatible": false
+   },
+   "within": 45,
+   "weight": 3,
+   "critical": true,
+   "why": "B+ blood in an A- casualty starts a hemolytic reaction 30-60 s after it is connected, and the racing heart arrests about a minute later. Stop the transfusion at once.",
+   "guide": "Fluids and blood"
+  },
+  {
+   "id": "tag",
+   "text": "Dog tag checked within 2 minutes",
+   "type": "action-within",
+   "actions": [
+    "checkdogtags"
+   ],
+   "within": 120,
+   "weight": 1,
+   "why": "The dog tag gives the blood type. Check it before hanging any blood.",
+   "guide": "Fluids and blood"
+  },
+  {
+   "id": "blood",
+   "text": "Compatible blood started within 5 minutes",
+   "type": "event-within",
+   "event": "bagAdded",
+   "match": {
+    "type": "Blood",
+    "compatible": true
+   },
+   "within": 300,
+   "weight": 2,
+   "why": "He still needs volume: A- or O- blood.",
+   "guide": "Fluids and blood"
+  },
+  {
+   "id": "never",
+   "text": "No incompatible blood given by you",
+   "type": "event-never",
+   "event": "bagAdded",
+   "match": {
+    "type": "Blood",
+    "compatible": false
+   },
+   "weight": 2,
+   "critical": true,
+   "why": "A- takes only A- or O-.",
+   "guide": "Fluids and blood"
+  },
+  {
+   "id": "alive",
+   "text": "Casualty alive at the end",
+   "type": "end-state",
+   "state": {
+    "field": "alive",
+    "op": "==",
+    "value": true
+   },
+   "weight": 2,
+   "critical": true,
+   "why": "The casualty must survive.",
+   "guide": "The patient model"
+  }
+ ]
+}

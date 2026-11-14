@@ -14,7 +14,7 @@ const session = (id, seed) => createSession(read(`../scenarios/${id}.json`), dat
 const ids = (s, depth) => evaluateGuidance(rules, s.sim, { depth, level: s.ctx.level }).map((g) => g.rule);
 const GUIDE_CHAPTERS = ["The patient model", "The medical menu", "Assessment", "External bleeding", "Internal bleeding, platelets and TXA", "How airways fail",
     "Airway management", "Assessing breathing", "Chest injuries", "Chest treatment", "Ventilation and oxygen", "IV and IO access", "Fluids and blood", "Medications",
-    "Cardiac arrest", "Fractures", "Pain and consciousness"];
+    "Cardiac arrest", "Fractures", "Pain and consciousness", "Chemical agents", "Protection and antidotes"];
 
 function fieldsOf(pred, out = new Set()) {
     if (pred.all || pred.any) for (const x of pred.all || pred.any) fieldsOf(x, out);

@@ -1,0 +1,54 @@
+{
+  "id": "am4-nerve-agent",
+  "title": "Nerve agent",
+  "track": "advanced-medic",
+  "module": "AM-4a",
+  "summary": "A sarin shell burst near a section. The cloud has drifted off, but one soldier lost his mask in the blast and lies twitching, then stops breathing. Your own mask and suit are on. The CBRN setting is enabled on this server.",
+  "seed": 3,
+  "timeLimit": 900,
+  "role": "doctor",
+  "patient": {
+    "weight": 80,
+    "bloodType": "O+",
+    "conscious": true
+  },
+  "injuries": [
+    {
+      "part": "rightarm",
+      "type": "Cut",
+      "damage": 0.3
+    }
+  ],
+  "cbrn": {
+    "agent": "Sarin",
+    "until": 0,
+    "buildup": {
+      "Sarin": 65
+    },
+    "ppe": {}
+  },
+  "loadout": {
+    "ACM_Autoinjector_ATNA": 6,
+    "ACM_Autoinjector_Midazolam": 2,
+    "ACM_Vial_Atropine": 4,
+    "ACM_Syringe_1": 3,
+    "ACM_IV_16g": 2,
+    "ACM_BVM": 1,
+    "ACM_IGel": 1,
+    "ACM_OPA": 1,
+    "ACM_CricKit": 1,
+    "ACM_SuctionBag": 1,
+    "ACM_PressureBandage": 2,
+    "ACM_PulseOximeter": 1,
+    "ACM_PressureCuff": 1,
+    "ACM_Stethoscope": 1
+  },
+  "objectives": [
+    "Give ATNA autoinjectors at once: 3 active doses keep breathing going, 4 or more clear the airway spasm",
+    "Open the airway and ventilate with the BVM until he breathes",
+    "Midazolam for the seizures",
+    "A surgical airway bypasses a spasm that will not clear",
+    "SpO2 back above 85 % and the casualty alive"
+  ],
+  "rubric": "rubrics/am4-nerve-agent.json"
+}

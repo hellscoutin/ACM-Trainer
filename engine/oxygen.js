@@ -3,6 +3,7 @@
 // Altitude and ACE fatigue are not simulated (sea level, rested casualty), so air saturation = 1.
 import { lin } from "./util.js";
 import { effectiveBloodVolume, map } from "./patient.js";
+import { inflammation, lungDamage, spasmUnmitigated } from "./cbrn.js";
 
 const BASE_OXYGEN_USE = -0.25;
 const MIN_DECREASE = 0.1; // ACM_BREATHING_MINDECREASE
@@ -23,7 +24,9 @@ export function airwayState(p) {
         else if (p.airwayNasal === "NPA" || p.airwayOral === "OPA") state = Math.min(collapse, Math.max(base, 0.95));
         else state = Math.min(base, collapse);
     }
-    // CBRN airway inflammation not simulated yet
+    // CBRN airway inflammation (only reached when unconscious, as in getAirwayState)
+    const infl = inflammation(p);
+    if (infl > 10) state = infl >= 100 ? 0 : state * lin(10, 100, infl, 1, 0.2);
     return state;
 }
 
@@ -33,6 +36,8 @@ export function breathingState(p) {
     if (p.tensionPtx) state = 0.1;
     else state -= p.ptx / 10;
     if (p.hardcorePtx) state = Math.min(state, p.cardiacArrest ? 0.95 : 0.8);
+    const exposure = p.cbrn?.breathingAbility ?? 1; // CBRN heavy exposure halves breathing
+    if (exposure < 1) state *= exposure;
     return state;
 }
 
@@ -45,6 +50,7 @@ export function updateRespirationRate(sim, spo2, oxygenDemand, rrAdjust, coAdjus
     let rr = p.rr;
     const breathing = airwayState(p) > 0 && breathingState(p) > 0;
     if (!breathing) rr = 0;
+    else if (p.cbrn && spasmUnmitigated(sim) && !p.surgicalAirway) rr = 0; // sarin airway spasm (before BVM)
     else if (bvmActive(p)) rr = 10;
     else if (cprActive(p)) rr = rng.tri(20, 25, 30);
     else if (!p.alive || p.hr < 20) rr = 0;
@@ -76,7 +82,7 @@ export function updateOxygen(sim, rrAdjust, coAdjust, breathingAdjust, dt, hasPu
     const eff = effectiveBloodVolume(p);
     const bvFactor = eff < 5 ? lin(5, 4, eff, 0.92, 0.84, false) : lin(6, 5, eff, 1, 0.92);
     const airway = airwayState(p);
-    const breathingSt = breathingState(p);
+    let breathingSt = breathingState(p);
 
     let spo2 = current;
     const activeBVM = bvmActive(p);
@@ -90,15 +96,24 @@ export function updateOxygen(sim, rrAdjust, coAdjust, breathingAdjust, dt, hasPu
 
     let maxDecrease = p.hr > 0 ? lin(90, 75, spo2, -MAX_DECREASE, -MIN_DECREASE) : -MIN_DECREASE;
     let maxGain = 0.5;
+    const exposed = !!p.cbrn?.exposedAny;
     if (!activeBVM) {
+        if (exposed) maxGain *= p.cbrn.breathingIncrease; // CBRN
         if (p.unconscious) maxGain *= 0.25;
         maxDecrease *= 1 - 0.7 * lasting;
     } else if (bvmOxygen) {
         maxGain *= 0.8;
         maxDecrease *= p.cardiacArrest ? 0.3 : 0.1;
     } else {
+        if (exposed) maxGain *= p.cbrn.breathingIncrease; // CBRN
         maxGain *= 0.75;
         maxDecrease *= p.cardiacArrest ? 0.9 : 0.7;
+    }
+    if (p.cbrn && rr > 0) {
+        const infl = inflammation(p);
+        if (!p.surgicalAirway && infl > 30) maxGain *= lin(30, 100, infl, 1, 0);
+        const lung = lungDamage(p);
+        breathingSt = lung >= 100 ? 0 : breathingSt * lin(20, 95, lung, 1, 0.1);
     }
 
     let effectiveness = Math.min(bvFactor, airway * breathingSt);

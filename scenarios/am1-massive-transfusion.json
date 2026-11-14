@@ -1,0 +1,73 @@
+{
+  "id": "am1-massive-transfusion",
+  "title": "Massive transfusion",
+  "track": "advanced-medic",
+  "module": "AM-1a",
+  "summary": "A casualty from an IED strike reaches the aid post after a long carry. The medic put a tourniquet on his mangled right leg, but he has lost a lot of blood, is bleeding inside and still has open wounds. You are the doctor: resuscitate him and manage a long transfusion.",
+  "seed": 7,
+  "timeLimit": 1200,
+  "role": "doctor",
+  "patient": {
+    "weight": 85,
+    "bloodType": "B+",
+    "conscious": true
+  },
+  "injuries": [
+    {
+      "part": "rightleg",
+      "mechanism": "explosive",
+      "damage": 4.5
+    },
+    {
+      "part": "body",
+      "mechanism": "grenade",
+      "damage": 1.2
+    },
+    {
+      "part": "leftarm",
+      "mechanism": "bullet",
+      "damage": 1.0
+    }
+  ],
+  "state": {
+    "blood": 4.3
+  },
+  "timeline": [
+    {
+      "at": 0,
+      "action": "tourniquet",
+      "args": {
+        "part": "rightleg"
+      }
+    }
+  ],
+  "loadout": {
+    "ACM_PressureBandage": 8,
+    "ACM_EmergencyTraumaDressing": 2,
+    "ACM_ElasticWrap": 4,
+    "ACE_tourniquet": 1,
+    "ACM_IV_14g": 2,
+    "ACM_IV_16g": 2,
+    "ACM_IO_EZ": 1,
+    "ACM_BloodBag_ON_500": 4,
+    "ACM_BloodBag_B_500": 2,
+    "ACE_plasmaIV_500": 2,
+    "ACE_salineIV": 2,
+    "ACM_Syringe_10": 4,
+    "ACM_Vial_TXA": 2,
+    "ACM_Vial_CalciumChloride": 2,
+    "ACM_Vial_Lidocaine": 1,
+    "ACM_Vial_Morphine": 1,
+    "ACM_PulseOximeter": 1,
+    "ACM_PressureCuff": 1,
+    "ACM_Stethoscope": 1
+  },
+  "objectives": [
+    "Dress the remaining wounds",
+    "TXA early for the internal bleeding",
+    "Transfuse blood (check the type on the dog tag; O- fits anyone) and avoid flooding him with saline",
+    "After several units of blood, give calcium chloride IV (transfused blood lowers the heart rate and uses up platelets)",
+    "Blood volume back above 5.4 L and the casualty alive after 20 minutes"
+  ],
+  "rubric": "rubrics/am1-massive-transfusion.json"
+}

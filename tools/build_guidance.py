@@ -54,6 +54,16 @@ rule("monitor", 1, 70, ALL(NOT(P("pulseOx")), ANY(P("unconscious"), P("bloodLoss
 rule("e-pain", 1, 80, P("inPain"), "Treat the pain: paracetamol, or morphine for severe pain.", "Pain and consciousness", maxLevel=0)
 rule("e-pain-medic", 1, 80, P("inPain"), "Treat the pain: paracetamol for mild pain, a small IV morphine or fentanyl dose for severe pain (watch the total).", "Pain and consciousness", minLevel=1)
 
+# CBRN (scene first: mask and move the casualty out of the cloud)
+rule("cbrn-cloud", 1, 5, ALL(P("inCloud"), NOT(P("gasMask")), P("unconscious")), "Still in the chemical cloud: put a gas mask on the casualty and drag them out of the contaminated area first.", "Protection and antidotes")
+rule("cbrn-cloud-awake", 1, 5, ALL(P("inCloud"), NOT(P("gasMask")), NOT(P("unconscious"))), "Still in the chemical cloud: drag the casualty out of the contaminated area first (you can only put a mask on an unconscious casualty).", "Protection and antidotes")
+rule("cbrn-cloud-masked", 1, 6, ALL(P("inCloud"), P("gasMask")), "Still in the contaminated area: drag the casualty out (the mask filter runs down while they stay).", "Protection and antidotes")
+rule("cbrn-filter", 1, 6, ALL(P("inCloud"), P("gasMask"), P("filterSpent")), "The gas mask filter is spent: replace it.", "Protection and antidotes")
+rule("cbrn-atna", 1, 14, ALL(P("cbrnAgent", "==", "Sarin"), P("atropineGiven", "<", 2)), "Nerve agent: give 2-3 ATNA autoinjectors now (3 or more active doses keep breathing going; 4 or more clear the airway spasm).", "Protection and antidotes")
+rule("cbrn-midazolam", 1, 65, ALL(P("cbrnAgent", "==", "Sarin"), NOT(P("midazolamGiven"))), "Nerve agent: the midazolam autoinjector stops the tremors and seizures.", "Protection and antidotes")
+rule("cbrn-dimercaprol", 1, 26, ALL(P("cbrnAgent", "==", "Lewisite"), NOT(P("dimercaprolGiven"))), "Blister agent: draw the dimercaprol ampule into a syringe and inject it IM (an IV push does nothing); it removes lewisite from the body.", "Protection and antidotes", minLevel=1)
+rule("cbrn-wash-eyes", 1, 75, P("canWashEyes"), "Wash the casualty's eyes with water (chlorine or lewisite above 50 makes the blindness permanent).", "Protection and antidotes")
+
 # ------------------------------------------------------------------ Intermediate: examination findings
 rule("i-no-carotid", 2, 3, ALL(P("f_carotid", "==", 0), P("since_checkpulse", "<", 120), NOT(P("cpr"))), "No carotid pulse: start CPR now and connect the AED.", "Cardiac arrest", supersedes=["c-pulse"])
 rule("i-shockable", 2, 4, ALL(P("f_shockable"), P("aedPads")), "Shockable rhythm: charge and shock, then resume CPR at once for 2 minutes.", "Cardiac arrest")
@@ -72,7 +82,17 @@ rule("i-crt", 2, 47, ALL(P("f_crtSlow"), P("bloodBags", "==", 0)), "Capillary re
 rule("i-limb-pulse", 2, 48, ALL(P("f_limbPulse", "==", 0), P("since_checkpulse", "<", 120)), "No pulse in that limb: blood pressure is very low (or a tourniquet is on). Feel the carotid.", "Assessment")
 rule("i-fx-severe", 2, 59, ALL(P("f_fx_{part}", ">=", 2), NOT(P("splinted_{part}"))), "Severe fracture of the {part}: lidocaine, realign, then splint; expect it to hurt again.", "Fractures", each="limbs", minLevel=1)
 
+rule("i-inflammation", 2, 23, ALL(P("f_inflammation", ">=", 2), NOT(P("surgicalAirway"))), "Significant airway inflammation: an i-gel will not go in. Prepare a surgical airway if breathing fails.", "Chemical agents", minLevel=1)
+rule("i-inflammation-severe", 2, 9, ALL(P("f_inflammation", "==", 3), NOT(P("surgicalAirway"))), "Severe airway inflammation: the airway is closing. Surgical airway now.", "Chemical agents", minLevel=1, supersedes=["i-inflammation"])
+
 # ------------------------------------------------------------------ Advanced: true state, exact procedures
+rule("x-spasm", 3, 3, ALL(P("spasm"), P("atropine", "<", 3), NOT(P("surgicalAirway"))), "Sarin airway spasm: breathing has stopped (a BVM cannot help). Atropine to 3+ active doses to breathe, 4+ to clear the spasm; a surgical airway bypasses it.", "Chemical agents", supersedes=["i-not-breathing", "x-spo2"])
+rule("x-sarin", 3, 13, ALL(P("sarin", ">=", 20), P("atropine", "<", 3)), "Sarin buildup {sarin} (airway spasm at 60): with 3 or more doses of atropine active it falls every 20-30 s.", "Protection and antidotes", supersedes=["cbrn-atna"])
+rule("x-lewisite", 3, 25, ALL(P("lewisite", ">", 0), P("dimercaprol", "<", 0.5)), "Lewisite buildup {lewisite}: dimercaprol IM removes up to 16 every 20-30 s.", "Protection and antidotes", minLevel=1, supersedes=["cbrn-dimercaprol"])
+rule("x-inflammation", 3, 22, ALL(P("inflammation", ">", 40), NOT(P("surgicalAirway")), P("unconscious")), "Airway inflammation {inflammation} (closes at 100, never heals): the i-gel is blocked; a surgical airway bypasses it.", "Chemical agents", supersedes=["i-inflammation"])
+rule("x-lung", 3, 37, P("lungDamage", ">", 20), "Lung tissue damage {lungDamage} (permanent): breathing is weaker; support it with the BVM to keep SpO2 up.", "Chemical agents")
+rule("x-capillary", 3, 31, P("capillary", ">", 20), "Capillary damage {capillary} (permanent): blood leaks from the circulation and blood pressure is up to 30 % lower. Replace the volume with blood.", "Chemical agents")
+
 rule("x-hemolytic", 3, 1, P("hemolytic"), "Incompatible blood reaction: remove the blood bag now (transfusion menu) and switch to O- or the right type ({bloodType}).", "Fluids and blood")
 ARREST_HIDES = ["c-pulse", "a-check", "r-check", "i-no-carotid", "i-not-breathing"]
 rule("x-arrest-shock", 3, 2, ALL(P("cardiacArrest"), P("shockable")), "Cardiac arrest ({rhythm}, shockable): continuous CPR (pausing ends the restart rolls), AED shock, then CPR again for 2 minutes; epinephrine 1 mg IV and amiodarone IV early.", "Cardiac arrest", supersedes=ARREST_HIDES + ["i-shockable"])

@@ -2,6 +2,7 @@
 // core/getBleedSeverity, with the default display settings (ACE showBleeding 2, showBloodlossEntry on,
 // showDamageEntry off; ACM showInactiveStatuses off, showExactPainAmount on, showFracture on).
 import { BODY_PARTS, PART_INDEX, SIZES } from "./util.js";
+import { skinIrritationEntry } from "./cbrn.js";
 import { cardiacOutput } from "./patient.js";
 import { bloodLossRate } from "./blood.js";
 
@@ -100,6 +101,8 @@ export function injuryList(sim, part) {
         else if (p.splints[i] === 1) e.push({ text: "SAM Splint Applied", color: "rgb(51,51,255)" });
         else if (p.fractures[i] > 0) e.push({ text: "Fractured", color: "#ff0000" });
     }
+    const skin = skinIrritationEntry(p, i);
+    if (skin) e.push(skin);
     if (p.tourniquets[i]) e.push({ text: `Tourniquet [CAT] [${formatTime(p.t - p.tourniquetTime[i])}]`, color: C.tq });
     // Internal bleeding bruising / hemothorax
     const ib = p.internalWounds[part].reduce((a, w) => a + w.count * w.bleeding, 0);

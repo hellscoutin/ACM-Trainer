@@ -3,6 +3,7 @@
 // getSuctionTime, setRecoveryPosition, insertAirwayItem/removeAirwayItem.
 // Not yet: CBRN inflammation, surgical airway, nausea medication effects (taken as 0).
 import { lin } from "./util.js";
+import { inflammation } from "./cbrn.js";
 import { isBodyPartBleeding } from "./wounds.js";
 import { nauseaEffect } from "./pharmacology.js";
 
@@ -15,6 +16,8 @@ export const AIRWAY_TEXT = {
     collapseShort: ["", "Mild collapse", "Moderate collapse", "Severe collapse"],
     obstructionLight: "Airway lightly obstructed", obstructionLightShort: "Light obstruction",
     obstruction: "Airway obstructed", obstructionShort: "Obstruction",
+    inflammation: ["Airway has noticable inflammation", "Airway has significant inflammation", "Airway has severe inflammation"],
+    inflammationShort: ["Noticable inflammation", "Significant inflammation", "Severe inflammation"],
 };
 
 const headBleeding = (p) => p.openWounds.head.reduce((a, w) => a + (w.count > 0 ? w.count * w.bleeding : 0), 0);
@@ -131,7 +134,13 @@ export function checkAirway(sim) {
         log.push(heavy ? AIRWAY_TEXT.obstructionShort : AIRWAY_TEXT.obstructionLightShort);
     }
     collapseManaged = collapseManaged || secure;
-    if (!collapseManaged && p.airwayCollapse > 0) {
+    const infl = inflammation(p);
+    const showInflammation = infl > 15;
+    if (showInflammation) {
+        const k = infl > 70 ? 2 : infl > 40 ? 1 : 0;
+        lines.push(AIRWAY_TEXT.inflammation[k]); log.push(AIRWAY_TEXT.inflammationShort[k]);
+    }
+    if (!showInflammation && !collapseManaged && p.airwayCollapse > 0) {
         lines.push(AIRWAY_TEXT.collapse[p.airwayCollapse]);
         log.push(AIRWAY_TEXT.collapseShort[p.airwayCollapse]);
     }
@@ -187,7 +196,8 @@ export function insertAirwayItem(sim, type) {
     const current = type === "NPA" ? p.airwayNasal : p.airwayOral;
     if (!p.unconscious && p.alive) return { ok: false, hint: [`Failed to insert ${name}`, "Patient is awake"] };
     if (current !== "") return { ok: false, hint: ["Airway item already inserted"] };
-    if (p.obstructionVomit + p.obstructionBlood > 0) return { ok: false, hint: [`Failed to insert ${name}`] };
+    if (p.obstructionVomit + p.obstructionBlood > 0) return { ok: false, hint: [`Failed to insert ${name}`, "Airway obstructed"] };
+    if (type === "SGA" && inflammation(p) > 40) return { ok: false, hint: [`Failed to insert ${name}`, "Blocked by airway inflammation"] };
     if (type === "NPA") p.airwayNasal = type; else p.airwayOral = type;
     return { ok: true, hint: [`${name} inserted`] };
 }

@@ -15,6 +15,7 @@ import { wrap, stitch } from "./wounds.js";
 import { SYRINGE_SIZES, SYRINGE_DRUGS, vialItem, drugName, injectSyringe } from "./syringes.js";
 import { canEstablish, canSecure, canStitchIncision, secureStrap, stitchIncision, stitchIncisionTime, startProcedure } from "./surgicalAirway.js";
 import { inspectForFracture, canInspect, canRealign, realign, canSplint, applySplint, canWrapSplint, wrapSplint, canRemoveSplint, removeSplint } from "./disability.js";
+import { canWashEyes, washEyes, putOnGasMask, replaceFilter, dragOutOfCloud } from "./cbrn.js";
 import { aedState, hasAED, connect, disconnect, analyze, manualCharge, shock, cancelCharge, measureBP, canAnalyze, canManualCharge, canShock, canCancelCharge, canMeasureBP } from "./aed.js";
 
 export const CATEGORIES = [
@@ -23,6 +24,7 @@ export const CATEGORIES = [
     { id: "medication", label: "Medication" },
     { id: "airway", label: "Airway Management" },
     { id: "advanced", label: "Advanced Treatments" },
+    { id: "interact", label: "Interaction (CBRN)", cbrnOnly: true }, // ACE interaction menu actions, not the medical menu
 ];
 
 export const ACE_ITEM_NAMES = {
@@ -30,6 +32,9 @@ export const ACE_ITEM_NAMES = {
     ACE_elasticBandage: "Bandage (Elastic)", ACE_quikclot: "Basic Field Dressing (QuikClot)", ACE_morphine: "Morphine Autoinjector",
     ACE_epinephrine: "Epinephrine Autoinjector", ACE_adenosine: "Adenosine Autoinjector", ACE_splint: "Splint",
     ACE_surgicalKit: "Surgical Kit", ACE_bodyBag: "Bodybag",
+    ACM_Autoinjector_ATNA: "ATNA Autoinjector", ACM_Autoinjector_Midazolam: "Midazolam Autoinjector", ACM_Ampule_Dimercaprol: "Dimercaprol Ampule (300mg/3ml)",
+    ACM_GasMaskFilter: "Gas Mask Filter", G_AirPurifyingRespirator_01_F: "APR Gas Mask",
+    ACE_WaterBottle: "Water Bottle", ACE_WaterBottle_Half: "Water Bottle (Half)", ACE_Canteen: "Canteen", ACE_Canteen_Half: "Canteen (Half)",
 };
 export function itemName(data, cls) {
     if (ACE_ITEM_NAMES[cls]) return ACE_ITEM_NAMES[cls];
@@ -92,6 +97,18 @@ const DEFS = {
     // ------------------------------------------------------------------ medication (autoinjectors and simple drugs)
     morphine: { show: () => true, run: (c, part) => med(c, part, "Morphine", 5, "Morphine Autoinjector") },
     epinephrine: { show: () => true, run: (c, part) => med(c, part, "Epinephrine", 0.3, "Epinephrine Autoinjector") },
+    // ACM_CBRN autoinjectors (core/ov/medication: ATNA = 2 mg atropine, midazolam autoinjector = 10 mg midazolam)
+    atna_autoinjector: { show: () => true, run: (c, part) => med(c, part, "Atropine", 2, "ATNA Autoinjector") },
+    midazolam_autoinjector: { show: () => true, run: (c, part) => med(c, part, "Midazolam", 10, "Midazolam Autoinjector") },
+    washeyes: {
+        show: (c) => canWashEyes(c.sim.p),
+        run: (c) => {
+            const r = washEyes(c.sim);
+            const used = ["ACE_WaterBottle", "ACE_Canteen", "ACE_WaterBottle_Half", "ACE_Canteen_Half"].find((i) => (c.inventory[i] || 0) > 0);
+            const back = { ACE_WaterBottle: "ACE_WaterBottle_Half", ACE_Canteen: "ACE_Canteen_Half" }[used];
+            return { hint: r.hint, log: `${c.name} washed the casualty's eyes`, give: back ? [back] : [] };
+        },
+    },
     paracetamol: { show: (c) => awake(c.sim.p) && !c.sim.p.bvm, run: (c) => med(c, "head", "Paracetamol", 1, "Paracetamol") },
     penthrox: { show: (c) => awake(c.sim.p) && !c.sim.p.bvm, run: (c) => med(c, "head", "Penthrox", 1, "Penthrox Inhaler") },
 
@@ -313,9 +330,26 @@ export function markTreated(sim, a) {
     if (sim.p.unconscious && !sim.p.wasTreated && ROLL_TO_BACK.test(a.id)) sim.p.wasTreated = true;
 }
 
+/** ACE interaction actions used in CBRN scenarios (not in the medical menu; shown under "Interaction"). */
+function interactionDefs() {
+    const base = { category: "interact", consumes: true, levelSpec: "anyone" };
+    return [
+        { ...base, id: "putongasmask", label: "Put On Gas Mask", parts: ["head"], items: ["G_AirPurifyingRespirator_01_F"], timeSpec: 0,
+            show: (c) => !!c.sim.p.cbrn && !c.sim.p.cbrn.ppe.mask && notAwake(c.sim.p),
+            run: (c) => ({ ...putOnGasMask(c.sim), log: `${c.name} put a gas mask on the casualty` }) },
+        { ...base, id: "replacefilter", label: "Replace Filter", parts: ["head"], items: ["ACM_GasMaskFilter"], timeSpec: 3,
+            show: (c) => !!c.sim.p.cbrn?.ppe.mask,
+            run: (c) => ({ ...replaceFilter(c.sim), log: `${c.name} replaced the gas mask filter` }) },
+        { ...base, id: "dragoutofcloud", label: "Drag Out of the Contaminated Area", parts: ["body"], items: [], consumes: false, timeSpec: 20,
+            time: (c) => c.sim.p.cbrn?.dragTime ?? 20,
+            show: (c) => !!c.sim.p.cbrn?.inCloud,
+            run: (c) => ({ ...dragOutOfCloud(c.sim), log: `${c.name} dragged the casualty out of the contaminated area` }) },
+    ];
+}
+
 /** Builds the catalogue: every supported treatment with its config data. */
 export function buildCatalogue(data) {
-    const out = [...syringeDefs()];
+    const out = [...syringeDefs(), ...interactionDefs()];
     for (const [cls, def] of Object.entries(DEFS)) {
         const t = data.treatments.find((x) => x.class === cls);
         if (!t) throw new Error("No treatment config for " + cls);

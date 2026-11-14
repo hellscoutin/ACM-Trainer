@@ -4,6 +4,7 @@
 // Overdose (onMedicationUsage/handleOverdose) and the per-drug handlers (adenosine, amiodarone, calcium, naloxone)
 // are not in this module yet.
 import { lin, PART_INDEX } from "./util.js";
+import { startAtropineLoop, startDimercaprolLoop } from "./cbrn.js";
 
 const ROUTE = { IM: 0, IV: 1, PO: 2, INHALE: 3 };
 export { ROUTE };
@@ -224,7 +225,9 @@ function handleMedicationEffects(sim, part, name, dose) {
             if (sim.rng.random(1) < lin(80, 99, p.spo2, 0.5, 1) && p.unconscious) sim.wakeUp();
             break;
         }
-        default: break; // Ketamine/Lidocaine: player screen effect only; Atropine/Dimercaprol: CBRN (not simulated)
+        case "Atropine": case "Atropine_IV": startAtropineLoop(sim); break; // sarin buildup and airway spasm
+        case "Dimercaprol": startDimercaprolLoop(sim); break; // lewisite buildup
+        default: break; // Ketamine/Lidocaine: player screen effect only
     }
 }
 

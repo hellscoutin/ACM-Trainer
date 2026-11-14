@@ -6,6 +6,7 @@
 import { BODY_PARTS } from "./util.js";
 import { airwayState } from "./oxygen.js";
 import { noteFinding } from "./guidance.js";
+import { isBloodCompatible } from "./blood.js";
 
 /** Flat snapshot of the state that checks can test. */
 export function keyState(sim) {
@@ -17,6 +18,9 @@ export function keyState(sim) {
         ptx: p.ptx, tensionPtx: p.tensionPtx, htxFluid: p.htxFluid, chestSeal: p.chestSeal,
         airwayBlocked: p.alive && p.unconscious && airwayState(p) === 0, obstructed: p.obstructionVomit + p.obstructionBlood > 0,
         recoveryPosition: p.recoveryPosition, cpr: p.cpr, bvm: p.bvm,
+        platelets: p.platelets, overload: p.overload, transfused: p.transfused, calcium: p.calcium, hemolytic: (p.reactionSeverity || 0) > 0,
+        incompatibleBags: p.ivBags.filter((b) => b.type === "Blood" && !isBloodCompatible(sim.data, p.bloodType, b.bloodType)).length,
+        inCloud: !!p.cbrn?.inCloud, sarin: p.cbrn?.buildup.Sarin ?? 0, lewisite: p.cbrn?.buildup.Lewisite ?? 0, spasm: !!p.cbrn?.spasm, atropine: sim.medCount("Atropine") + sim.medCount("Atropine_IV"),
     };
     BODY_PARTS.forEach((part, i) => {
         s[`bleeding_${part}`] = p.tourniquets[i] ? 0 : p.openWounds[part].reduce((a, w) => a + (w.count > 0 ? w.count * w.bleeding : 0), 0);

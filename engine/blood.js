@@ -23,6 +23,14 @@ export function internalBleedRate(sim) {
     return p.internalBleeding * Math.max(cardiacOutput(p), caRate / 2) * (100 / p.resistance) * sim.aceSetting("bleedingCoefficient", 1);
 }
 
+/** circulation/getCapillaryDamageBleedingRate: lewisite capillary damage (0-100) x 0.0004, flowing like wound bleeding. */
+export function capillaryBleedRate(sim) {
+    const { p } = sim;
+    const base = (p.cbrn?.capillary || 0) * 0.0004;
+    if (base === 0) return 0;
+    return base * Math.max(cardiacOutput(p), sim.setting("ACM_circulation_cardiacArrestBleedRate")) * (100 / p.resistance) * sim.aceSetting("bleedingCoefficient", 1);
+}
+
 /** circulation/getHemothoraxBleedingRate: 0.006 per hemothorax level. */
 export function hemothoraxBleedRate(sim) {
     const { p } = sim;
@@ -54,7 +62,7 @@ export function bloodVolumeStep(sim, dt) {
 
     let bloodLoss = -dt * bloodLossRate(sim);
     let internal = -dt * internalBleedRate(sim);
-    let capillary = 0; // CBRN capillary damage: not simulated yet
+    let capillary = -dt * capillaryBleedRate(sim); // CBRN lewisite capillary damage
     const inCA = p.cardiacArrest;
     const txa = sim.medCount("TXA_IV");
 

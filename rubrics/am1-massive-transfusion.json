@@ -1,0 +1,119 @@
+{
+ "scenario": "am1-massive-transfusion",
+ "passMark": 0.75,
+ "checks": [
+  {
+   "id": "blood",
+   "text": "Compatible blood started within 3 minutes",
+   "type": "event-within",
+   "event": "bagAdded",
+   "match": {
+    "type": "Blood",
+    "compatible": true
+   },
+   "within": 180,
+   "weight": 2,
+   "critical": true,
+   "why": "At 4.3 L he cannot wake and is close to arrest. Blood first; O- fits anyone, B+ is his own type.",
+   "guide": "Fluids and blood"
+  },
+  {
+   "id": "txa",
+   "text": "TXA IV within 5 minutes",
+   "type": "action-within",
+   "actions": [
+    "txa_10_iv",
+    "txa_5_iv",
+    "txa_3_iv",
+    "txa_1_iv"
+   ],
+   "within": 300,
+   "weight": 2,
+   "why": "The torso wound bleeds inside. TXA lets internal bleeding clot and spares platelets.",
+   "guide": "Internal bleeding, platelets and TXA"
+  },
+  {
+   "id": "bleed",
+   "text": "External bleeding stopped within 4 minutes",
+   "type": "state-within",
+   "state": {
+    "field": "woundBleeding",
+    "op": "==",
+    "value": 0
+   },
+   "within": 240,
+   "weight": 2,
+   "why": "Every open wound keeps draining what you transfuse.",
+   "guide": "External bleeding"
+  },
+  {
+   "id": "calcium",
+   "text": "Calcium chloride IV given",
+   "type": "action-done",
+   "actions": [
+    "calciumchloride_10_iv",
+    "calciumchloride_5_iv",
+    "calciumchloride_3_iv",
+    "calciumchloride_1_iv"
+   ],
+   "weight": 2,
+   "why": "Transfused blood lowers the heart rate (by 1 per 50 ml still in the system) and only calcium clears it, restoring platelets as it does.",
+   "guide": "Fluids and blood"
+  },
+  {
+   "id": "overload",
+   "text": "Fluid overload kept under 0.5 L (at most 30 s above)",
+   "type": "state-duration-max",
+   "state": {
+    "field": "overload",
+    "op": ">",
+    "value": 0.5
+   },
+   "max": 30,
+   "weight": 1,
+   "why": "Pouring in more than the circulation holds overloads him and raises the pressure. Transfuse what he lost.",
+   "guide": "Fluids and blood"
+  },
+  {
+   "id": "compatible",
+   "text": "No incompatible blood given",
+   "type": "event-never",
+   "event": "bagAdded",
+   "match": {
+    "type": "Blood",
+    "compatible": false
+   },
+   "weight": 2,
+   "critical": true,
+   "why": "He is B+: only B+, B-, O+ or O- blood is safe.",
+   "guide": "Fluids and blood"
+  },
+  {
+   "id": "bv",
+   "text": "Blood volume at least 5.4 L at the end",
+   "type": "end-state",
+   "state": {
+    "field": "bloodVolume",
+    "op": ">=",
+    "value": 5.4
+   },
+   "weight": 2,
+   "why": "Bring him back above the level where he can wake and stay stable.",
+   "guide": "The patient model"
+  },
+  {
+   "id": "alive",
+   "text": "Casualty alive after 20 minutes",
+   "type": "end-state",
+   "state": {
+    "field": "alive",
+    "op": "==",
+    "value": true
+   },
+   "weight": 2,
+   "critical": true,
+   "why": "The casualty must survive.",
+   "guide": "The patient model"
+  }
+ ]
+}

@@ -222,6 +222,7 @@ export function removeBag(sim, index) {
     const b = sim.p.ivBags[index];
     if (!b) return { ok: false };
     sim.p.ivBags.splice(index, 1);
+    sim.emit("bagRemoved", { type: b.type, bloodType: b.bloodType, compatible: b.type !== "Blood" || isBloodCompatible(sim.data, sim.p.bloodType, b.bloodType) });
     const v = returnVolume(b.remaining);
     return { ok: true, returned: v > 0 ? [bagItemClass(b.type, v, b.bloodType)] : [] };
 }

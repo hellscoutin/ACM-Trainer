@@ -10,6 +10,8 @@ import { breathingTimers, handleChestInjury } from "./breathing.js";
 import { circulationTimers } from "./circulation.js";
 import { aedTimers, updateAED } from "./aed.js";
 import { disabilityTimers, handleFracture, initDisability } from "./disability.js";
+import { cbrnTimers, cbrnTick } from "./cbrn.js";
+import { isBloodCompatible } from "./blood.js";
 import {
     handleUnitVitals, vitalsTimers, onCardiacArrest, administerShock, wakeUpCheck, hasPulse, bloodPressure,
     updateCirculationState, recentAEDShock, attemptROSC, hasStableVitals,
@@ -47,7 +49,7 @@ export class Simulation {
         this.events = [];
         this.actions = [];
         this.listeners = [];
-        this.handlers = { ...woundTimers, ...vitalsTimers, ...airwayTimers, ...breathingTimers, ...circulationTimers, ...pharmacologyTimers, ...aedTimers, ...disabilityTimers, ...simTimers };
+        this.handlers = { ...woundTimers, ...vitalsTimers, ...airwayTimers, ...breathingTimers, ...circulationTimers, ...pharmacologyTimers, ...aedTimers, ...disabilityTimers, ...cbrnTimers, ...simTimers };
         initDisability(this.p);
         resetAirway(this);
     }
@@ -173,6 +175,7 @@ export class Simulation {
         p.t += 1;
         this.runTimers();
         if (!p.alive) return;
+        if (p.cbrn) { cbrnTick(this); if (!p.alive) return; }
         handleUnitVitals(this, 1);
         updateAED(this);
         if (p.alive && p.unconscious && !p.cardiacArrest) wakeUpCheck(this);
@@ -259,6 +262,8 @@ export const actions = {
     insertIO(sim, { part, device = "IO_EZ" }) { sim.p.ioAccess[PART_INDEX[part]] = device; return true; },
     addBag(sim, { part, site = 0, iv = true, type, volume, bloodType = null, donorAlive = true }) {
         sim.p.ivBags.push({ type, remaining: volume, original: volume, part, site, iv, bloodType, donorAlive, collectedAt: sim.p.t });
+        // as ivBagLocal: incompatible blood starts a hemolytic reaction 30-60 s later (scripted bags emit no bagAdded event)
+        if (type === "Blood" && bloodType && !isBloodCompatible(sim.data, sim.p.bloodType, bloodType)) sim.schedule(30 + sim.rng.random(30), "hemolyticStart");
         return true;
     },
     setFlow(sim, { part, site = 0, iv = true, on }) {

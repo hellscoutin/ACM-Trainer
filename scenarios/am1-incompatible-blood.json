@@ -1,0 +1,80 @@
+{
+  "id": "am1-incompatible-blood",
+  "title": "Wrong blood",
+  "track": "advanced-medic",
+  "module": "AM-1b",
+  "summary": "You take over a casualty from another medic at the casualty collection point. He is pale and his tourniquet holds, and a unit of blood is already running in his right arm. Check what is going in.",
+  "seed": 11,
+  "timeLimit": 900,
+  "role": "doctor",
+  "patient": {
+    "weight": 75,
+    "bloodType": "A-",
+    "conscious": true
+  },
+  "injuries": [
+    {
+      "part": "leftleg",
+      "type": "Avulsion",
+      "damage": 1.0
+    },
+    {
+      "part": "leftarm",
+      "type": "Cut",
+      "damage": 0.4
+    }
+  ],
+  "state": {
+    "blood": 4.6
+  },
+  "timeline": [
+    {
+      "at": 0,
+      "action": "tourniquet",
+      "args": {
+        "part": "leftleg"
+      }
+    },
+    {
+      "at": 0,
+      "action": "insertIV",
+      "args": {
+        "part": "rightarm",
+        "site": 1,
+        "device": "IV_16g"
+      }
+    },
+    {
+      "at": 0,
+      "action": "addBag",
+      "args": {
+        "part": "rightarm",
+        "site": 1,
+        "type": "Blood",
+        "volume": 500,
+        "bloodType": "B+"
+      }
+    }
+  ],
+  "loadout": {
+    "ACM_PressureBandage": 4,
+    "ACM_IV_16g": 2,
+    "ACM_BloodBag_ON_500": 2,
+    "ACM_BloodBag_AN_500": 1,
+    "ACM_BloodBag_B_500": 1,
+    "ACE_salineIV": 1,
+    "ACM_Syringe_10": 2,
+    "ACM_Vial_CalciumChloride": 1,
+    "ACM_Vial_Epinephrine": 2,
+    "ACM_PulseOximeter": 1,
+    "ACM_PressureCuff": 1,
+    "ACM_Stethoscope": 1
+  },
+  "objectives": [
+    "Check the dog tag: what blood type is the casualty?",
+    "Find and remove anything incompatible that is running (transfusion menu)",
+    "Give compatible blood (his own type or O-)",
+    "Manage the reaction and keep him alive"
+  ],
+  "rubric": "rubrics/am1-incompatible-blood.json"
+}

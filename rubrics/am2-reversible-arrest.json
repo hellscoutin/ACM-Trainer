@@ -1,0 +1,102 @@
+{
+ "scenario": "am2-reversible-arrest",
+ "passMark": 0.75,
+ "checks": [
+  {
+   "id": "noshock",
+   "text": "No shock delivered on PEA",
+   "type": "action-forbidden",
+   "actions": [
+    "aed_shock"
+   ],
+   "when": {
+    "field": "rhythm",
+    "op": "==",
+    "value": "PEA"
+   },
+   "weight": 2,
+   "critical": true,
+   "why": "PEA is not shockable: a shock turns it into asystole, which no longer restarts by itself.",
+   "guide": "Cardiac arrest"
+  },
+  {
+   "id": "cpr",
+   "text": "CPR started within 60 s",
+   "type": "action-within",
+   "actions": [
+    "cpr"
+   ],
+   "within": 60,
+   "weight": 1,
+   "why": "CPR does not restart a PEA heart, but it keeps the oxygen up while you fix the causes.",
+   "guide": "Cardiac arrest"
+  },
+  {
+   "id": "seal-ncd",
+   "text": "Chest seal before needle decompression",
+   "type": "action-order",
+   "first": [
+    "applychestseal"
+   ],
+   "then": [
+    "performncd"
+   ],
+   "weight": 1,
+   "why": "Without the seal the pneumothorax starts building again after the NCD.",
+   "guide": "Chest treatment"
+  },
+  {
+   "id": "tension",
+   "text": "Tension relieved within 2 minutes",
+   "type": "state-within",
+   "state": {
+    "field": "tensionPtx",
+    "op": "==",
+    "value": false
+   },
+   "within": 120,
+   "weight": 2,
+   "why": "Tension pneumothorax is one of the reversible causes; the heart cannot restart while it is there.",
+   "guide": "Chest treatment"
+  },
+  {
+   "id": "blood",
+   "text": "Blood started within 3 minutes",
+   "type": "event-within",
+   "event": "bagAdded",
+   "match": {
+    "type": "Blood",
+    "compatible": true
+   },
+   "within": 180,
+   "weight": 2,
+   "why": "Blood volume must be above 4.2 L before the heart can restart; IO access is fastest in arrest.",
+   "guide": "Fluids and blood"
+  },
+  {
+   "id": "rosc",
+   "text": "Heart restarted within 6 minutes",
+   "type": "event-within",
+   "event": "rosc",
+   "within": 360,
+   "weight": 3,
+   "critical": true,
+   "why": "After 6 minutes PEA turns into an ordinary arrest. Fix every cause: tension, blood volume, oxygen.",
+   "guide": "Cardiac arrest"
+  },
+  {
+   "id": "alive",
+   "text": "Casualty alive at the end",
+   "type": "end-state",
+   "state": {
+    "field": "alive",
+    "op": "==",
+    "value": true
+   },
+   "weight": 2,
+   "critical": true,
+   "why": "The casualty must survive.",
+   "guide": "The patient model"
+  }
+ ]
+}

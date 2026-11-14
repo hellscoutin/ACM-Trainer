@@ -1,0 +1,97 @@
+{
+ "scenario": "am4-nerve-agent",
+ "passMark": 0.75,
+ "checks": [
+  {
+   "id": "atna",
+   "text": "ATNA autoinjector within 60 s",
+   "type": "action-within",
+   "actions": [
+    "atna_autoinjector",
+    "atropine_10_iv",
+    "atropine_5_iv",
+    "atropine_3_iv",
+    "atropine_1_iv"
+   ],
+   "within": 60,
+   "weight": 2,
+   "critical": true,
+   "why": "Atropine is the only treatment for the sarin itself: with 3 or more doses active it removes sarin every 20-30 s and keeps him breathing.",
+   "guide": "Protection and antidotes"
+  },
+  {
+   "id": "spasm",
+   "text": "Airway spasm cleared within 4 minutes",
+   "type": "state-within",
+   "state": {
+    "field": "spasm",
+    "op": "==",
+    "value": false
+   },
+   "within": 240,
+   "weight": 2,
+   "why": "4 or more active doses of atropine can clear the spasm (30 % per check, or once the sarin is nearly gone).",
+   "guide": "Chemical agents"
+  },
+  {
+   "id": "ventilate",
+   "text": "BVM or surgical airway within 90 s",
+   "type": "action-within",
+   "actions": [
+    "usebvm",
+    "surgicalairway_established"
+   ],
+   "within": 90,
+   "weight": 2,
+   "why": "While the spasm lasts he does not breathe; open the airway and ventilate.",
+   "guide": "Ventilation and oxygen"
+  },
+  {
+   "id": "midazolam",
+   "text": "Midazolam given",
+   "type": "action-done",
+   "actions": [
+    "midazolam_autoinjector"
+   ],
+   "weight": 1,
+   "why": "Midazolam stops the tremors and seizures.",
+   "guide": "Protection and antidotes"
+  },
+  {
+   "id": "spo2",
+   "text": "SpO2 above 85 % at the end",
+   "type": "end-state",
+   "state": {
+    "all": [
+     {
+      "field": "alive",
+      "op": "==",
+      "value": true
+     },
+     {
+      "field": "spo2",
+      "op": ">",
+      "value": 85
+     }
+    ]
+   },
+   "weight": 2,
+   "why": "He should be breathing well again.",
+   "guide": "Ventilation and oxygen"
+  },
+  {
+   "id": "alive",
+   "text": "Casualty alive at the end",
+   "type": "end-state",
+   "state": {
+    "field": "alive",
+    "op": "==",
+    "value": true
+   },
+   "weight": 2,
+   "critical": true,
+   "why": "The casualty must survive.",
+   "guide": "The patient model"
+  }
+ ]
+}

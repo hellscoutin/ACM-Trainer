@@ -1,0 +1,86 @@
+{
+ "scenario": "am4-blister-agent",
+ "passMark": 0.75,
+ "checks": [
+  {
+   "id": "drag",
+   "text": "Out of the contaminated area within 30 s",
+   "type": "action-within",
+   "actions": [
+    "dragoutofcloud"
+   ],
+   "within": 30,
+   "weight": 3,
+   "critical": true,
+   "why": "Unprotected in the cloud he gains 1 lewisite per second; at 50 blindness becomes permanent, above 70 capillary damage builds, at 100 he dies.",
+   "guide": "Protection and antidotes"
+  },
+  {
+   "id": "dimercaprol",
+   "text": "Dimercaprol IM within 4 minutes",
+   "type": "action-within",
+   "actions": [
+    "dimercaprol_10_im",
+    "dimercaprol_5_im",
+    "dimercaprol_3_im",
+    "dimercaprol_1_im"
+   ],
+   "within": 240,
+   "weight": 2,
+   "why": "Dimercaprol removes up to 16 lewisite every 20-30 s; on its own it clears very slowly.",
+   "guide": "Protection and antidotes"
+  },
+  {
+   "id": "noiv",
+   "text": "Dimercaprol not pushed IV",
+   "type": "action-forbidden",
+   "actions": [
+    "dimercaprol_10_iv",
+    "dimercaprol_5_iv",
+    "dimercaprol_3_iv",
+    "dimercaprol_1_iv"
+   ],
+   "weight": 1,
+   "why": "In ACM 1.4.8 an IV push of dimercaprol has no effect: inject it IM.",
+   "guide": "Protection and antidotes"
+  },
+  {
+   "id": "wash",
+   "text": "Eyes washed",
+   "type": "action-done",
+   "actions": [
+    "washeyes"
+   ],
+   "weight": 1,
+   "why": "Washing cures the blindness unless it has become permanent.",
+   "guide": "Protection and antidotes"
+  },
+  {
+   "id": "cleared",
+   "text": "Lewisite below 10 at the end",
+   "type": "end-state",
+   "state": {
+    "field": "lewisite",
+    "op": "<",
+    "value": 10
+   },
+   "weight": 1,
+   "why": "With dimercaprol the buildup is gone in a few minutes.",
+   "guide": "Chemical agents"
+  },
+  {
+   "id": "alive",
+   "text": "Casualty alive at the end",
+   "type": "end-state",
+   "state": {
+    "field": "alive",
+    "op": "==",
+    "value": true
+   },
+   "weight": 2,
+   "critical": true,
+   "why": "The casualty must survive.",
+   "guide": "The patient model"
+  }
+ ]
+}

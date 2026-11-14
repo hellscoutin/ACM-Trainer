@@ -25,6 +25,7 @@ const CAT_ICONS = {
     medication: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20l5-5M8 12l4 4M10 6l8 8-3 3-8-8z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M17 3l4 4" stroke="currentColor" stroke-width="2"/></svg>',
     airway: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v7M12 10c-3 0-7 3-7 8 0 2 2 3 4 2l3-4M12 10c3 0 7 3 7 8 0 2-2 3-4 2l-3-4" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
     advanced: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h4l2-5 4 10 2-5h6" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
+    interact: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 13V5a1.5 1.5 0 013 0v6m0-1V4a1.5 1.5 0 013 0v7m0-5a1.5 1.5 0 013 0v7m0-3a1.5 1.5 0 013 0v4c0 4-3 7-7 7h-1c-3 0-4-1-6-4l-3-4c-.8-1 .6-2.6 1.8-1.6L8 15" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>',
 };
 
 const params = new URLSearchParams(location.search);
@@ -314,6 +315,7 @@ function renderCats() {
     const cats = $("cats");
     cats.textContent = "";
     for (const c of CATEGORIES) {
+        if (c.cbrnOnly && !sim.p.cbrn) continue;
         const b = el("button", { role: "tab", title: c.label });
         b.innerHTML = CAT_ICONS[c.id];
         b.append(el("span", { textContent: c.label.split(" ")[0] }));
@@ -356,6 +358,11 @@ function renderState() {
     if (p.recoveryPosition) chip("Recovery position");
     if (p.bvm) chip("BVM");
     if (p.cpr || p.cprPaused) chip(p.cpr ? "CPR" : "CPR paused");
+    if (p.cbrn) {
+        if (p.cbrn.inCloud) chip("In chemical cloud", true);
+        if (p.cbrn.ppe.mask) chip(p.cbrn.ppe.filter > 0 ? "Gas mask" : "Gas mask (filter spent)", p.cbrn.ppe.filter <= 0);
+        if (p.cbrn.ppe.suit) chip("CBRN suit");
+    }
 }
 function renderInjuries() {
     const ul = $("injuries");

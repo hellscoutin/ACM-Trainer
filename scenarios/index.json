@@ -24,6 +24,11 @@
     "cm6-surgical-airway",
     "cls5-grenade-fragments",
     "cm7-ied-blast",
-    "cm8-helicopter-crash"
+    "cm8-helicopter-crash",
+    "am1-massive-transfusion",
+    "am1-incompatible-blood",
+    "am2-reversible-arrest",
+    "am4-nerve-agent",
+    "am4-blister-agent"
   ]
 }

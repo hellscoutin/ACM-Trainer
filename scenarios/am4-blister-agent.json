@@ -1,0 +1,50 @@
+{
+  "id": "am4-blister-agent",
+  "title": "Blister agent",
+  "track": "advanced-medic",
+  "module": "AM-4b",
+  "summary": "Lewisite mortar rounds hit a position. A soldier without a suit is still lying in the contaminated area, burning and coughing. You are masked and suited. The CBRN setting is enabled on this server.",
+  "seed": 9,
+  "timeLimit": 900,
+  "role": "doctor",
+  "patient": {
+    "weight": 78,
+    "bloodType": "A+",
+    "conscious": true
+  },
+  "injuries": [],
+  "cbrn": {
+    "agent": "Lewisite",
+    "until": -1,
+    "dragTime": 15,
+    "buildup": {
+      "Lewisite": 25
+    },
+    "ppe": {}
+  },
+  "loadout": {
+    "G_AirPurifyingRespirator_01_F": 1,
+    "ACM_GasMaskFilter": 1,
+    "ACM_Ampule_Dimercaprol": 2,
+    "ACM_Syringe_5": 2,
+    "ACE_WaterBottle": 1,
+    "ACM_IV_16g": 2,
+    "ACM_BloodBag_ON_500": 2,
+    "ACE_salineIV": 2,
+    "ACM_BVM": 1,
+    "ACM_CricKit": 1,
+    "ACM_PressureBandage": 4,
+    "ACM_Paracetamol": 2,
+    "ACM_PulseOximeter": 1,
+    "ACM_PressureCuff": 1,
+    "ACM_Stethoscope": 1
+  },
+  "objectives": [
+    "Get him out of the contaminated area at once (every second there adds lewisite)",
+    "Dimercaprol IM removes lewisite from the body (an IV push does nothing)",
+    "Wash his eyes before the blindness becomes permanent",
+    "Watch the airway (inflammation) and replace blood leaking from damaged capillaries",
+    "Casualty alive at the end"
+  ],
+  "rubric": "rubrics/am4-blister-agent.json"
+}

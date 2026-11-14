@@ -11,6 +11,7 @@ import { feelPulse, capillaryRefill } from "./exams.js";
 import { checkBreathing, inspectChest } from "./breathing.js";
 import { airwayState } from "./oxygen.js";
 import { aedState } from "./aed.js";
+import { canWashEyes, atropine } from "./cbrn.js";
 
 export const DEPTHS = { 0: "Off", 1: "Basic", 2: "Intermediate", 3: "Advanced" };
 export const LIMBS = ["leftarm", "rightarm", "leftleg", "rightleg"];
@@ -23,9 +24,14 @@ export function noteFinding(sim, id, part) {
     const p = sim.p;
     const f = (p.findings ??= { t: {} });
     const seen = (key) => { f.t[key] = p.t; };
+    // CBRN antidotes given (the trainee knows what they gave)
+    if (id === "atna_autoinjector" || /^atropine_\d+_(iv|im)$/.test(id)) f.atropineGiven = (f.atropineGiven || 0) + 1;
+    if (id === "midazolam_autoinjector") f.midazolamGiven = true;
+    if (/^dimercaprol_\d+_im$/.test(id)) f.dimercaprolGiven = true;
     switch (id) {
         case "checkairway": {
             seen("checkairway");
+            { const infl = p.cbrn?.inflammation || 0; f.inflammation = infl > 70 ? 3 : infl > 40 ? 2 : infl > 15 ? 1 : 0; }
             const managed = p.recoveryPosition || p.headTilt || p.airwayOral === "SGA";
             f.obstructed = p.obstructionVomit + p.obstructionBlood > 0;
             f.collapse = !managed && p.airwayCollapse > 0;
@@ -104,7 +110,11 @@ export function knowledgeView(sim, depth, ctx = {}) {
         inPain: p.alive && !p.unconscious && p.pain - p.painSuppress > 0.1, severePain: p.alive && !p.unconscious && p.pain - p.painSuppress > 0.5,
         // any torso wound the injury list shows (open, bandaged, clotted, wrapped or stitched)
         torsoWound: ["openWounds", "bandagedWounds", "clottedWounds", "wrappedWounds", "stitchedWounds"].some((k) => (p[k]?.body || []).some((w) => w.count > 0)),
-        bloodTypeKnown: !!f.bloodTypeKnown,
+        bloodTypeKnown: !!f.bloodTypeKnown, surgicalAirway: !!p.surgicalAirway,
+        // CBRN (scene facts the trainee can see: the cloud, the mask, the agent from the briefing or detector)
+        cbrn: !!p.cbrn, inCloud: !!p.cbrn?.inCloud, gasMask: !!p.cbrn?.ppe.mask, filterSpent: !!p.cbrn && p.cbrn.ppe.filter <= 0,
+        cbrnAgent: p.cbrn?.agent ?? null, canWashEyes: !!p.cbrn && canWashEyes(p) && !p.cbrn.eyesWashed,
+        atropineGiven: f.atropineGiven || 0, midazolamGiven: !!f.midazolamGiven, dimercaprolGiven: !!f.dimercaprolGiven,
         // device readings (what a pulse oximeter or the AED monitor displays); null when nothing measures them
         spo2: ox ? ox[0] : aed.po !== -1 && aed.display.spo2 > 0 ? aed.display.spo2 : null,
         hr: aed.pads && aed.display.hr > 0 ? aed.display.hr : ox ? ox[1] : null,
@@ -129,6 +139,7 @@ export function knowledgeView(sim, depth, ctx = {}) {
             f_uneven: !!(f.uneven || f.breathSoundsAbnormal) && v.since_chestexam < 600, f_deviation: !!f.deviation && v.since_inspectchest < 300,
             f_bruising: !!f.bruising && v.since_inspectchest < 600,
             f_carotid: f.carotid ?? null, f_limbPulse: f.limbPulse ?? null, f_crt: f.crt ?? null, f_crtSlow: !!f.crtSlow && v.since_checkcrt < 300,
+            f_inflammation: f.inflammation ?? 0,
             f_sys: f.sys ?? null, f_shockable: !!f.shockable && v.since_aedanalyze < 120, f_heartSoundsAbsent: !!f.heartSoundsAbsent && v.since_usestethoscope < 120,
         });
         for (const part of LIMBS) v[`f_fx_${part}`] = f["fx_" + part] ?? 0;
@@ -142,6 +153,9 @@ export function knowledgeView(sim, depth, ctx = {}) {
             spo2True: Math.round(p.spo2), hrTrue: Math.round(p.hr), sysTrue: Math.round(p.bp[1]), bloodType: p.bloodType,
             txa: sim.medCount("TXA_IV"), epinephrine: sim.medCount("Epinephrine_IV"), hemolytic: (p.reactionSeverity || 0) > 0,
             painLevel: Math.round(Math.max(0, p.pain - p.painSuppress) * 100),
+            sarin: Math.round(p.cbrn?.buildup.Sarin ?? 0), lewisite: Math.round(p.cbrn?.buildup.Lewisite ?? 0), chlorine: Math.round(p.cbrn?.buildup.Chlorine ?? 0),
+            spasm: !!p.cbrn?.spasm, inflammation: Math.round(p.cbrn?.inflammation ?? 0), lungDamage: Math.round(p.cbrn?.lungDamage ?? 0),
+            capillary: Math.round(p.cbrn?.capillary ?? 0), atropine: Math.round(atropine(sim) * 10) / 10, dimercaprol: sim.medCount("Dimercaprol"),
         });
     }
     return v;

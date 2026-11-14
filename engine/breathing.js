@@ -2,6 +2,7 @@
 // handleHemothorax, applyChestSealLocal, performNCDLocal, updateLungState, checkBreathingLocal, inspectChestLocal.
 // Not yet: thoracostomy, chest tube, drainage, stethoscope dialog, CBRN lung damage.
 import { lin } from "./util.js";
+import { inflammation, lungDamage } from "./cbrn.js";
 import { airwayState, breathingState } from "./oxygen.js";
 
 /** generatePTXMap: wound ID (10 x class + size) -> [minDamage, minChance, maxDamage, maxChance] */
@@ -138,7 +139,7 @@ export function checkBreathing(sim) {
     const secure = p.airwayOral === "SGA" || maneuver;
     let hint = "Patient is breathing normally", log = "Normal";
     if (arrest || blocked) { hint = "Patient is not breathing"; log = "None"; }
-    else if (p.ptx > 0 || (p.airwayCollapse > 0 && !secure) || (!secure && !p.airwayReflex && !adjunct)) {
+    else if (p.ptx > 0 || (p.airwayCollapse > 0 && !secure) || (!secure && !p.airwayReflex && !adjunct) || inflammation(p) > 15 || lungDamage(p) > 20) {
         if (rr < 15.9) { hint = "Patient breathing is slow and shallow"; log = "Slow and shallow"; }
         else if (rr > 22) { hint = "Patient breathing is rapid and shallow"; log = "Rapid and shallow"; }
         else { hint = "Patient breathing is shallow"; log = "Shallow"; }

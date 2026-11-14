@@ -494,6 +494,191 @@
    "minLevel": 1
   },
   {
+   "id": "cbrn-cloud",
+   "depth": 1,
+   "priority": 5,
+   "when": {
+    "all": [
+     {
+      "field": "inCloud",
+      "op": "==",
+      "value": true
+     },
+     {
+      "not": {
+       "field": "gasMask",
+       "op": "==",
+       "value": true
+      }
+     },
+     {
+      "field": "unconscious",
+      "op": "==",
+      "value": true
+     }
+    ]
+   },
+   "text": "Still in the chemical cloud: put a gas mask on the casualty and drag them out of the contaminated area first.",
+   "guide": "Protection and antidotes"
+  },
+  {
+   "id": "cbrn-cloud-awake",
+   "depth": 1,
+   "priority": 5,
+   "when": {
+    "all": [
+     {
+      "field": "inCloud",
+      "op": "==",
+      "value": true
+     },
+     {
+      "not": {
+       "field": "gasMask",
+       "op": "==",
+       "value": true
+      }
+     },
+     {
+      "not": {
+       "field": "unconscious",
+       "op": "==",
+       "value": true
+      }
+     }
+    ]
+   },
+   "text": "Still in the chemical cloud: drag the casualty out of the contaminated area first (you can only put a mask on an unconscious casualty).",
+   "guide": "Protection and antidotes"
+  },
+  {
+   "id": "cbrn-cloud-masked",
+   "depth": 1,
+   "priority": 6,
+   "when": {
+    "all": [
+     {
+      "field": "inCloud",
+      "op": "==",
+      "value": true
+     },
+     {
+      "field": "gasMask",
+      "op": "==",
+      "value": true
+     }
+    ]
+   },
+   "text": "Still in the contaminated area: drag the casualty out (the mask filter runs down while they stay).",
+   "guide": "Protection and antidotes"
+  },
+  {
+   "id": "cbrn-filter",
+   "depth": 1,
+   "priority": 6,
+   "when": {
+    "all": [
+     {
+      "field": "inCloud",
+      "op": "==",
+      "value": true
+     },
+     {
+      "field": "gasMask",
+      "op": "==",
+      "value": true
+     },
+     {
+      "field": "filterSpent",
+      "op": "==",
+      "value": true
+     }
+    ]
+   },
+   "text": "The gas mask filter is spent: replace it.",
+   "guide": "Protection and antidotes"
+  },
+  {
+   "id": "cbrn-atna",
+   "depth": 1,
+   "priority": 14,
+   "when": {
+    "all": [
+     {
+      "field": "cbrnAgent",
+      "op": "==",
+      "value": "Sarin"
+     },
+     {
+      "field": "atropineGiven",
+      "op": "<",
+      "value": 2
+     }
+    ]
+   },
+   "text": "Nerve agent: give 2-3 ATNA autoinjectors now (3 or more active doses keep breathing going; 4 or more clear the airway spasm).",
+   "guide": "Protection and antidotes"
+  },
+  {
+   "id": "cbrn-midazolam",
+   "depth": 1,
+   "priority": 65,
+   "when": {
+    "all": [
+     {
+      "field": "cbrnAgent",
+      "op": "==",
+      "value": "Sarin"
+     },
+     {
+      "not": {
+       "field": "midazolamGiven",
+       "op": "==",
+       "value": true
+      }
+     }
+    ]
+   },
+   "text": "Nerve agent: the midazolam autoinjector stops the tremors and seizures.",
+   "guide": "Protection and antidotes"
+  },
+  {
+   "id": "cbrn-dimercaprol",
+   "depth": 1,
+   "priority": 26,
+   "when": {
+    "all": [
+     {
+      "field": "cbrnAgent",
+      "op": "==",
+      "value": "Lewisite"
+     },
+     {
+      "not": {
+       "field": "dimercaprolGiven",
+       "op": "==",
+       "value": true
+      }
+     }
+    ]
+   },
+   "text": "Blister agent: draw the dimercaprol ampule into a syringe and inject it IM (an IV push does nothing); it removes lewisite from the body.",
+   "guide": "Protection and antidotes",
+   "minLevel": 1
+  },
+  {
+   "id": "cbrn-wash-eyes",
+   "depth": 1,
+   "priority": 75,
+   "when": {
+    "field": "canWashEyes",
+    "op": "==",
+    "value": true
+   },
+   "text": "Wash the casualty's eyes with water (chlorine or lewisite above 50 makes the blindness permanent).",
+   "guide": "Protection and antidotes"
+  },
+  {
    "id": "i-no-carotid",
    "depth": 2,
    "priority": 3,
@@ -872,6 +1057,193 @@
    "guide": "Fractures",
    "each": "limbs",
    "minLevel": 1
+  },
+  {
+   "id": "i-inflammation",
+   "depth": 2,
+   "priority": 23,
+   "when": {
+    "all": [
+     {
+      "field": "f_inflammation",
+      "op": ">=",
+      "value": 2
+     },
+     {
+      "not": {
+       "field": "surgicalAirway",
+       "op": "==",
+       "value": true
+      }
+     }
+    ]
+   },
+   "text": "Significant airway inflammation: an i-gel will not go in. Prepare a surgical airway if breathing fails.",
+   "guide": "Chemical agents",
+   "minLevel": 1
+  },
+  {
+   "id": "i-inflammation-severe",
+   "depth": 2,
+   "priority": 9,
+   "when": {
+    "all": [
+     {
+      "field": "f_inflammation",
+      "op": "==",
+      "value": 3
+     },
+     {
+      "not": {
+       "field": "surgicalAirway",
+       "op": "==",
+       "value": true
+      }
+     }
+    ]
+   },
+   "text": "Severe airway inflammation: the airway is closing. Surgical airway now.",
+   "guide": "Chemical agents",
+   "minLevel": 1,
+   "supersedes": [
+    "i-inflammation"
+   ]
+  },
+  {
+   "id": "x-spasm",
+   "depth": 3,
+   "priority": 3,
+   "when": {
+    "all": [
+     {
+      "field": "spasm",
+      "op": "==",
+      "value": true
+     },
+     {
+      "field": "atropine",
+      "op": "<",
+      "value": 3
+     },
+     {
+      "not": {
+       "field": "surgicalAirway",
+       "op": "==",
+       "value": true
+      }
+     }
+    ]
+   },
+   "text": "Sarin airway spasm: breathing has stopped (a BVM cannot help). Atropine to 3+ active doses to breathe, 4+ to clear the spasm; a surgical airway bypasses it.",
+   "guide": "Chemical agents",
+   "supersedes": [
+    "i-not-breathing",
+    "x-spo2"
+   ]
+  },
+  {
+   "id": "x-sarin",
+   "depth": 3,
+   "priority": 13,
+   "when": {
+    "all": [
+     {
+      "field": "sarin",
+      "op": ">=",
+      "value": 20
+     },
+     {
+      "field": "atropine",
+      "op": "<",
+      "value": 3
+     }
+    ]
+   },
+   "text": "Sarin buildup {sarin} (airway spasm at 60): with 3 or more doses of atropine active it falls every 20-30 s.",
+   "guide": "Protection and antidotes",
+   "supersedes": [
+    "cbrn-atna"
+   ]
+  },
+  {
+   "id": "x-lewisite",
+   "depth": 3,
+   "priority": 25,
+   "when": {
+    "all": [
+     {
+      "field": "lewisite",
+      "op": ">",
+      "value": 0
+     },
+     {
+      "field": "dimercaprol",
+      "op": "<",
+      "value": 0.5
+     }
+    ]
+   },
+   "text": "Lewisite buildup {lewisite}: dimercaprol IM removes up to 16 every 20-30 s.",
+   "guide": "Protection and antidotes",
+   "minLevel": 1,
+   "supersedes": [
+    "cbrn-dimercaprol"
+   ]
+  },
+  {
+   "id": "x-inflammation",
+   "depth": 3,
+   "priority": 22,
+   "when": {
+    "all": [
+     {
+      "field": "inflammation",
+      "op": ">",
+      "value": 40
+     },
+     {
+      "not": {
+       "field": "surgicalAirway",
+       "op": "==",
+       "value": true
+      }
+     },
+     {
+      "field": "unconscious",
+      "op": "==",
+      "value": true
+     }
+    ]
+   },
+   "text": "Airway inflammation {inflammation} (closes at 100, never heals): the i-gel is blocked; a surgical airway bypasses it.",
+   "guide": "Chemical agents",
+   "supersedes": [
+    "i-inflammation"
+   ]
+  },
+  {
+   "id": "x-lung",
+   "depth": 3,
+   "priority": 37,
+   "when": {
+    "field": "lungDamage",
+    "op": ">",
+    "value": 20
+   },
+   "text": "Lung tissue damage {lungDamage} (permanent): breathing is weaker; support it with the BVM to keep SpO2 up.",
+   "guide": "Chemical agents"
+  },
+  {
+   "id": "x-capillary",
+   "depth": 3,
+   "priority": 31,
+   "when": {
+    "field": "capillary",
+    "op": ">",
+    "value": 20
+   },
+   "text": "Capillary damage {capillary} (permanent): blood leaks from the circulation and blood pressure is up to 30 % lower. Replace the volume with blood.",
+   "guide": "Chemical agents"
   },
   {
    "id": "x-hemolytic",

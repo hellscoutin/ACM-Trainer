@@ -4,6 +4,7 @@
 // circulation/hasPulse, updateCirculationState, handleCardiacArrest, handleReversibleCardiacArrest, attemptROSC,
 // handleCPR, beginCPR (timing variables), AED_AdministerShock, recentAEDShock; ACE pain/resistance updates.
 import { lin } from "./util.js";
+import { cbrnHeartRateAdjust } from "./cbrn.js";
 import { cardiacOutput, painPerceived, map } from "./patient.js";
 import { bloodVolumeStep, bloodLossRate } from "./blood.js";
 import { updateOxygen } from "./oxygen.js";
@@ -41,7 +42,8 @@ export function bloodPressure(p) {
     let tension = 0;
     if (p.ptx > 0 || p.htxFluid > 0.1) tension = Math.max(p.ptx * 8, p.htxFluid / 46);
     if (p.tensionPtx || p.hardcorePtx) tension = 35;
-    const f = bleedEffect * ibEffect * overloadEffect;
+    const poisonEffect = p.cbrn ? lin(0, 100, p.cbrn.capillary, 1, 0.7, false) : 1; // lewisite capillary damage
+    const f = bleedEffect * ibEffect * overloadEffect * poisonEffect;
     return [Math.max(0, Math.round((bp * BP_LOW * diastolicMod - tension) * f)), Math.max(0, Math.round((bp * BP_HIGH - tension) * f))];
 }
 
@@ -126,6 +128,7 @@ export function handleUnitVitals(sim, dt) {
     if (p.tensionPtx || p.hardcorePtx) adj.hr -= p.tensionPtx ? 35 : 25;
     else if (p.ptx > 0) adj.hr -= 5 * p.ptx;
     if (p.transfused > 0.05) adj.hr -= p.transfused / 0.05;
+    adj.hr += cbrnHeartRateAdjust(p);
 
     const hr = updateHeartRate(sim, adj.hr, dt);
     // ACE updatePainSuppress (advanced medication) and pain fade

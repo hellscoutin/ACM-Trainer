@@ -2,6 +2,7 @@
 import { Simulation } from "./sim.js";
 import { handlePneumothorax, handleHemothorax, updateLungState } from "./breathing.js";
 import { applyDamage, generatePatient } from "./damage.js";
+import { initCBRN } from "./cbrn.js";
 
 /**
  * scenario: {
@@ -13,6 +14,7 @@ import { applyDamage, generatePatient } from "./damage.js";
  *   settings: { ACM variable: value }, aceSettings: { name: value },
  *   role: "anyone" | "medic" | "doctor", loadout: { item class: count },
  *   timeline: [{ at, action, args }]               scripted events (sim actions)
+ *   cbrn: { agent, until, ppe, dragTime, buildup }  chemical exposure (engine/cbrn.js)
  * }
  */
 export function loadScenario(scn, data, meds, { seed } = {}) {
@@ -32,6 +34,7 @@ export function loadScenario(scn, data, meds, { seed } = {}) {
         if (scn.chest.ptx) chest(sim, "ptx", scn.chest.ptx);
         if (scn.chest.htx) chest(sim, "htx", scn.chest.htx);
     }
+    if (scn.cbrn) initCBRN(sim, scn.cbrn);
     if (scn.state) sim.act("setState", { fields: scn.state });
     if (scn.patient?.conscious === false) sim.criticalVitals();
     if (scn.arrest) { sim.p.targetRhythm = scn.arrest; sim.fatalVitals(); } // start in cardiac arrest with this rhythm (VF, PVT, Asystole)

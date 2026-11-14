@@ -112,7 +112,7 @@ export function createBody(container, onSelect) {
                 Object.entries({ x: 106, y: 100, width: 18, height: 18, rx: 3, fill: "#fff200", stroke: "#000" }).forEach(([a, v]) => r.setAttribute(a, v));
                 overlay.append(r);
             }
-            const tags = [p.airwayNasal === "NPA" ? "NPA" : "", p.airwayOral === "SGA" ? "i-gel" : p.airwayOral].filter(Boolean);
+            const tags = [p.cbrn?.ppe?.mask ? "Mask" : "", p.airwayNasal === "NPA" ? "NPA" : "", p.airwayOral === "SGA" ? "i-gel" : p.airwayOral].filter(Boolean);
             tags.forEach((t, k) => {
                 const tx = document.createElementNS(NS, "text");
                 Object.entries({ x: 100, y: 46 + k * 15, "text-anchor": "middle", class: "icon-label" }).forEach(([a, v]) => tx.setAttribute(a, v));

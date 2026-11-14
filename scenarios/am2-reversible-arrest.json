@@ -1,0 +1,71 @@
+{
+  "id": "am2-reversible-arrest",
+  "title": "Reversible arrest",
+  "track": "advanced-medic",
+  "module": "AM-2",
+  "summary": "A rifleman shot through the chest has just gone into cardiac arrest in front of you. He bled heavily from his leg before the tourniquet went on. The monitor shows an organised rhythm, but there is no pulse. Lead the resuscitation.",
+  "seed": 5,
+  "timeLimit": 900,
+  "role": "doctor",
+  "patient": {
+    "weight": 80,
+    "bloodType": "O+",
+    "conscious": false
+  },
+  "injuries": [
+    {
+      "part": "body",
+      "type": "VelocityWound",
+      "damage": 0.8
+    },
+    {
+      "part": "leftleg",
+      "type": "Avulsion",
+      "damage": 1.2
+    }
+  ],
+  "chest": {
+    "ptx": 5
+  },
+  "state": {
+    "blood": 4.0
+  },
+  "arrest": "PEA",
+  "timeline": [
+    {
+      "at": 0,
+      "action": "tourniquet",
+      "args": {
+        "part": "leftleg"
+      }
+    }
+  ],
+  "loadout": {
+    "ACM_AED": 1,
+    "ACM_BVM": 1,
+    "ACM_IGel": 1,
+    "ACM_ChestSeal": 1,
+    "ACM_NCDKit": 2,
+    "ACM_ThoracostomyKit": 1,
+    "ACM_ChestTubeKit": 1,
+    "ACM_IO_EZ": 1,
+    "ACM_IV_14g": 2,
+    "ACM_BloodBag_ON_500": 4,
+    "ACE_salineIV": 1,
+    "ACM_Syringe_10": 3,
+    "ACM_Syringe_1": 2,
+    "ACM_Vial_Epinephrine": 4,
+    "ACM_Vial_Lidocaine": 1,
+    "ACM_PressureBandage": 4,
+    "ACM_PulseOximeter": 1,
+    "ACM_PressureCuff": 1,
+    "ACM_Stethoscope": 1
+  },
+  "objectives": [
+    "Recognise PEA: an organised rhythm without a pulse. Do not shock it",
+    "CPR keeps oxygen up but will not restart this heart",
+    "Fix the causes: tension pneumothorax (seal, then NCD), blood volume above 4.2 L (IO and blood), oxygen (airway and BVM)",
+    "The heart restarts on its own within 6 minutes once every cause is fixed"
+  ],
+  "rubric": "rubrics/am2-reversible-arrest.json"
+}

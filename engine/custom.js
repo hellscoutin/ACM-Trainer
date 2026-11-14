@@ -91,7 +91,7 @@ export function validateScenario(s, data, items = null) {
         if (!num(w.damage, 0.01, 20)) e.push(`${n}: damage must be 0.01 to 20`);
         if (w.count !== undefined && !(Number.isInteger(w.count) && w.count >= 1 && w.count <= 10)) e.push(`${n}: count must be 1 to 10`);
     });
-    if (!(s.injuries || []).length && !s.random) e.push("Add at least one injury");
+    if (!(s.injuries || []).length && !s.random && !s.cbrn) e.push("Add at least one injury");
     if (s.chest) for (const k of ["ptx", "htx"]) if (s.chest[k] !== undefined && !(Number.isInteger(s.chest[k]) && s.chest[k] >= 0 && s.chest[k] <= 10)) e.push(`Chest ${k} must be 0 to 10`);
     const known = items ? new Set(items.map((x) => x.cls)) : null;
     for (const [cls, n] of Object.entries(s.loadout || {})) {
@@ -106,7 +106,7 @@ const OVERLAY_FIELDS = ["tourniquets", "pulseOx", "ivAccess", "ioAccess", "press
 /** What the replay viewer shows for one second: body colours and markers, every part's injury list and the true vitals. */
 export function captureFrame(sim) {
     const p = sim.p;
-    const o = {};
+    const o = { cbrn: p.cbrn ? { ppe: { mask: p.cbrn.ppe.mask } } : undefined };
     for (const k of OVERLAY_FIELDS) o[k] = p[k] === undefined ? undefined : JSON.parse(JSON.stringify(p[k]));
     o.splintBone = sim.aceSetting("fractures", 1) >= 2;
     return {

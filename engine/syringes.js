@@ -12,13 +12,14 @@ export const VIALS = {
     Lidocaine: { conc: 20, volume: 5, label: "100mg/5ml" }, Ketamine: { conc: 50, volume: 10, label: "500mg/10ml" },
     Ondansetron: { conc: 2, volume: 2, label: "4mg/2ml" }, CalciumChloride: { conc: 100, volume: 10, label: "1g/10ml" },
     Ertapenem: { conc: 312.5, volume: 3.2, label: "1g/3.2ml" }, Esmolol: { conc: 10, volume: 10, label: "100mg/10ml" },
+    Dimercaprol: { conc: 100, volume: 3, label: "300mg/3ml" },
 };
 export const SYRINGE_SIZES = [10, 5, 3, 1];
-/** Drugs with push/inject syringe actions in ACM (Dimercaprol omitted: CBRN). */
-export const SYRINGE_DRUGS = ["Adenosine", "Amiodarone", "Atropine", "CalciumChloride", "Epinephrine", "Ertapenem", "Esmolol", "Fentanyl", "Ketamine", "Lidocaine", "Morphine", "Ondansetron", "TXA"];
+/** Drugs with push/inject syringe actions in ACM. Dimercaprol comes in a (hidden) ampule; only IM works (no Dimercaprol_IV class). */
+export const SYRINGE_DRUGS = ["Adenosine", "Amiodarone", "Atropine", "CalciumChloride", "Dimercaprol", "Epinephrine", "Ertapenem", "Esmolol", "Fentanyl", "Ketamine", "Lidocaine", "Morphine", "Ondansetron", "TXA"];
 export const DRUG_NAME = { CalciumChloride: "Calcium Chloride" };
 export const drugName = (d) => DRUG_NAME[d] || d;
-export const vialItem = (d) => `ACM_Vial_${d}`;
+export const vialItem = (d) => (d === "Dimercaprol" ? "ACM_Ampule_Dimercaprol" : `ACM_Vial_${d}`);
 
 /** Dose text as ACM writes it on the log and triage card. */
 export function doseText(drug, ml) {
