@@ -7,11 +7,11 @@ import { isBodyPartBleeding, bandageTime } from "./wounds.js";
 const SITES = ["upper", "middle", "lower"];
 import { checkAirway, headTurn, suctionTime, suction, setRecoveryPosition, insertAirwayItem, removeAirwayItem } from "./airway.js";
 import { checkBreathing, inspectChest, applyChestSeal, performNCD } from "./breathing.js";
-import { capillaryRefill, checkResponse, checkDogTag } from "./exams.js";
+import { capillaryRefill, checkResponse, checkDogTag, shakeAwake, slapAwake } from "./exams.js";
 import { addMedication } from "./pharmacology.js";
 import { insertIV, removeIV, insertIO, removeIO, inspectIV, attachCuff, removeCuff, canInsertIV, bagInfo, bagName } from "./circulation.js";
 import { thoracostomy, insertChestTube, drainChest, closeIncision } from "./breathing.js";
-import { wrap, stitch } from "./wounds.js";
+import { wrap, stitch, canWrapBruises, wrapBruises, bruiseWrapTime } from "./wounds.js";
 import { SYRINGE_SIZES, SYRINGE_DRUGS, vialItem, drugName, injectSyringe } from "./syringes.js";
 import { canEstablish, canSecure, canStitchIncision, secureStrap, stitchIncision, stitchIncisionTime, startProcedure } from "./surgicalAirway.js";
 import { inspectForFracture, canInspect, canRealign, realign, canSplint, applySplint, canWrapSplint, wrapSplint, canRemoveSplint, removeSplint } from "./disability.js";
@@ -99,6 +99,12 @@ const DEFS = {
     // ------------------------------------------------------------------ medication (autoinjectors and simple drugs)
     morphine: { show: () => true, run: (c, part) => med(c, part, "Morphine", 5, "Morphine Autoinjector") },
     epinephrine: { show: () => true, run: (c, part) => med(c, part, "Epinephrine", 0.3, "Epinephrine Autoinjector") },
+    adenosine: { show: () => true, run: (c, part) => med(c, part, "Adenosine", 1, "Adenosine Autoinjector") },
+    // Nasal spray and inhalant: their effects are the Naloxone and AmmoniaInhalant handlers in pharmacology.js
+    naloxone: { show: (c) => !c.sim.p.bvm, run: (c) => med(c, "head", "Naloxone", 1, "Naloxone Spray") },
+    ammoniainhalant: { show: (c) => !c.sim.p.bvm, run: (c) => med(c, "head", "AmmoniaInhalant", 1, "Ammonia Inhalant") },
+    shakeawake: { show: (c) => notAwake(c.sim.p), run: (c) => ({ hint: shakeAwake(c.sim).hint, log: `${c.name} shook the patient` }) },
+    slapawake: { show: (c) => notAwake(c.sim.p) && !c.sim.p.bvm, run: (c) => ({ hint: slapAwake(c.sim).hint, log: `${c.name} slapped the patient` }) },
     fentanyllozenge: {
         show: (c) => awake(c.sim.p) && !c.sim.p.lozenge && c.sim.p.lying && !c.sim.p.bvm,
         run: (c) => { const r = giveLozenge(c.sim); return { hint: r.hint, log: r.ok ? `${c.name} gave Fentanyl Lozenge` : undefined }; },
@@ -153,6 +159,12 @@ const DEFS = {
         continuous: "bvm",
         show: (c) => (notAwake(c.sim.p) || c.sim.p.lying) && !c.sim.p.bvm,
         run: (c) => { c.sim.act("bvmStart", {}); return { log: `${c.name} started using BVM` }; },
+    },
+
+    usebvm_portableoxygen: {
+        continuous: "bvm",
+        show: (c) => (notAwake(c.sim.p) || c.sim.p.lying) && !c.sim.p.bvm && (c.inventory.ACM_OxygenTank_425 || 0) > 0,
+        run: (c) => { c.sim.act("bvmStart", { oxygen: true }); return { log: `${c.name} started using BVM with oxygen` }; },
     },
 
     // ------------------------------------------------------------------ advanced
@@ -238,6 +250,11 @@ const DEFS = {
     applysamsplint: { show: (c, part) => canSplint(c.sim.p, part), run: (c, part) => { applySplint(c.sim, part); return { log: `${c.name} applied SAM Splint` }; } },
     elasticwrapsplint: { show: (c, part) => canWrapSplint(c.sim.p, part), time: (c) => c.sim.setting("ACM_disability_treatmentTimeWrapSplint"), run: (c, part) => { wrapSplint(c.sim, part); return { log: `${c.name} wrapped SAM Splint` }; } },
     removesamsplint: { show: (c, part) => canRemoveSplint(c.sim.p, part), returnsItem: "ACM_SAMSplint", run: (c, part) => { removeSplint(c.sim, PART_INDEX[part], true); return { log: `${c.name} removed SAM Splint` }; } },
+    elasticwrap: {
+        show: (c, part) => canWrapBruises(c.sim.p, part),
+        time: (c, part) => bruiseWrapTime(c.sim.p, part, c.level),
+        run: (c, part) => { wrapBruises(c.sim, part); return { log: `${c.name} has wrapped bruises` }; },
+    },
     elasticwrapbandages: wrapDef(false), elasticwrapclots: wrapDef(true),
     surgicalkit: stitchDef("bandaged", 5), stitchclottedwounds: stitchDef("clotted", 5), stitchwrappedwounds: stitchDef("wrapped", 2),
 };

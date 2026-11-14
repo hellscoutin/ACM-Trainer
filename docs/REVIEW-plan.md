@@ -15,11 +15,18 @@ A review of the web trainer against the ACM 1.4.8 and ACE source and artwork, wi
 
 | Phase | State |
 |---|---|
-| 1. Small fixes (B1, B2, B3, B5) | built 2026-11-14 |
+| 1. Small fixes (B1, B2, B3, B5) | built 2026-11-14; B4 left (no sitting posture) |
 | 2. Patient model | built 2026-11-14 (`app/js/body.js`, `app/assets/ace/body`, `app/assets/acm/body`); checked against an in-game screenshot of an uninjured casualty and by eye with devices attached |
 | 3. Menu chrome | not started; the layout decision is open |
-| 4. Missing actions | not started |
+| 4. Missing actions | built 2026-11-14, see "Phase 4 as built" below; tests in `tests/step11.test.js` |
 | 5. Proof against the game | not started |
+
+**Phase 4 as built.** Added: Attempt To Shake Awake, Attempt To Slap Awake, Use Ammonia Inhalant, Use Naloxone Spray, Use Adenosine Autoinjector, Wrap Bruises, Use BVM with Oxygen (Portable). Notes:
+- The drug effects of naloxone and ammonia, and oxygen through the BVM, were already in the engine; only the menu actions were missing.
+- Slap Awake's 1-in-5 head injury is added as a minor bruise of 0.051 damage (ACM's "slap" damage type makes a contusion).
+- An ammonia inhalant pack holds 8 uses in game; in the trainer one inventory item is one use.
+- Not added: BVM with vehicle or facility oxygen (the trainer has no vehicles or facilities), the three suture variants (only offered when ACE's surgical kit setting consumes sutures, off by default), and the oxygen tank's contents running down.
+- Still to do: no built-in scenario carries these items yet, the guidance rules and rubrics don't mention them, and the triage card and status are part of phase 3.
 
 The in-game screenshot settled the palette question in 3.1: an unhurt part is drawn white, so step 0 of both palettes is white in the trainer.
 

@@ -71,8 +71,8 @@ App: `app/js/windows-cric.js` (surgical airway window on ACM's art: tool tray, r
 
 ## Not ported yet (next modules)
 2. Nausea medication effects on vomiting (getNauseaMedicationEffects is taken as 0).
-3. Ketamine screen effect, fresh whole blood, BVM oxygen sources.
-5. Fresh whole blood (FBTK); BVM with oxygen sources; CBRN detectors and vehicles (world-side). (Trauma death and arrest thresholds are in `sim.criticalHit`.)
+3. Ketamine screen effect, fresh whole blood, BVM with vehicle or facility oxygen (portable oxygen is in).
+5. Fresh whole blood (FBTK); CBRN detectors and vehicles (world-side). (Trauma death and arrest thresholds are in `sim.criticalHit`.)
 6. Simplifications to revisit: `bandage()` spreads one bandage's effectiveness by bleeding (approximates ACE findMostEffectiveWounds); clot re-opening uses only the "unstable" delay; scenarios with `type` wounds skip the damage-type multipliers (use `mechanism` for the in-game roll).
 
 ## Next build step

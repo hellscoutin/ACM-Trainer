@@ -282,3 +282,30 @@ export function ibCoagulationStep(sim) {
     }
     return any;
 }
+
+// ------------------------------------------------------------------ bruises (ACM_damage wrapBruisesLocal, getBruiseWrapTime, canWrap type 2)
+const BRUISE_SEVERITY = [1, 2, 4]; // small, medium, large: wrap needed per bruise
+const bruises = (p, part) => p.openWounds[part].filter((w) => w.type === "Contusion" && w.count > 0);
+export const canWrapBruises = (p, part) => !isBodyPartBleeding(p, part) && bruises(p, part).length > 0;
+/** One elastic wrap treats 8 units of bruising, largest bruises first; treated bruises give their trauma back. */
+export function wrapBruises(sim, part, remaining = 8) {
+    const { p } = sim;
+    const list = p.openWounds[part];
+    while (remaining > 0) {
+        let best = null;
+        for (const w of bruises(p, part)) if (remaining >= BRUISE_SEVERITY[w.size] && (!best || w.size > best.size)) best = w;
+        if (!best) return;
+        const severity = BRUISE_SEVERITY[best.size];
+        const left = best.count - remaining / severity;
+        const treated = best.count - Math.max(left, 0);
+        if (left > 0) { remaining = 0; best.count = left; best.bleeding = 0; } else { remaining -= best.count * severity; list.splice(list.indexOf(best), 1); }
+        const i = PART_INDEX[part];
+        p.bodyPartDamage[i] = Math.max(0, p.bodyPartDamage[i] - best.damage * treated); // ACE addTrauma
+    }
+}
+/** getBruiseWrapTime: 1 s per unit of bruising (the count stops once 8 is reached, capped at 12), medic -2, at least 3 s. */
+export function bruiseWrapTime(p, part, medicLevel) {
+    let units = 0;
+    for (const w of bruises(p, part)) { if (units >= 8) break; units += w.count * BRUISE_SEVERITY[w.size]; }
+    return Math.max(3, Math.min(units, 12) + (medicLevel >= 1 ? -2 : 0));
+}

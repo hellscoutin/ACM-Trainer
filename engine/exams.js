@@ -2,6 +2,7 @@
 // (advancedDiagnose default 2); breathing/getSpO2 and handlePulseOximeter; dog tag text.
 import { lin, PART_INDEX } from "./util.js";
 import { hasPulse } from "./vitals.js";
+import { addWound } from "./wounds.js";
 
 const PULSE_SITE = { head: "carotid", leftarm: "radial", rightarm: "radial", leftleg: "femoral", rightleg: "femoral" };
 const PULSE_CUTOFF = [60, 0, 80, 80, 70, 70];
@@ -83,4 +84,30 @@ export function updatePulseOximeters(sim) {
             p.pulseOxDisplay[side] = [Math.round(sp), Math.round(pr)];
         } else p.pulseOxDisplay[side] = [0, 0];
     }
+}
+
+// ------------------------------------------------------------------ waking a casualty (ACM_disability shakeAwakeLocal, slapAwakeLocal)
+const linClamp = (a, b, v, x, y) => x + (y - x) * Math.max(0, Math.min(1, (v - a) / (b - a)));
+const FAILED = "Patient is still asleep", WOKE = "Patient has woken up";
+// isForcedUnconscious is modelled as the surgical airway, as in the ammonia inhalant handler
+const canWake = (sim) => sim.hasStableVitals() && !sim.p.surgicalAirway;
+/** Shake: only with stable vitals; the chance rises from 30 % at SpO2 90 to 70 % at 99. Clears the knock-out state on success. */
+export function shakeAwake(sim) {
+    const { p, rng } = sim;
+    const hint = ["You attempt to shake the patient awake", FAILED];
+    if (!p.unconscious) return { hint: [] };
+    if (!canWake(sim)) return { hint };
+    if (rng.random(1) < linClamp(90, 99, p.spo2, 0.3, 0.7)) { p.knockOut = false; sim.wakeUp(); hint[1] = WOKE; }
+    return { hint, woke: hint[1] === WOKE };
+}
+/** Slap: always clears the knock-out state; 1 in 5 bruises the head; the chance rises from 5 % at SpO2 80 to 40 % at 99. */
+export function slapAwake(sim) {
+    const { p, rng } = sim;
+    const hint = ["You attempt to slap the patient awake", FAILED];
+    p.knockOut = false;
+    if (rng.random(1) < 0.2) addWound(sim, "head", "Contusion", 0.051); // damage type "slap": a minor bruise
+    if (!p.unconscious) return { hint: [] };
+    if (!canWake(sim)) return { hint };
+    if (rng.random(1) < linClamp(80, 99, p.spo2, 0.05, 0.4)) { sim.wakeUp(); hint[1] = WOKE; }
+    return { hint, woke: hint[1] === WOKE };
 }
