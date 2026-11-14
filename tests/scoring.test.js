@@ -120,3 +120,18 @@ test("CM-3 tension: seal early passes with decompression not applicable; NCD wit
     r = s.score();
     assert.ok(failedIds(r).includes("no-ncd"));
 });
+
+test("requires: checks for injuries a variation does not have are not applicable; a fracture left unsplinted fails", () => {
+    const scn = read("../scenarios/cm7-ied-blast.json");
+    const run = (seed) => {
+        const s = createSession(scn, data, meds, { seed, rubric: read(`../${scn.rubric}`) });
+        s.tick(5); s.act("applytourniquet", "rightleg"); s.until(120);
+        return Object.fromEntries(s.score().results.map((r) => [r.check.id, r.status]));
+    };
+    const variation = run(522613089);
+    assert.equal(variation.seal, "na");
+    assert.equal(variation.splint, "na");
+    const designed = run(14);
+    assert.equal(designed.seal, "fail");
+    assert.equal(designed.splint, "fail");
+});

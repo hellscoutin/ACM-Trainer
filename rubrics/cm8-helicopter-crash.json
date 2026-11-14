@@ -18,6 +18,21 @@
   },
   {
    "id": "inspect",
+   "requires": {
+    "any": [
+     {
+      "field": "fracture_leftleg",
+      "op": "==",
+      "value": 1
+     },
+     {
+      "field": "fracture_rightleg",
+      "op": "==",
+      "value": 1
+     }
+    ]
+   },
+   "requiresText": "No leg fracture in this variation",
    "text": "Legs inspected for fracture",
    "type": "action-done",
    "actions": [
@@ -29,6 +44,12 @@
   },
   {
    "id": "splint-l",
+   "requires": {
+    "field": "fracture_leftleg",
+    "op": "==",
+    "value": 1
+   },
+   "requiresText": "No fracture of that limb in this variation",
    "text": "Left leg realigned and splinted",
    "type": "action-order",
    "first": [
@@ -46,6 +67,12 @@
   },
   {
    "id": "splint-r",
+   "requires": {
+    "field": "fracture_rightleg",
+    "op": "==",
+    "value": 1
+   },
+   "requiresText": "No fracture of that limb in this variation",
    "text": "Right leg splinted",
    "type": "action-done",
    "actions": [
@@ -60,6 +87,13 @@
   },
   {
    "id": "txa",
+   "requires": {
+    "field": "internalBleeding",
+    "op": ">",
+    "value": 0
+   },
+   "requiresFor": 60,
+   "requiresText": "No significant internal bleeding (under 60 s)",
    "text": "TXA IV within 5 minutes",
    "type": "action-within",
    "actions": [

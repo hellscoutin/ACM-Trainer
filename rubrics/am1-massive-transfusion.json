@@ -19,6 +19,13 @@
   },
   {
    "id": "txa",
+   "requires": {
+    "field": "internalBleeding",
+    "op": ">",
+    "value": 0
+   },
+   "requiresFor": 60,
+   "requiresText": "No significant internal bleeding (under 60 s)",
    "text": "TXA IV within 5 minutes",
    "type": "action-within",
    "actions": [

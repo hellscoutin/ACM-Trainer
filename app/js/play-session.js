@@ -18,12 +18,14 @@ export async function joinSession(code) {
     if (!r.exists()) { location.href = `join.html?code=${code}`; throw new Error("Not joined"); }
     const run = r.data();
     const round = session.round || 1;
-    const seed = session.sameSeed ? session.seed : hashSeed(`${user.uid}:${round}:${session.seed}`);
     const sc = session.scenario || {};
     let scn;
+    if (sc.custom) scn = sc.custom;
+    else if (!sc.random) scn = await fetch(`../scenarios/${encodeURIComponent(sc.id)}.json`).then((x) => x.json());
+    // same patient: the scenario's designed seed (the casualty its briefing and rubric describe); otherwise a variation each
+    const base = session.seed ?? scn?.seed ?? 1;
+    const seed = session.sameSeed ? base : hashSeed(`${user.uid}:${round}:${base}`);
     if (sc.random) scn = randomScenario({ ...sc.random, seed });
-    else if (sc.custom) scn = sc.custom;
-    else scn = await fetch(`../scenarios/${encodeURIComponent(sc.id)}.json`).then((x) => x.json());
     return { code, user, session, run, round, scn, seed, sref, rref, attach: (api) => attach({ code, user, session, run, round, scn, seed, sref, rref }, api) };
 }
 
@@ -99,7 +101,7 @@ function attach(ctx, api) {
         lastKey = key;
         const actions = (sim.menuLog || []).filter((e) => e.ok).map((e) => ({ t: e.t, id: e.id, part: e.part || null }));
         try {
-            await setDoc(rref, { ...snapshot(sim, { status, current, hints: state.hints, actions, recorder: api.recorder }), paused: localPause, round, scenarioId: scn.id, title: scn.title, module: scn.module || "", seed, name: run.name }, { merge: true });
+            await setDoc(rref, { ...snapshot(sim, { status, current, hints: state.hints, actions, recorder: api.recorder }), paused: localPause, round, scenarioId: scn.id, title: scn.title, module: scn.module || "", role: scn.role || "", seed, name: run.name }, { merge: true });
         } catch { /* offline or closed: the next publish retries */ }
     };
     setInterval(publish, 2000);

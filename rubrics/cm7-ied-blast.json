@@ -34,6 +34,12 @@
   },
   {
    "id": "seal",
+   "requires": {
+    "field": "chestInjury",
+    "op": "==",
+    "value": true
+   },
+   "requiresText": "No chest injury in this variation",
    "text": "Chest wound sealed",
    "type": "action-done",
    "actions": [
@@ -45,6 +51,13 @@
   },
   {
    "id": "txa",
+   "requires": {
+    "field": "internalBleeding",
+    "op": ">",
+    "value": 0
+   },
+   "requiresFor": 60,
+   "requiresText": "No significant internal bleeding (under 60 s)",
    "text": "TXA IV given",
    "type": "action-done",
    "actions": [
@@ -59,6 +72,12 @@
   },
   {
    "id": "blood",
+   "requires": {
+    "field": "bloodVolume",
+    "op": "<",
+    "value": 5.1
+   },
+   "requiresText": "Blood volume never fell below 5.1 L",
    "text": "Compatible blood started",
    "type": "event-within",
    "event": "bagAdded",
@@ -73,6 +92,12 @@
   },
   {
    "id": "splint",
+   "requires": {
+    "field": "fracture_leftleg",
+    "op": "==",
+    "value": 1
+   },
+   "requiresText": "No fracture of that limb in this variation",
    "text": "Fractured leg realigned before splinting",
    "type": "action-order",
    "first": [

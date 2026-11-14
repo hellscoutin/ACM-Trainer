@@ -15,7 +15,7 @@ export function keyState(sim) {
         t: p.t, alive: p.alive, unconscious: p.unconscious, cardiacArrest: p.cardiacArrest, rhythm: p.rhythm,
         bloodVolume: p.bloodVolume, spo2: p.spo2, hr: p.hr, rr: p.rr, systolic: p.bp[1], map: p.bp[0] + (p.bp[1] - p.bp[0]) / 3,
         woundBleeding: p.woundBleeding, internalBleeding: p.internalBleeding, pain: Math.max(0, p.pain - p.painSuppress),
-        ptx: p.ptx, tensionPtx: p.tensionPtx, htxFluid: p.htxFluid, htxState: p.htxState || 0, chestSeal: p.chestSeal,
+        ptx: p.ptx, tensionPtx: p.tensionPtx, chestInjury: !!p.chestInjury, htxFluid: p.htxFluid, htxState: p.htxState || 0, chestSeal: p.chestSeal,
         airwayBlocked: p.alive && p.unconscious && airwayState(p) === 0, obstructed: p.obstructionVomit + p.obstructionBlood > 0,
         recoveryPosition: p.recoveryPosition, cpr: p.cpr, bvm: p.bvm,
         platelets: p.platelets, overload: p.overload, transfused: p.transfused, calcium: p.calcium, hemolytic: (p.reactionSeverity || 0) > 0,
@@ -78,8 +78,18 @@ const fmt = (t) => `${String(Math.floor(t / 60)).padStart(2, "0")}:${String(Math
  *   state-within        predicate `state` becomes true within `within` s of `from` (na if `from` never happens)
  *   state-duration-max  predicate `state` true for at most `max` s in total
  *   end-state           predicate `state` true at the end
+ * Any check may add `requires` (predicate on the history) and `requiresFor` (seconds): not applicable unless that held.
  */
-export function evaluateCheck(check, { log, events, history, end }) {
+export function evaluateCheck(check, ctx) {
+    // `requires`: the check only applies if the patient actually had this condition (for at least `requiresFor` s).
+    // Variations (other seeds, random patients, instructor sessions) may not have every injury the scenario was written for.
+    if (check.requires) {
+        const n = ctx.history.filter((s) => test(check.requires, s)).length;
+        if (n < (check.requiresFor ?? 1)) return { status: "na", detail: check.requiresText || "The patient did not have this problem" };
+    }
+    return evaluateCheckInner(check, ctx);
+}
+function evaluateCheckInner(check, { log, events, history, end }) {
     switch (check.type) {
         case "action-within": {
             const t0 = anchor(check.from, events);
@@ -105,7 +115,8 @@ export function evaluateCheck(check, { log, events, history, end }) {
             const inPart = (e) => !parts || parts.includes(e.part);
             const first = log.find((e) => e.ok && check.first.includes(e.id) && inPart(e));
             const then = log.find((e) => e.ok && check.then.includes(e.id) && inPart(e));
-            if (!then) return first ? { status: "pass", detail: `Done at ${fmt(first.t)}` } : { status: "na", detail: "Not applicable" };
+            // with `requires` met (the problem existed), doing neither step is a fail, not "not applicable"
+            if (!then) return first ? { status: "pass", detail: `Done at ${fmt(first.t)}` } : check.requires ? { status: "fail", detail: "Not done" } : { status: "na", detail: "Not applicable" };
             if (first && first.t <= then.t) return { status: "pass", detail: `${fmt(first.t)} before ${fmt(then.t)}` };
             return { status: "fail", detail: first ? `${fmt(then.t)} came before ${fmt(first.t)}` : `Only the later step was done (${fmt(then.t)})` };
         }

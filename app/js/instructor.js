@@ -78,7 +78,7 @@ async function setup() {
             for (let i = 0; i < 5; i++) { code = newCode(); if (!(await getDoc(doc(db, "sessions", code))).exists()) break; }
             await setDoc(doc(db, "sessions", code), {
                 code, instructor: user.uid, instructorName: displayName(user), createdAt: serverTimestamp(), status: "open", phase: "lobby",
-                paused: false, speed: 1, round: 1, scenario: scenarioSpec($("scenario").value), seed: Math.floor(Math.random() * 1e9),
+                paused: false, speed: 1, round: 1, scenario: scenarioSpec($("scenario").value), seed: $("scenario").value === "random" ? Math.floor(Math.random() * 1e9) : null,
                 sameSeed: $("sameSeed").value === "1", hints: Number($("hints").value), timeControl: $("timeControl").value,
             });
             location.href = `instructor.html?code=${code}`;
@@ -140,7 +140,7 @@ function newRound() {
     document.body.append(dlg);
     cancel.addEventListener("click", () => dlg.remove());
     go.addEventListener("click", async () => {
-        await updateDoc(sessionRef, { scenario: scenarioSpec(sel.value), round: (session.round || 1) + 1, phase: "lobby", paused: false, seed: Math.floor(Math.random() * 1e9) });
+        await updateDoc(sessionRef, { scenario: scenarioSpec(sel.value), round: (session.round || 1) + 1, phase: "lobby", paused: false, seed: sel.value === "random" ? Math.floor(Math.random() * 1e9) : null });
         dlg.remove();
     });
 }
@@ -219,7 +219,7 @@ function setupDetailControls() {
 
 function exportCSV() {
     const rows = [...runs.values()].filter((r) => r.result).map((r) => ({
-        date: new Date().toISOString(), scenario: r.scenarioId, module: r.module, title: r.title, role: "", seed: r.seed, result: r.result.result, score: r.result.score,
+        date: new Date().toISOString(), scenario: r.scenarioId, module: r.module, title: r.title, role: r.role || "", seed: r.seed, result: r.result.result, score: r.result.score,
         outcome: r.result.outcome, duration: r.result.duration, criticalFails: r.result.criticalFails || [], failedChecks: r.result.failedChecks || [], hints: r.result.hints, trainee: r.name, round: r.round,
     }));
     download(`acm-trainer-session-${session.code}.csv`, recordsToCSV(rows, ["trainee", "round", ...RECORD_COLUMNS]), "text/csv");

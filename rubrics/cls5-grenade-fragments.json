@@ -19,6 +19,12 @@
   },
   {
    "id": "splint",
+   "requires": {
+    "field": "fracture_leftarm",
+    "op": "==",
+    "value": 1
+   },
+   "requiresText": "No fracture of that limb in this variation",
    "text": "Fractured arm splinted",
    "type": "action-done",
    "actions": [
