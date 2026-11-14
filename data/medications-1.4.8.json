@@ -1,0 +1,1287 @@
+{
+ "_source": "ACM 1.4.8 ACM_core config.cpp class ACM_Medication (inheritance resolved by tools/extract_medications.py)",
+ "routes": {
+  "0": "IM",
+  "1": "IV",
+  "2": "PO",
+  "3": "INHALE"
+ },
+ "order": [
+  "Paracetamol",
+  "AmmoniaInhalant",
+  "Penthrox",
+  "Naloxone",
+  "Epinephrine_IV",
+  "Adenosine_IV",
+  "Morphine_IV",
+  "Amiodarone_IV",
+  "Atropine_IV",
+  "Atropine_IV_L",
+  "Lidocaine_IV",
+  "TXA_IV",
+  "Ketamine_IV",
+  "Fentanyl_IV",
+  "Ondansetron_IV",
+  "CalciumChloride_IV",
+  "Ertapenem_IV",
+  "Esmolol_IV",
+  "Morphine",
+  "Epinephrine",
+  "Adenosine",
+  "Amiodarone",
+  "Atropine",
+  "Atropine_L",
+  "Lidocaine",
+  "Ketamine",
+  "Fentanyl",
+  "Ondansetron",
+  "Ertapenem",
+  "Midazolam",
+  "Dimercaprol",
+  "ACM_BUC_Medication",
+  "Fentanyl_BUC"
+ ],
+ "medications": {
+  "Paracetamol": {
+   "maxDoseDeviation": 0,
+   "hrIncrease": [
+    0,
+    0
+   ],
+   "administrationType": 2,
+   "medicationType": "Default",
+   "rrAdjust": [
+    0,
+    0
+   ],
+   "coSensitivityAdjust": [
+    0,
+    0
+   ],
+   "breathingEffectivenessAdjust": [
+    0,
+    0
+   ],
+   "maxEffectTime": 900,
+   "onOverDose": "",
+   "minEffectDose": 1,
+   "maxEffectDose": 1,
+   "weightEffect": 1,
+   "absorptionEffect": 0,
+   "minPainReduce": 0.35,
+   "maxPainReduce": 0.45,
+   "painReduce": 0.35,
+   "timeInSystem": 3000,
+   "timeTillMaxEffect": 240,
+   "maxDose": 0,
+   "incompatibleMedication": [],
+   "viscosityChange": 0
+  },
+  "AmmoniaInhalant": {
+   "maxDoseDeviation": 0,
+   "hrIncrease": [
+    5,
+    25
+   ],
+   "administrationType": 3,
+   "medicationType": "Default",
+   "rrAdjust": [
+    3,
+    3
+   ],
+   "coSensitivityAdjust": [
+    0,
+    0
+   ],
+   "breathingEffectivenessAdjust": [
+    0,
+    0
+   ],
+   "maxEffectTime": 6,
+   "onOverDose": "",
+   "minEffectDose": 1,
+   "maxEffectDose": 1,
+   "weightEffect": 0,
+   "absorptionEffect": 0,
+   "minPainReduce": 0,
+   "maxPainReduce": 1,
+   "painReduce": 0,
+   "timeInSystem": 40,
+   "timeTillMaxEffect": 3,
+   "maxDose": 0,
+   "incompatibleMedication": [],
+   "viscosityChange": 0,
+   "maxHRIncrease": 25,
+   "maxRRAdjust": 4
+  },
+  "Penthrox": {
+   "maxDoseDeviation": 1,
+   "hrIncrease": [
+    -0.1,
+    -0.5
+   ],
+   "administrationType": 3,
+   "medicationType": "Default",
+   "rrAdjust": [
+    0,
+    0
+   ],
+   "coSensitivityAdjust": [
+    0,
+    0
+   ],
+   "breathingEffectivenessAdjust": [
+    -0.001,
+    -0.01
+   ],
+   "maxEffectTime": 90,
+   "onOverDose": "",
+   "minEffectDose": 1,
+   "maxEffectDose": 1,
+   "weightEffect": 0,
+   "absorptionEffect": 0,
+   "minPainReduce": 0.5,
+   "maxPainReduce": 0.7,
+   "painReduce": 0.5,
+   "timeInSystem": 240,
+   "timeTillMaxEffect": 3,
+   "maxDose": 5,
+   "incompatibleMedication": [],
+   "viscosityChange": 0
+  },
+  "Naloxone": {
+   "maxDoseDeviation": 0,
+   "hrIncrease": [
+    0,
+    0
+   ],
+   "administrationType": 3,
+   "medicationType": "Default",
+   "rrAdjust": [
+    0,
+    0
+   ],
+   "coSensitivityAdjust": [
+    0,
+    0
+   ],
+   "breathingEffectivenessAdjust": [
+    0,
+    0
+   ],
+   "maxEffectTime": 120,
+   "onOverDose": "",
+   "minEffectDose": 1,
+   "maxEffectDose": 1,
+   "weightEffect": 0,
+   "absorptionEffect": 0,
+   "minPainReduce": 0,
+   "maxPainReduce": 1,
+   "painReduce": 0,
+   "timeInSystem": 360,
+   "timeTillMaxEffect": 3,
+   "maxDose": 0,
+   "incompatibleMedication": [],
+   "viscosityChange": 0
+  },
+  "Epinephrine_IV": {
+   "maxDoseDeviation": 0,
+   "hrIncrease": [
+    10,
+    20
+   ],
+   "administrationType": 1,
+   "medicationType": "Epinephrine",
+   "rrAdjust": [
+    2,
+    8
+   ],
+   "coSensitivityAdjust": [
+    0,
+    0
+   ],
+   "breathingEffectivenessAdjust": [
+    0.01,
+    0.04
+   ],
+   "maxEffectTime": 180,
+   "onOverDose": "",
+   "minEffectDose": 1,
+   "maxEffectDose": 1,
+   "weightEffect": 0,
+   "absorptionEffect": 0,
+   "minPainReduce": 0,
+   "maxPainReduce": 1,
+   "painReduce": 0,
+   "timeInSystem": 300,
+   "timeTillMaxEffect": 5,
+   "maxDose": 0,
+   "incompatibleMedication": [],
+   "viscosityChange": 5,
+   "unstableDose": 4
+  },
+  "Adenosine_IV": {
+   "maxDoseDeviation": 0,
+   "hrIncrease": [
+    -5,
+    -24
+   ],
+   "administrationType": 1,
+   "medicationType": "Default",
+   "rrAdjust": [
+    0,
+    0
+   ],
+   "coSensitivityAdjust": [
+    0,
+    0
+   ],
+   "breathingEffectivenessAdjust": [
+    0,
+    0
+   ],
+   "maxEffectTime": 25,
+   "onOverDose": "",
+   "minEffectDose": 1,
+   "maxEffectDose": 6,
+   "weightEffect": 0,
+   "absorptionEffect": 0,
+   "minPainReduce": 0,
+   "maxPainReduce": 1,
+   "painReduce": 0,
+   "timeInSystem": 100,
+   "timeTillMaxEffect": 60,
+   "maxDose": 0,
+   "incompatibleMedication": [],
+   "viscosityChange": 0,
+   "unstableDose": 2
+  },
+  "Morphine_IV": {
+   "maxDoseDeviation": 3,
+   "hrIncrease": [
+    -4,
+    -10
+   ],
+   "administrationType": 1,
+   "medicationType": "Opioid",
+   "rrAdjust": [
+    0,
+    0
+   ],
+   "coSensitivityAdjust": [
+    -0.04,
+    -0.08
+   ],
+   "breathingEffectivenessAdjust": [
+    0,
+    0
+   ],
+   "maxEffectTime": 900,
+   "onOverDose": "",
+   "minEffectDose": 4.15,
+   "maxEffectDose": 8.3,
+   "weightEffect": 2,
+   "absorptionEffect": 0,
+   "minPainReduce": 0.6,
+   "maxPainReduce": 1,
+   "painReduce": 0.85,
+   "timeInSystem": 1300,
+   "timeTillMaxEffect": 25,
+   "maxDose": 12,
+   "incompatibleMedication": [],
+   "viscosityChange": 10,
+   "unstableDose": 10
+  },
+  "Amiodarone_IV": {
+   "maxDoseDeviation": 200,
+   "hrIncrease": [
+    -5,
+    -10
+   ],
+   "administrationType": 1,
+   "medicationType": "Amiodarone",
+   "rrAdjust": [
+    0,
+    0
+   ],
+   "coSensitivityAdjust": [
+    0,
+    0
+   ],
+   "breathingEffectivenessAdjust": [
+    0,
+    0
+   ],
+   "maxEffectTime": 480,
+   "onOverDose": "",
+   "minEffectDose": 1,
+   "maxEffectDose": 150,
+   "weightEffect": 0,
+   "absorptionEffect": 0,
+   "minPainReduce": 0,
+   "maxPainReduce": 1,
+   "painReduce": 0,
+   "timeInSystem": 720,
+   "timeTillMaxEffect": 10,
+   "maxDose": 2200,
+   "incompatibleMedication": [],
+   "viscosityChange": 0,
+   "unstableDose": 900
+  },
+  "Atropine_IV": {
+   "maxDoseDeviation": 2,
+   "hrIncrease": [
+    10,
+    30
+   ],
+   "administrationType": 1,
+   "medicationType": "Atropine",
+   "rrAdjust": [
+    2,
+    8
+   ],
+   "coSensitivityAdjust": [
+    0,
+    0
+   ],
+   "breathingEffectivenessAdjust": [
+    0.01,
+    0.04
+   ],
+   "maxEffectTime": 600,
+   "onOverDose": "",
+   "minEffectDose": 1,
+   "maxEffectDose": 1,
+   "weightEffect": 0,
+   "absorptionEffect": 0,
+   "minPainReduce": 0,
+   "maxPainReduce": 1,
+   "painReduce": 0,
+   "timeInSystem": 900,
+   "timeTillMaxEffect": 5,
+   "maxDose": 20,
+   "incompatibleMedication": [],
+   "viscosityChange": 0,
+   "unstableDose": 10
+  },
+  "Atropine_IV_L": {
+   "maxDoseDeviation": 2,
+   "hrIncrease": [
+    -18,
+    0
+   ],
+   "administrationType": 1,
+   "medicationType": "Atropine",
+   "rrAdjust": [
+    2,
+    8
+   ],
+   "coSensitivityAdjust": [
+    0,
+    0
+   ],
+   "breathingEffectivenessAdjust": [
+    0.01,
+    0.04
+   ],
+   "maxEffectTime": 600,
+   "onOverDose": "",
+   "minEffectDose": 1,
+   "maxEffectDose": 1,
+   "weightEffect": 0,
+   "absorptionEffect": 0,
+   "minPainReduce": 0,
+   "maxPainReduce": 1,
+   "painReduce": 0,
+   "timeInSystem": 900,
+   "timeTillMaxEffect": 5,
+   "maxDose": 20,
+   "incompatibleMedication": [],
+   "viscosityChange": 0,
+   "unstableDose": 10
+  },
+  "Lidocaine_IV": {
+   "maxDoseDeviation": 50,
+   "hrIncrease": [
+    -2,
+    -10
+   ],
+   "administrationType": 1,
+   "medicationType": "Lidocaine_IV",
+   "rrAdjust": [
+    0,
+    0
+   ],
+   "coSensitivityAdjust": [
+    0,
+    0
+   ],
+   "breathingEffectivenessAdjust": [
+    0,
+    0
+   ],
+   "maxEffectTime": 360,
+   "onOverDose": "",
+   "minEffectDose": 1,
+   "maxEffectDose": 83,
+   "weightEffect": 1,
+   "absorptionEffect": 0,
+   "minPainReduce": 0,
+   "maxPainReduce": 1,
+   "painReduce": 0,
+   "timeInSystem": 600,
+   "timeTillMaxEffect": 5,
+   "maxDose": 270,
+   "incompatibleMedication": [],
+   "viscosityChange": 0,
+   "unstableDose": 240
+  },
+  "TXA_IV": {
+   "maxDoseDeviation": 0,
+   "hrIncrease": [
+    0,
+    0
+   ],
+   "administrationType": 1,
+   "medicationType": "TXA",
+   "rrAdjust": [
+    0,
+    0
+   ],
+   "coSensitivityAdjust": [
+    0,
+    0
+   ],
+   "breathingEffectivenessAdjust": [
+    0,
+    0
+   ],
+   "maxEffectTime": 600,
+   "onOverDose": "",
+   "minEffectDose": 1,
+   "maxEffectDose": 1000,
+   "weightEffect": 0,
+   "absorptionEffect": 0,
+   "minPainReduce": 0,
+   "maxPainReduce": 1,
+   "painReduce": 0,
+   "timeInSystem": 900,
+   "timeTillMaxEffect": 15,
+   "maxDose": 0,
+   "incompatibleMedication": [],
+   "viscosityChange": -10
+  },
+  "Ketamine_IV": {
+   "maxDoseDeviation": 50,
+   "hrIncrease": [
+    -0.1,
+    -0.5
+   ],
+   "administrationType": 1,
+   "medicationType": "Ketamine",
+   "rrAdjust": [
+    0,
+    0
+   ],
+   "coSensitivityAdjust": [
+    0,
+    0
+   ],
+   "breathingEffectivenessAdjust": [
+    0,
+    0
+   ],
+   "maxEffectTime": 540,
+   "onOverDose": "",
+   "minEffectDose": 8.3,
+   "maxEffectDose": 16.6,
+   "weightEffect": 1,
+   "absorptionEffect": 0,
+   "minPainReduce": 0.5,
+   "maxPainReduce": 1,
+   "painReduce": 0.85,
+   "timeInSystem": 660,
+   "timeTillMaxEffect": 5,
+   "maxDose": 250,
+   "incompatibleMedication": [],
+   "viscosityChange": 0
+  },
+  "Fentanyl_IV": {
+   "maxDoseDeviation": 0.05,
+   "hrIncrease": [
+    -2,
+    -5
+   ],
+   "administrationType": 1,
+   "medicationType": "Opioid",
+   "rrAdjust": [
+    0,
+    0
+   ],
+   "coSensitivityAdjust": [
+    -0.06,
+    -0.07
+   ],
+   "breathingEffectivenessAdjust": [
+    -0.01,
+    -0.04
+   ],
+   "maxEffectTime": 840,
+   "onOverDose": "",
+   "minEffectDose": 0.0415,
+   "maxEffectDose": 0.083,
+   "weightEffect": 2,
+   "absorptionEffect": 0,
+   "minPainReduce": 0.6,
+   "maxPainReduce": 1,
+   "painReduce": 1,
+   "timeInSystem": 960,
+   "timeTillMaxEffect": 10,
+   "maxDose": 0.15,
+   "incompatibleMedication": [],
+   "viscosityChange": 10,
+   "unstableDose": 0.11
+  },
+  "Ondansetron_IV": {
+   "maxDoseDeviation": 8,
+   "hrIncrease": [
+    -0.5,
+    -2
+   ],
+   "administrationType": 1,
+   "medicationType": "Default",
+   "rrAdjust": [
+    0,
+    0
+   ],
+   "coSensitivityAdjust": [
+    0,
+    0
+   ],
+   "breathingEffectivenessAdjust": [
+    0,
+    0
+   ],
+   "maxEffectTime": 600,
+   "onOverDose": "",
+   "minEffectDose": 1,
+   "maxEffectDose": 4,
+   "weightEffect": 0,
+   "absorptionEffect": 0,
+   "minPainReduce": 0,
+   "maxPainReduce": 1,
+   "painReduce": 0,
+   "timeInSystem": 720,
+   "timeTillMaxEffect": 15,
+   "maxDose": 8,
+   "incompatibleMedication": [],
+   "viscosityChange": 20,
+   "unstableDose": 8
+  },
+  "CalciumChloride_IV": {
+   "maxDoseDeviation": 0,
+   "hrIncrease": [
+    1,
+    10
+   ],
+   "administrationType": 1,
+   "medicationType": "Default",
+   "rrAdjust": [
+    0,
+    0
+   ],
+   "coSensitivityAdjust": [
+    0,
+    0
+   ],
+   "breathingEffectivenessAdjust": [
+    0,
+    0
+   ],
+   "maxEffectTime": 300,
+   "onOverDose": "",
+   "minEffectDose": 1,
+   "maxEffectDose": 1000,
+   "weightEffect": 0,
+   "absorptionEffect": 0,
+   "minPainReduce": 0,
+   "maxPainReduce": 1,
+   "painReduce": 0,
+   "timeInSystem": 600,
+   "timeTillMaxEffect": 15,
+   "maxDose": 0,
+   "incompatibleMedication": [],
+   "viscosityChange": -10,
+   "unstableDose": 4000
+  },
+  "Ertapenem_IV": {
+   "maxDoseDeviation": 0,
+   "hrIncrease": [
+    0,
+    0
+   ],
+   "administrationType": 1,
+   "medicationType": "Ertapenem",
+   "rrAdjust": [
+    0,
+    0
+   ],
+   "coSensitivityAdjust": [
+    0,
+    0
+   ],
+   "breathingEffectivenessAdjust": [
+    0,
+    0
+   ],
+   "maxEffectTime": 600,
+   "onOverDose": "",
+   "minEffectDose": 1,
+   "maxEffectDose": 1000,
+   "weightEffect": 0,
+   "absorptionEffect": 0,
+   "minPainReduce": 0,
+   "maxPainReduce": 1,
+   "painReduce": 0,
+   "timeInSystem": 900,
+   "timeTillMaxEffect": 5,
+   "maxDose": 0,
+   "incompatibleMedication": [],
+   "viscosityChange": 0
+  },
+  "Esmolol_IV": {
+   "maxDoseDeviation": 0,
+   "hrIncrease": [
+    -10,
+    -25
+   ],
+   "administrationType": 1,
+   "medicationType": "Default",
+   "rrAdjust": [
+    0,
+    0
+   ],
+   "coSensitivityAdjust": [
+    0,
+    0
+   ],
+   "breathingEffectivenessAdjust": [
+    0,
+    0
+   ],
+   "maxEffectTime": 240,
+   "onOverDose": "",
+   "minEffectDose": 20.75,
+   "maxEffectDose": 41.5,
+   "weightEffect": 1,
+   "absorptionEffect": 0,
+   "minPainReduce": 0,
+   "maxPainReduce": 1,
+   "painReduce": 0,
+   "timeInSystem": 320,
+   "timeTillMaxEffect": 20,
+   "maxDose": 0,
+   "incompatibleMedication": [],
+   "viscosityChange": 0,
+   "unstableDose": 45
+  },
+  "Morphine": {
+   "maxDoseDeviation": 3,
+   "hrIncrease": [
+    -2,
+    -6
+   ],
+   "administrationType": 0,
+   "medicationType": "Opioid",
+   "rrAdjust": [
+    0,
+    0
+   ],
+   "coSensitivityAdjust": [
+    -0.06,
+    -0.07
+   ],
+   "breathingEffectivenessAdjust": [
+    0,
+    0
+   ],
+   "maxEffectTime": 1200,
+   "onOverDose": "",
+   "minEffectDose": 5.83,
+   "maxEffectDose": 8.3,
+   "weightEffect": 2,
+   "absorptionEffect": 0,
+   "minPainReduce": 0.5,
+   "maxPainReduce": 0.95,
+   "painReduce": 0.9,
+   "timeInSystem": 1800,
+   "timeTillMaxEffect": 100,
+   "maxDose": 14,
+   "incompatibleMedication": [],
+   "viscosityChange": 8,
+   "bloodlossEffect": 1,
+   "unstableDose": 15
+  },
+  "Epinephrine": {
+   "maxDoseDeviation": 0,
+   "hrIncrease": [
+    2,
+    10
+   ],
+   "administrationType": 0,
+   "medicationType": "Epinephrine",
+   "rrAdjust": [
+    1,
+    6
+   ],
+   "coSensitivityAdjust": [
+    0,
+    0
+   ],
+   "breathingEffectivenessAdjust": [
+    0,
+    0.01
+   ],
+   "maxEffectTime": 240,
+   "onOverDose": "",
+   "minEffectDose": 1,
+   "maxEffectDose": 0.3,
+   "weightEffect": 0,
+   "absorptionEffect": 0,
+   "minPainReduce": 0,
+   "maxPainReduce": 1,
+   "painReduce": 0,
+   "timeInSystem": 360,
+   "timeTillMaxEffect": 30,
+   "maxDose": 0,
+   "incompatibleMedication": [],
+   "viscosityChange": 0,
+   "bloodlossEffect": 1,
+   "unstableDose": 6
+  },
+  "Adenosine": {
+   "maxDoseDeviation": 0,
+   "hrIncrease": [
+    0,
+    0
+   ],
+   "administrationType": 0,
+   "medicationType": "Adenosine",
+   "rrAdjust": [
+    0,
+    0
+   ],
+   "coSensitivityAdjust": [
+    0,
+    0
+   ],
+   "breathingEffectivenessAdjust": [
+    0,
+    0
+   ],
+   "maxEffectTime": 240,
+   "onOverDose": "",
+   "minEffectDose": 1,
+   "maxEffectDose": 1,
+   "weightEffect": 1,
+   "absorptionEffect": 0,
+   "minPainReduce": 0,
+   "maxPainReduce": 1,
+   "painReduce": 0,
+   "timeInSystem": 400,
+   "timeTillMaxEffect": 30,
+   "maxDose": 0,
+   "incompatibleMedication": [],
+   "viscosityChange": 0,
+   "bloodlossEffect": 1
+  },
+  "Amiodarone": {
+   "maxDoseDeviation": 0,
+   "hrIncrease": [
+    0,
+    0
+   ],
+   "administrationType": 0,
+   "medicationType": "Default",
+   "rrAdjust": [
+    0,
+    0
+   ],
+   "coSensitivityAdjust": [
+    0,
+    0
+   ],
+   "breathingEffectivenessAdjust": [
+    0,
+    0
+   ],
+   "maxEffectTime": 240,
+   "onOverDose": "",
+   "minEffectDose": 1,
+   "maxEffectDose": 1,
+   "weightEffect": 0,
+   "absorptionEffect": 0,
+   "minPainReduce": 0,
+   "maxPainReduce": 1,
+   "painReduce": 0,
+   "timeInSystem": 400,
+   "timeTillMaxEffect": 30,
+   "maxDose": 0,
+   "incompatibleMedication": [],
+   "viscosityChange": 0,
+   "bloodlossEffect": 1
+  },
+  "Atropine": {
+   "maxDoseDeviation": 2,
+   "hrIncrease": [
+    8,
+    15
+   ],
+   "administrationType": 0,
+   "medicationType": "Atropine",
+   "rrAdjust": [
+    1,
+    4
+   ],
+   "coSensitivityAdjust": [
+    0,
+    0
+   ],
+   "breathingEffectivenessAdjust": [
+    0,
+    0.01
+   ],
+   "maxEffectTime": 600,
+   "onOverDose": "",
+   "minEffectDose": 1,
+   "maxEffectDose": 2,
+   "weightEffect": 0,
+   "absorptionEffect": 0,
+   "minPainReduce": 0,
+   "maxPainReduce": 1,
+   "painReduce": 0,
+   "timeInSystem": 900,
+   "timeTillMaxEffect": 30,
+   "maxDose": 20,
+   "incompatibleMedication": [],
+   "viscosityChange": 0,
+   "bloodlossEffect": 1,
+   "unstableDose": 12
+  },
+  "Atropine_L": {
+   "maxDoseDeviation": 2,
+   "hrIncrease": [
+    -10,
+    0
+   ],
+   "administrationType": 0,
+   "medicationType": "Atropine",
+   "rrAdjust": [
+    1,
+    4
+   ],
+   "coSensitivityAdjust": [
+    0,
+    0
+   ],
+   "breathingEffectivenessAdjust": [
+    0,
+    0.01
+   ],
+   "maxEffectTime": 600,
+   "onOverDose": "",
+   "minEffectDose": 1,
+   "maxEffectDose": 2,
+   "weightEffect": 0,
+   "absorptionEffect": 0,
+   "minPainReduce": 0,
+   "maxPainReduce": 1,
+   "painReduce": 0,
+   "timeInSystem": 900,
+   "timeTillMaxEffect": 30,
+   "maxDose": 20,
+   "incompatibleMedication": [],
+   "viscosityChange": 0,
+   "bloodlossEffect": 1,
+   "unstableDose": 12
+  },
+  "Lidocaine": {
+   "maxDoseDeviation": 50,
+   "hrIncrease": [
+    0,
+    0
+   ],
+   "administrationType": 0,
+   "medicationType": "Default",
+   "rrAdjust": [
+    0,
+    0
+   ],
+   "coSensitivityAdjust": [
+    0,
+    0
+   ],
+   "breathingEffectivenessAdjust": [
+    0,
+    0
+   ],
+   "maxEffectTime": 240,
+   "onOverDose": "",
+   "minEffectDose": 1,
+   "maxEffectDose": 100,
+   "weightEffect": 0,
+   "absorptionEffect": 0,
+   "minPainReduce": 0,
+   "maxPainReduce": 1,
+   "painReduce": 0,
+   "timeInSystem": 600,
+   "timeTillMaxEffect": 10,
+   "maxDose": 200,
+   "incompatibleMedication": [],
+   "viscosityChange": 0,
+   "bloodlossEffect": 1
+  },
+  "Ketamine": {
+   "maxDoseDeviation": 100,
+   "hrIncrease": [
+    0,
+    0
+   ],
+   "administrationType": 0,
+   "medicationType": "Ketamine",
+   "rrAdjust": [
+    0,
+    0
+   ],
+   "coSensitivityAdjust": [
+    0,
+    0
+   ],
+   "breathingEffectivenessAdjust": [
+    0,
+    0
+   ],
+   "maxEffectTime": 600,
+   "onOverDose": "",
+   "minEffectDose": 41.5,
+   "maxEffectDose": 62.25,
+   "weightEffect": 1,
+   "absorptionEffect": 0,
+   "minPainReduce": 0.4,
+   "maxPainReduce": 1,
+   "painReduce": 0.95,
+   "timeInSystem": 900,
+   "timeTillMaxEffect": 20,
+   "maxDose": 500,
+   "incompatibleMedication": [],
+   "viscosityChange": 0,
+   "bloodlossEffect": 1
+  },
+  "Fentanyl": {
+   "maxDoseDeviation": 0.075,
+   "hrIncrease": [
+    -0.5,
+    -3
+   ],
+   "administrationType": 0,
+   "medicationType": "Opioid",
+   "rrAdjust": [
+    0,
+    0
+   ],
+   "coSensitivityAdjust": [
+    -0.05,
+    -0.06
+   ],
+   "breathingEffectivenessAdjust": [
+    -0.01,
+    -0.02
+   ],
+   "maxEffectTime": 900,
+   "onOverDose": "",
+   "minEffectDose": 0.0581,
+   "maxEffectDose": 0.083,
+   "weightEffect": 2,
+   "absorptionEffect": 0,
+   "minPainReduce": 0.5,
+   "maxPainReduce": 1,
+   "painReduce": 0.99,
+   "timeInSystem": 1200,
+   "timeTillMaxEffect": 30,
+   "maxDose": 0.18,
+   "incompatibleMedication": [],
+   "viscosityChange": 6,
+   "bloodlossEffect": 1,
+   "unstableDose": 0.13
+  },
+  "Ondansetron": {
+   "maxDoseDeviation": 8,
+   "hrIncrease": [
+    -0.1,
+    -2
+   ],
+   "administrationType": 0,
+   "medicationType": "Default",
+   "rrAdjust": [
+    0,
+    0
+   ],
+   "coSensitivityAdjust": [
+    0,
+    0
+   ],
+   "breathingEffectivenessAdjust": [
+    0,
+    0
+   ],
+   "maxEffectTime": 720,
+   "onOverDose": "",
+   "minEffectDose": 1,
+   "maxEffectDose": 4,
+   "weightEffect": 0,
+   "absorptionEffect": 0,
+   "minPainReduce": 0,
+   "maxPainReduce": 1,
+   "painReduce": 0,
+   "timeInSystem": 900,
+   "timeTillMaxEffect": 45,
+   "maxDose": 8,
+   "incompatibleMedication": [],
+   "viscosityChange": 0,
+   "bloodlossEffect": 1,
+   "unstableDose": 8
+  },
+  "Ertapenem": {
+   "maxDoseDeviation": 0,
+   "hrIncrease": [
+    0,
+    0
+   ],
+   "administrationType": 0,
+   "medicationType": "Ertapenem",
+   "rrAdjust": [
+    0,
+    0
+   ],
+   "coSensitivityAdjust": [
+    0,
+    0
+   ],
+   "breathingEffectivenessAdjust": [
+    0,
+    0
+   ],
+   "maxEffectTime": 900,
+   "onOverDose": "",
+   "minEffectDose": 1,
+   "maxEffectDose": 1000,
+   "weightEffect": 0,
+   "absorptionEffect": 0,
+   "minPainReduce": 0,
+   "maxPainReduce": 1,
+   "painReduce": 0,
+   "timeInSystem": 1200,
+   "timeTillMaxEffect": 30,
+   "maxDose": 0,
+   "incompatibleMedication": [],
+   "viscosityChange": 0,
+   "bloodlossEffect": 1
+  },
+  "Midazolam": {
+   "maxDoseDeviation": 10,
+   "hrIncrease": [
+    -1,
+    -5
+   ],
+   "administrationType": 0,
+   "medicationType": "Default",
+   "rrAdjust": [
+    -1,
+    -4
+   ],
+   "coSensitivityAdjust": [
+    0,
+    0
+   ],
+   "breathingEffectivenessAdjust": [
+    0,
+    0
+   ],
+   "maxEffectTime": 900,
+   "onOverDose": "",
+   "minEffectDose": 1,
+   "maxEffectDose": 10,
+   "weightEffect": 0,
+   "absorptionEffect": 0,
+   "minPainReduce": 0,
+   "maxPainReduce": 1,
+   "painReduce": 0,
+   "timeInSystem": 1200,
+   "timeTillMaxEffect": 30,
+   "maxDose": 30,
+   "incompatibleMedication": [],
+   "viscosityChange": 0,
+   "bloodlossEffect": 1,
+   "unstableDose": 30
+  },
+  "Dimercaprol": {
+   "maxDoseDeviation": 50,
+   "hrIncrease": [
+    10,
+    20
+   ],
+   "administrationType": 0,
+   "medicationType": "Default",
+   "rrAdjust": [
+    0,
+    0
+   ],
+   "coSensitivityAdjust": [
+    0,
+    0
+   ],
+   "breathingEffectivenessAdjust": [
+    0,
+    0
+   ],
+   "maxEffectTime": 900,
+   "onOverDose": "",
+   "minEffectDose": 1,
+   "maxEffectDose": 249,
+   "weightEffect": 1,
+   "absorptionEffect": 0,
+   "minPainReduce": 0,
+   "maxPainReduce": 1,
+   "painReduce": 0,
+   "timeInSystem": 1800,
+   "timeTillMaxEffect": 30,
+   "maxDose": 600,
+   "incompatibleMedication": [],
+   "viscosityChange": -5,
+   "bloodlossEffect": 1,
+   "unstableDose": 500
+  },
+  "ACM_BUC_Medication": {
+   "maxDoseDeviation": 0,
+   "hrIncrease": [
+    0,
+    0
+   ],
+   "administrationType": 0,
+   "medicationType": "Default",
+   "rrAdjust": [
+    0,
+    0
+   ],
+   "coSensitivityAdjust": [
+    0,
+    0
+   ],
+   "breathingEffectivenessAdjust": [
+    0,
+    0
+   ],
+   "maxEffectTime": 600,
+   "onOverDose": "",
+   "minEffectDose": 1,
+   "maxEffectDose": 1,
+   "weightEffect": 0,
+   "absorptionEffect": 0,
+   "minPainReduce": 0,
+   "maxPainReduce": 1,
+   "painReduce": 0,
+   "timeInSystem": 900,
+   "timeTillMaxEffect": 90,
+   "maxDose": 0,
+   "incompatibleMedication": [],
+   "viscosityChange": 0
+  },
+  "Fentanyl_BUC": {
+   "maxDoseDeviation": 1,
+   "hrIncrease": [
+    -0.5,
+    -2
+   ],
+   "administrationType": 0,
+   "medicationType": "Opioid",
+   "rrAdjust": [
+    0,
+    0
+   ],
+   "coSensitivityAdjust": [
+    -0.05,
+    -0.06
+   ],
+   "breathingEffectivenessAdjust": [
+    -0.01,
+    -0.02
+   ],
+   "maxEffectTime": 600,
+   "onOverDose": "",
+   "minEffectDose": 1,
+   "maxEffectDose": 1,
+   "weightEffect": 0,
+   "absorptionEffect": 0,
+   "minPainReduce": 0.25,
+   "maxPainReduce": 1,
+   "painReduce": 0.95,
+   "timeInSystem": 900,
+   "timeTillMaxEffect": 90,
+   "maxDose": 2,
+   "incompatibleMedication": [],
+   "viscosityChange": 8,
+   "unstableDose": 2
+  }
+ },
+ "medicationTypes": {
+  "Default": {},
+  "Epinephrine": {
+   "classnames": [
+    "Epinephrine_IV",
+    "Epinephrine"
+   ]
+  },
+  "Opioid": {
+   "classnames": [
+    "Morphine_IV",
+    "Morphine",
+    "Fentanyl_IV",
+    "Fentanyl",
+    "Fentanyl_BUC"
+   ]
+  },
+  "Ketamine": {
+   "classnames": [
+    "Ketamine_IV",
+    "Ketamine"
+   ]
+  },
+  "TXA": {
+   "classnames": [
+    "TXA_IV"
+   ]
+  },
+  "Amiodarone": {
+   "classnames": [
+    "Amiodarone_IV"
+   ]
+  },
+  "Atropine": {
+   "classnames": [
+    "Atropine_IV",
+    "Atropine"
+   ]
+  },
+  "Lidocaine": {
+   "classnames": [
+    "Lidocaine_IV"
+   ]
+  },
+  "Ertapenem": {
+   "classnames": [
+    "Ertapenem_IV",
+    "Ertapenem"
+   ]
+  }
+ }
+}
