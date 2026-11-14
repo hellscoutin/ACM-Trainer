@@ -12,6 +12,8 @@ import { addMedication } from "./pharmacology.js";
 import { insertIV, removeIV, insertIO, removeIO, inspectIV, attachCuff, removeCuff, canInsertIV, bagInfo, bagName } from "./circulation.js";
 import { thoracostomy, insertChestTube, drainChest, closeIncision } from "./breathing.js";
 import { wrap, stitch } from "./wounds.js";
+import { SYRINGE_SIZES, SYRINGE_DRUGS, vialItem, drugName, injectSyringe } from "./syringes.js";
+import { aedState, hasAED, connect, disconnect, analyze, manualCharge, shock, cancelCharge, measureBP, canAnalyze, canManualCharge, canShock, canCancelCharge, canMeasureBP } from "./aed.js";
 
 export const CATEGORIES = [
     { id: "examine", label: "Examine Patient" },
@@ -30,6 +32,8 @@ export const ACE_ITEM_NAMES = {
 export function itemName(data, cls) {
     if (ACE_ITEM_NAMES[cls]) return ACE_ITEM_NAMES[cls];
     if (bagInfo(cls)) return bagName(cls);
+    const syr = /^ACM_Syringe_(\d+)$/.exec(cls);
+    if (syr) return `Syringe (${syr[1]}ml)`;
     const it = data.items.find((i) => i.class === cls.toLowerCase());
     return it?.name || cls;
 }
@@ -182,9 +186,29 @@ const DEFS = {
         time: (c) => suctionTime(c.sim.p, 1),
         run: (c) => ({ ...suction(c.sim), log: `${c.name} used ACCUVAC` }),
     },
+    // ------------------------------------------------------------------ AED (canConnectAED: carrying an AED or already connected)
+    aed_applypads: aedDef((c) => !aedState(c.sim.p).pads && canConnect(c), (c) => connect(c.sim, "pads"), "applied AED pads", (c) => (c.sim.p.cpr ? 10 : 5)),
+    aed_removepads: aedDef((c) => aedState(c.sim.p).pads, (c) => disconnect(c.sim, "pads"), "removed AED pads"),
+    aed_connectpulseoximeter: aedDef((c) => aedState(c.sim.p).po === -1 && canConnect(c), (c, part) => connect(c.sim, "po", part), "connected AED pulse oximeter"),
+    aed_disconnectpulseoximeter: aedDef((c, part) => aedState(c.sim.p).po === PART_INDEX[part], (c) => disconnect(c.sim, "po"), "disconnected AED pulse oximeter"),
+    aed_connectpressurecuff: aedDef((c, part) => aedState(c.sim.p).cuff === -1 && !c.sim.p.pressureCuff[PART_INDEX[part] - 2] && canConnect(c) && !c.sim.p.ivAccess[PART_INDEX[part]][0], (c, part) => connect(c.sim, "cuff", part), "connected AED pressure cuff"),
+    aed_disconnectpressurecuff: aedDef((c, part) => aedState(c.sim.p).cuff === PART_INDEX[part], (c) => disconnect(c.sim, "cuff"), "disconnected AED pressure cuff"),
+    aed_connectcapnograph: aedDef((c) => !aedState(c.sim.p).capno && canConnect(c), (c) => connect(c.sim, "capno"), "connected AED capnograph"),
+    aed_disconnectcapnograph: aedDef((c) => aedState(c.sim.p).capno, (c) => disconnect(c.sim, "capno"), "disconnected AED capnograph"),
+    aed_viewmonitor: { continuous: "aed", show: (c) => hasAED(c.sim.p), run: () => ({ window: { type: "aed" } }) },
+    aed_analyzerhythm: aedDef((c) => canAnalyze(c.sim.p), (c) => analyze(c.sim), "analyzed rhythm"),
+    aed_manualcharge: aedDef((c) => canManualCharge(c.sim.p), (c) => manualCharge(c.sim), "charged the AED"),
+    aed_shock: aedDef((c) => canShock(c.sim.p), (c) => shock(c.sim), "administered a shock"),
+    aed_cancelcharge: aedDef((c) => canCancelCharge(c.sim.p), (c) => cancelCharge(c.sim), "cancelled the charge"),
+    aed_measurebp: aedDef((c, part) => canMeasureBP(c.sim.p) && (aedState(c.sim.p).cuff === PART_INDEX[part] || part === "body"), (c) => measureBP(c.sim), "measured blood pressure (AED)"),
     elasticwrapbandages: wrapDef(false), elasticwrapclots: wrapDef(true),
     surgicalkit: stitchDef("bandaged", 5), stitchclottedwounds: stitchDef("clotted", 5), stitchwrappedwounds: stitchDef("wrapped", 2),
 };
+
+const canConnect = (c) => (c.inventory.ACM_AED || 0) > 0 || hasAED(c.sim.p);
+function aedDef(cond, fn, logText, time) {
+    return { show: cond, time, run: (c, part) => { fn(c, part); return { log: `${c.name} ${logText}` }; } };
+}
 
 function outcome(c, r) {
     const out = { hint: r.hint, refund: r.refund || !r.ok, give: r.returned };
@@ -240,9 +264,46 @@ function removeAdj(type) {
 const airwayOn = (c) => c.sim.setting("ACM_airway_enable");
 const breathingOn = (c) => c.sim.setting("ACM_breathing_pneumothoraxEnabled");
 
+// Syringe actions: not in the data file's treatment list, defined from ACM's config (ACE_Medical_Treatment_Actions):
+// "Use Syringe" per size opens the draw window; push (IV) and inject (IM) per drug and size take 2 s.
+const LIMBS_AND_BODY = ["body", "leftarm", "rightarm", "leftleg", "rightleg"];
+const SYRINGE_LEVEL = { setting: "ACM_circulation_allowSyringe" };
+function syringeDefs() {
+    const out = [];
+    for (const size of SYRINGE_SIZES) {
+        out.push({
+            id: `usesyringe_${size}`, label: `Use Syringe (${size}ml)`, category: "medication", parts: LIMBS_AND_BODY,
+            items: [`ACM_Syringe_${size}`], consumes: false, levelSpec: SYRINGE_LEVEL, timeSpec: 0.01, continuous: "syringe",
+            show: (c) => SYRINGE_DRUGS.some((d) => (c.inventory[vialItem(d)] || 0) > 0),
+            run: (c, part) => ({ window: { type: "syringe", part, size } }),
+        });
+    }
+    for (const drug of SYRINGE_DRUGS) for (const size of SYRINGE_SIZES) for (const iv of [true, false]) {
+        const find = (c) => (c.syringes || []).find((s) => s.drug === drug && s.size === size);
+        out.push({
+            id: `${drug.toLowerCase()}_${size}_${iv ? "iv" : "im"}`, label: `${iv ? "Push" : "Inject"} ${drugName(drug)} ${iv ? "IV" : "IM"} (${size}ml syringe)`,
+            category: "medication", parts: LIMBS_AND_BODY, items: [], consumes: false, levelSpec: SYRINGE_LEVEL, timeSpec: 2,
+            show: (c) => !!find(c),
+            run: (c, part) => {
+                const s = find(c);
+                const r = injectSyringe(c.sim, c, part, s, iv);
+                return { hint: r.hint, refund: !r.ok, log: r.ok ? `${c.name} ${r.log}` : undefined };
+            },
+        });
+    }
+    return out;
+}
+
+// Actions whose config sets ACM_rollToBack (inherited by their variants): done on an unconscious patient they set
+// WasTreated, so the patient stays lying after waking (ACM_core XEH_postInit "ace_treatmentSucceded").
+const ROLL_TO_BACK = /^(checkairway|checkbreathing|cpr|cancelrecoveryposition|aed_applypads|insertiv_.*|pressurecuff_attach|fracturerealignment|stitchairwayincision|washeyes|fentanyllozenge|naloxone)$/;
+export function markTreated(sim, a) {
+    if (sim.p.unconscious && !sim.p.wasTreated && ROLL_TO_BACK.test(a.id)) sim.p.wasTreated = true;
+}
+
 /** Builds the catalogue: every supported treatment with its config data. */
 export function buildCatalogue(data) {
-    const out = [];
+    const out = [...syringeDefs()];
     for (const [cls, def] of Object.entries(DEFS)) {
         const t = data.treatments.find((x) => x.class === cls);
         if (!t) throw new Error("No treatment config for " + cls);
@@ -266,7 +327,8 @@ export function available(ctx, a, part) {
     const need = resolve(ctx.sim, a.levelSpec, 0);
     if (ctx.level < need) return `Requires: ${LEVEL_NAME[need]}`;
     if (a.items.length && !a.items.some((i) => (ctx.inventory[i] || 0) > 0)) return `Requires: ${a.items.map((i) => itemName(ctx.sim.data, i)).join(" or ")}`;
-    if (ctx.busy && ctx.busy !== a.continuous) return "Busy with a continuous action";
+    // The AED monitor is operated while its window is open
+    if (ctx.busy && ctx.busy !== a.continuous && !(ctx.busy === "aed" && a.id.startsWith("aed_"))) return "Busy with a continuous action";
     if (!a.show(ctx, part)) return "Condition not met";
     return null;
 }

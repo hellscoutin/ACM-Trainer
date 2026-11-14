@@ -1,11 +1,14 @@
 // Solo practice: runs a scenario in the browser with the ACM medical menu.
 import { loadScenario, runTimeline, ROLE_LEVEL } from "../../engine/scenario.js";
-import { CATEGORIES, buildCatalogue, available, actionTime, pickItem, itemName } from "../../engine/menu.js";
+import { CATEGORIES, buildCatalogue, available, actionTime, pickItem, itemName, markTreated } from "../../engine/menu.js";
 import { injuryList, bodyPartColors, formatTime, PART_NAMES } from "../../engine/injuryList.js";
 import { feelPulse, updatePulseOximeters } from "../../engine/exams.js";
 import { createBody } from "./body.js";
 import { audio, openBP, openStethoscope, openTransfusion } from "./windows.js";
 import { createRecorder, scoreRun } from "../../engine/scoring.js";
+import { openSyringe, openAED, aedAmbient } from "./windows-med.js";
+import { drawSyringe, injectSyringe, drugName } from "../../engine/syringes.js";
+import { aedState } from "../../engine/aed.js";
 
 const $ = (id) => document.getElementById(id);
 const el = (tag, props = {}, ...kids) => { const e = document.createElement(tag); Object.assign(e, props); e.append(...kids); return e; };
@@ -29,7 +32,7 @@ const rubric = scn.rubric ? await fetch(`../${scn.rubric}`).then((r) => (r.ok ? 
 const catalogue = buildCatalogue(data);
 const seed = params.has("seed") ? Number(params.get("seed")) : scn.seed;
 
-let sim, ctx, state, body, recorder;
+let sim, ctx, state, body, recorder, ambient;
 
 function start() {
     sim = loadScenario(scn, data, meds, { seed });
@@ -40,6 +43,7 @@ function start() {
     };
     sim.on(onSimEvent);
     recorder = createRecorder(sim);
+    ambient = aedAmbient(sim, () => (state.running ? state.speed : 0));
     record();
 }
 
@@ -51,6 +55,8 @@ function log(kind, text) {
     state.timeline.push({ t: sim.p.t, text, kind });
 }
 function onSimEvent(e) {
+    if (e.event === "aedSound") { audio.play(e.name, e.name.startsWith("shock") ? 0.9 : 0.8); return; }
+    if (e.event === "overdose") state.timeline.push({ t: e.t, text: `Overdose (${e.name})`, kind: "event" });
     const cue = {
         vomit: e.obstructs ? "You hear the casualty vomiting" : "The casualty vomits (recovery position keeps the airway clear)",
         unconscious: "The casualty goes unconscious",
@@ -118,6 +124,7 @@ function finishAction(a, part, item) {
     if (item && a.consumes && !r.refund) ctx.inventory[item] = Math.max(0, (ctx.inventory[item] || 0) - 1);
     if (a.returnsItem) ctx.inventory[a.returnsItem] = (ctx.inventory[a.returnsItem] || 0) + 1;
     for (const c of r.give || []) ctx.inventory[c] = (ctx.inventory[c] || 0) + 1;
+    if (!r.refund) markTreated(sim, a);
     recorder.action(a.id, part, !r.refund);
     if (a.id === "applytourniquet") audio.play("tourniquet_apply", 0.8);
     if (a.id === "removetourniquet") audio.play("tourniquet_remove", 0.8);
@@ -128,16 +135,56 @@ function finishAction(a, part, item) {
     render();
 }
 
+/** Syringe window steps: Draw (4 s) keeps the filled syringe; Push/Inject (2.5 s) draws and gives it at once. */
+function syringeCallbacks(part, size) {
+    return {
+        draw(drug, ml) {
+            startTimed(`Drawing ${drugName(drug)}...`, 4, () => {
+                const r = drawSyringe(ctx, size, drug, ml);
+                recorder.action("drawsyringe", part, r.ok, { drug, size, ml });
+                if (r.ok) { hint(r.hint); log("activity", `${ctx.name} drew ${drugName(drug)} into a ${size}ml syringe`); }
+                state.cont?.win?.refresh?.();
+                render();
+            });
+        },
+        inject(drug, ml, iv) {
+            startTimed(`${iv ? "Pushing" : "Injecting"} ${drugName(drug)}...`, 2.5, () => {
+                const d = drawSyringe(ctx, size, drug, ml);
+                if (!d.ok) return;
+                const r = injectSyringe(sim, ctx, part, d.syringe, iv);
+                recorder.action(`${drug.toLowerCase()}_${size}_${iv ? "iv" : "im"}`, part, r.ok);
+                if (r.hint) hint(r.hint);
+                if (r.ok) log("activity", `${ctx.name} ${r.log}`);
+                endContinuous();
+            });
+        },
+    };
+}
+/** AED monitor buttons. */
+function aedPress(id) {
+    const a = aedState(sim.p);
+    if (id === "cpr") { a.mutedCPR = !a.mutedCPR; hint([a.mutedCPR ? "CPR metronome off" : "CPR metronome on"]); return; }
+    if (id === "alarms") { a.mutedAlarm = !a.mutedAlarm; hint([a.mutedAlarm ? "Alarms muted" : "Alarms on"]); return; }
+    const map = { analyze: ["aed_analyzerhythm", "body"], charge: ["aed_manualcharge", "body"], shock: ["aed_shock", "body"], speeddial: ["aed_cancelcharge", "body"], nibp: ["aed_measurebp", "body"] };
+    const [actionId, part] = map[id];
+    const act = catalogue.find((x) => x.id === actionId);
+    const why = available(ctx, act, part);
+    if (why) { if (id !== "speeddial") hint([why === "Condition not met" ? "Not available now" : why]); return; }
+    finishAction(act, part, null);
+}
+
 function beginContinuous(type, part, win) {
     state.cont = { type, part, nextSqueeze: sim.p.t + 6 };
     ctx.busy = type;
-    if (win && ["bp", "stethoscope", "transfusion"].includes(type)) {
+    if (win && ["bp", "stethoscope", "transfusion", "syringe", "aed"].includes(type)) {
         const host = $("procHost");
         const speed = () => (state.running ? state.speed : 0);
         if (type === "bp") state.cont.win = openBP(host, sim, part, win.stethoscope, speed);
         if (type === "stethoscope") state.cont.win = openStethoscope(host, sim, speed);
         if (type === "transfusion") state.cont.win = openTransfusion(host, sim, part, ctx, { startTimed, onChange: (text) => { log("activity", text); render(); } });
-        $("procClose").textContent = { bp: "Stop measuring", stethoscope: "Stop using stethoscope", transfusion: "Close" }[type];
+        if (type === "syringe") state.cont.win = openSyringe(host, ctx, part, win.size, syringeCallbacks(part, win.size));
+        if (type === "aed") state.cont.win = openAED(host, sim, { press: aedPress }, speed);
+        $("procClose").textContent = { bp: "Stop measuring", stethoscope: "Stop using stethoscope", transfusion: "Close", syringe: "Close", aed: "Close monitor" }[type];
         $("procWindow").classList.add("show");
         return;
     }
@@ -222,6 +269,7 @@ function frame(now) {
         while (state.acc >= 1 && !state.ended && steps < 20) { state.acc -= 1; step(); steps++; if (!state.ended) renderTick(); }
     }
     drawFrame(now);
+    if (!state.ended) ambient(now);
     requestAnimationFrame(frame);
 }
 
@@ -295,6 +343,7 @@ function renderInventory() {
     for (const [cls, n] of Object.entries(ctx.inventory)) {
         ul.append(el("li", { className: n ? "" : "out" }, el("span", { textContent: itemName(data, cls) }), el("span", { textContent: `×${n}` })));
     }
+    for (const sy of ctx.syringes || []) ul.append(el("li", {}, el("span", { textContent: `Syringe ${sy.size}ml: ${drugName(sy.drug)}` }), el("span", { textContent: `${sy.ml.toFixed(1)} ml` })));
 }
 function render() {
     renderCats();

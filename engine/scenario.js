@@ -29,6 +29,7 @@ export function loadScenario(scn, data, meds, { seed } = {}) {
     }
     if (scn.state) sim.act("setState", { fields: scn.state });
     if (scn.patient?.conscious === false) sim.criticalVitals();
+    if (scn.arrest) { sim.p.targetRhythm = scn.arrest; sim.fatalVitals(); } // start in cardiac arrest with this rhythm (VF, PVT, Asystole)
     sim.timeline = [...(scn.timeline || [])].sort((a, b) => a.at - b.at);
     sim.scenario = scn;
     return sim;

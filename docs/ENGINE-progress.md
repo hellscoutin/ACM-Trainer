@@ -1,6 +1,6 @@
 # Engine progress (handoff notes)
 
-Status 2026-11-13: build steps 1 (engine core), 2 (medical menu, solo practice, three Combat Lifesaver scenarios) 3 (circulation and chest procedures with their windows, two Combat Medic scenarios) and 4 (rubrics, scoring, debrief) are done; `npm test` runs 61 tests.
+Status 2026-11-13: build steps 1 (engine core), 2 (medical menu, solo practice, three Combat Lifesaver scenarios) 3 (circulation and chest procedures with their windows, two Combat Medic scenarios) and 4 (rubrics, scoring, debrief) are done; step 6 is done except the surgical airway (medications with syringes and vials, overdose, drug handlers, AED and monitor, CM-4 hemothorax and CM-5 cardiac arrest). `npm test` runs 76 tests.
 
 ## Modules
 | File | Ports (ACM 1.4.8 / ACE 3.21.2) |
@@ -10,7 +10,7 @@ Status 2026-11-13: build steps 1 (engine core), 2 (medical menu, solo practice, 
 | `engine/wounds.js` | woundsHandlerBase, updateWoundBloodLoss, bandaging and re-opening, wrapping, stitching, clotting attempts, internal bleeding |
 | `engine/blood.js` | core/ov/getBloodVolumeChange (compartments, platelets, TXA, IV/IO bags, incompatible blood, overload, calcium), bleed rates |
 | `engine/oxygen.js` | getAirwayState, getBreathingState, updateRespirationRate, core/ov/updateOxygen |
-| `engine/pharmacology.js` | medicationLocal (dose scaling), getMedicationEffect curves, getMedicationCount, per-type caps, cardiac medication effects |
+| `engine/pharmacology.js` | medicationLocal (dose scaling), getMedicationEffect curves, getMedicationCount, per-type caps, cardiac medication effects, onMedicationUsage/handleOverdose/isOverdosed, handleMedicationEffects (TXA, calcium, adenosine, naloxone, ammonia), nausea |
 | `engine/vitals.js` | handleUnitVitals, updateHeartRate, getBloodPressure, hasStableVitals, critical grace, onCardiacArrest, handleCardiacArrest, reversible arrest (PEA), attemptROSC, handleCPR rolls, AED shock, wake-up |
 | `engine/airway.js` | handleAirway timeline (reflex loss, collapse, vomiting, blood), checkAirway, head turn, suction, recovery position, adjuncts, reset on waking |
 | `engine/breathing.js` | handleChestInjury (PTX map chances), pneumothorax progression and tension, hemothorax levels and self-clotting, chest seal, NCD, check breathing, inspect chest, lung state, thoracostomy sweep, chest tube (and unsealing when the patient is up), drain, close incision |
@@ -19,13 +19,15 @@ Status 2026-11-13: build steps 1 (engine core), 2 (medical menu, solo practice, 
 | `engine/injuryList.js` | ACM injury list (exact strings), bleed severity, body diagram colours |
 | `engine/menu.js` | Action catalogue from the treatment config: categories, parts, items, training level, times, conditions, effects |
 | `engine/scenario.js` | Scenario loader and timeline |
+| `engine/syringes.js` | Vial concentrations, draw (Syringe_PrepareFinish), push IV / inject IM (Syringe_Inject: needs IV/IO, IM pain, reusable syringes) |
+| `engine/aed.js` | AED connections, analyze (motion detection), auto/manual charge with 30 s timeout, shock, CPR tracking prompts, NIBP, monitor refresh, EKG rate (PEA generator), EtCO2; voice prompts as `aedSound` events |
 | `engine/scoring.js` | Rubric engine: keyState snapshot, recorder (per-second history + treatment log `sim.menuLog`), predicates, 10 check types, scoreRun (weights, critical checks, pass mark, not-applicable checks left out) |
 | `engine/runner.js` | Headless trainee session: menu actions with real durations, inventory, transfusion bags, recorder, scoring (tests; later replays and instructor re-simulation) |
 | `engine/sim.js` | `Simulation`: 1 s tick, timers, ACE state-machine events, coagulation loops, actions, snapshot, event and action logs |
 
 Data: `data/acm-1.4.8.json` (from `tools/build_data.py`), `data/medications-1.4.8.json` (from `tools/extract_medications.py`, which reads a derapified ACM_core config: `hemtt utils config derapify`), `data/acm-strings-en.json` and `data/ace-strings-en.json` (English stringtables, for exact in-game wording).
 
-App: `app/index.html` (scenario list), `app/play.html` + `app/js/play.js` (solo practice), `app/js/body.js` (body diagram, own drawing), `app/js/windows.js` (manual blood pressure, stethoscope and transfusion menu rebuilt on ACM's GUI grid with ACM art and sounds; Web Audio), `app/css/trainer.css`, `app/assets/acm/` (ACM art converted with `hemtt utils paa convert` + ffmpeg to webp/png; ACM sounds to 64 kbps mono mp3). Test aid: `play.html?s=<id>&autostart=1&script=action@part,...&ff=<seconds>&part=&cat=` runs actions through the button path and fast-forwards (used for headless screenshots).
+App: `app/js/windows-med.js` (syringe draw window with ACM syringe art; AED monitor on ACM's Lifepak art with button hit areas from Defibrillator_Monitor_Dialog, canvas vitals and EKG/pleth/capnography traces; device sounds), `app/index.html` (scenario list), `app/play.html` + `app/js/play.js` (solo practice), `app/js/body.js` (body diagram, own drawing), `app/js/windows.js` (manual blood pressure, stethoscope and transfusion menu rebuilt on ACM's GUI grid with ACM art and sounds; Web Audio), `app/css/trainer.css`, `app/assets/acm/` (ACM art converted with `hemtt utils paa convert` + ffmpeg to webp/png; ACM sounds to 64 kbps mono mp3). Test aid: `play.html?s=<id>&autostart=1&script=action@part,...&ff=<seconds>&part=&cat=` runs actions through the button path and fast-forwards (used for headless screenshots).
 
 ## Rubrics
 `rubrics/<scenario>.json`, generated by `tools/build_rubrics.py` (edit there and re-run, or edit the JSON). Each check has `text`, `type`, its parameters, `weight`, optional `critical`, `why` (what should have happened) and `guide` (chapter title in the ACM Combat Medic Guide). Check types are documented at `evaluateCheck` in `engine/scoring.js`. Scenarios point to their rubric with `"rubric"`. The debrief shows GO / NO-GO, the score against the pass mark, each check with its detail, and for failed checks the reason and the guide chapter; treatment times are marked on the charts.
@@ -38,18 +40,23 @@ App: `app/index.html` (scenario list), `app/play.html` + `app/js/play.js` (solo 
 - Fluid overload uses ACM's double-counted change terms.
 - The knock-out timer (15-35 s) restores the airway reflex when it ends, so a reflex lost earlier (20-45 s) comes back; it is lost for good only when the reflex-loss timer fires last, or when airway collapse starts (4-5 min).
 - Recovery position also sets head tilt (the injury list shows both lines).
+- Amiodarone's own restart routine is registered but never dispatched (handleMedicationEffects leaves Amiodarone_IV out); it only acts through the CPR medication factor and the AED shock-resistant path. Guide corrected 2026-11-13.
+- Naloxone removes Overdose_Opioid only; its removal of the "Opioid" family matches class names, so morphine/fentanyl stay. Guide corrected 2026-11-13.
+- The overdose check uses the drug's current effect (near 0 right after a push) or this single dose, so several doses pushed within seconds are not added up.
+- IM classes without config (e.g. IM TXA) have no effect.
+- A patient treated while unconscious with an ACM_rollToBack action (check airway/breathing, CPR, IV, pads, cuff...) stays lying after waking; a chest tube unseals 60-120 s after a patient who is not lying wakes.
+- CPR stops when a dialog opens in game, so the AED monitor and syringe windows are blocked during CPR (stop compressions to use them).
 - Bags on one IV site split its flow by the number of different fluid types (updateActiveFluidBags), so two saline bags on one site both run at full rate.
 - A thoracostomy without local lidocaine (>= 0.5 in the torso) knocks the patient unconscious; the sweep report uses ACM's strings.
 - A chest seal on an open pneumothorax sets it to 0 and stops progression, so an early seal prevents tension entirely.
 - Hemothorax keeps bleeding into the chest while platelets last; without TXA a level 5-10 hemothorax is not survivable in a 10-minute scenario (hence CM-3 is tension-only until TXA/syringes exist).
 
 ## Not ported yet (next modules)
-1. Surgical airway; syringes and vials (TXA, epinephrine IV, lidocaine...), AED and monitor (step 6).
+1. Surgical airway (minigame: palpate, incisions, hook, Cric-Key, cuff, strap; incision bleeding and stitching).
 2. Nausea medication effects on vomiting (getNauseaMedicationEffects is taken as 0).
-3. Overdose (onMedicationUsage, handleOverdose, isOverdosed; `sim.isOverdosed()` returns false for now) and per-drug handlers: adenosine, amiodarone ROSC rolls, calcium, naloxone, ammonia, atropine/dimercaprol (CBRN).
-4. Hemolytic reaction onset (30-60 s, severity from reaction volume); `reactionSeverity` is read but never set yet.
+3. Fentanyl lozenge, ketamine screen effect, atropine/dimercaprol (CBRN), fresh whole blood, BVM oxygen sources, fractures.
 5. Fractures and splints; fresh whole blood (FBTK); BVM with oxygen sources; CBRN. (Trauma death and arrest thresholds are in `sim.criticalHit`.)
 6. Simplifications to revisit: `bandage()` spreads one bandage's effectiveness by bleeding (approximates ACE findMostEffectiveWounds); clot re-opening uses only the "unstable" delay; wound size uses worstDamage 2 with no damage-type multipliers (scenarios give wounds directly).
 
 ## Next build step
-Step 5 of `docs/TRAINER-design.md`: Firebase sessions (instructor creates a session, trainees join with a code, live dashboard, commands, stored results). Needs the user's `firebase-tools login` (rules deploy) and the Cloudflare Worker for Discord sign-in (`wrangler login`). Step 6 after that: pharmacology with syringes and vials (TXA, IV epinephrine, lidocaine), AED, surgical airway; then a hemothorax scenario.
+Finish step 6 with the surgical airway, then step 5 of `docs/TRAINER-design.md`: Firebase sessions (instructor creates a session, trainees join with a code, live dashboard, commands, stored results). Needs the user's `firebase-tools login` (rules deploy) and the Cloudflare Worker for Discord sign-in (`wrangler login`). Step 6 after that: pharmacology with syringes and vials (TXA, IV epinephrine, lidocaine), AED, surgical airway; then a hemothorax scenario.

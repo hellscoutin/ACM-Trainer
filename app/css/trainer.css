@@ -182,3 +182,22 @@ button { font: inherit; color: inherit; }
 .checks .crit { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--danger); border: 1px solid var(--danger); border-radius: 3px; padding: 0 4px; margin-left: 4px; }
 .checks .cw { color: var(--dim); font-size: 12px; font-weight: 400; }
 .chart .tick { stroke: rgba(255, 255, 255, 0.25); stroke-width: 1; }
+
+/* syringe and AED windows */
+.syr-wrap { display: grid; grid-template-columns: 240px 260px 1fr; gap: 16px; align-items: start; }
+.syr-list { display: flex; flex-direction: column; gap: 6px; max-height: 60vh; overflow-y: auto; }
+.syr-list h3 { margin: 0; font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+.syr-list [aria-pressed="true"] { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); }
+.syr-pic { position: relative; aspect-ratio: 1 / 1; background: #f4f4f4; border-radius: 6px; overflow: hidden; }
+.syr-pic img { position: absolute; left: -25%; top: -25%; width: 150%; height: 150%; }
+.syr-ctl { display: flex; flex-direction: column; gap: 10px; }
+.syr-amount { font-size: 20px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.syr-ctl input[type=range] { width: 100%; }
+.syr-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+.aed-area { display: flex; justify-content: center; }
+.aed-box { position: relative; width: min(980px, 78vh, 100%); aspect-ratio: 1 / 1; margin: -6% 0; }
+.aed-box > img { width: 100%; height: 100%; display: block; }
+.aed-screen { position: absolute; background: #000; }
+.aed-btn { position: absolute; border-radius: 10px; }
+.aed-box .hit { background: transparent; border: 0; cursor: pointer; }
+.aed-box .hit:hover, .aed-box .hit:focus-visible { outline: 2px solid var(--focus); }

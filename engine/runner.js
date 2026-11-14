@@ -1,8 +1,9 @@
 // Headless trainee session: performs menu actions with their real durations, keeps inventory and the treatment log,
 // records history and scores against the rubric. Used by tests and (later) for replays and instructor re-simulation.
 import { loadScenario, runTimeline, ROLE_LEVEL } from "./scenario.js";
-import { buildCatalogue, available, actionTime, pickItem } from "./menu.js";
+import { buildCatalogue, available, actionTime, pickItem, markTreated } from "./menu.js";
 import { addBag as attachBag } from "./circulation.js";
+import { drawSyringe } from "./syringes.js";
 import { updatePulseOximeters } from "./exams.js";
 import { createRecorder, scoreRun } from "./scoring.js";
 
@@ -36,6 +37,7 @@ export function createSession(scn, data, meds, { seed, rubric } = {}) {
         if (item && a.consumes && !r.refund) ctx.inventory[item] = Math.max(0, (ctx.inventory[item] || 0) - 1);
         if (a.returnsItem) ctx.inventory[a.returnsItem] = (ctx.inventory[a.returnsItem] || 0) + 1;
         for (const c of r.give || []) ctx.inventory[c] = (ctx.inventory[c] || 0) + 1;
+        if (!r.refund) markTreated(sim, a);
         recorder.action(id, part, !r.refund);
         return r;
     };
@@ -48,6 +50,8 @@ export function createSession(scn, data, meds, { seed, rubric } = {}) {
         recorder.action("addbag", part, r.ok, { cls });
         return r;
     };
+    /** Syringe draw window: draw a vial into an empty syringe (4 s). */
+    const draw = (size, drug, ml) => { tick(4); const r = drawSyringe(ctx, size, drug, ml); recorder.action("drawsyringe", null, r.ok, { drug, size, ml }); return r; };
     const score = () => scoreRun(rubric, sim, recorder);
-    return { sim, ctx, recorder, catalogue, tick, until, act, addBag, score };
+    return { sim, ctx, recorder, catalogue, tick, until, act, addBag, draw, score };
 }

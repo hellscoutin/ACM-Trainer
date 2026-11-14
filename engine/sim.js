@@ -3,14 +3,15 @@
 import { makeRng, PART_INDEX } from "./util.js";
 import { createPatient } from "./patient.js";
 import { addWound, bandage, wrap, stitch, updateWoundBleeding, coagulationStep, ibCoagulationStep, woundTimers } from "./wounds.js";
-import { addMedication, medicationCount, medicationTypeMap } from "./pharmacology.js";
+import { addMedication, medicationCount, medicationTypeMap, pharmacologyTimers, isOverdosed } from "./pharmacology.js";
 import { airwayState } from "./oxygen.js";
 import { airwayTimers, resetAirway, onUnconsciousAirway } from "./airway.js";
 import { breathingTimers, handleChestInjury } from "./breathing.js";
 import { circulationTimers } from "./circulation.js";
+import { aedTimers, updateAED } from "./aed.js";
 import {
     handleUnitVitals, vitalsTimers, onCardiacArrest, administerShock, wakeUpCheck, hasPulse, bloodPressure,
-    updateCirculationState, recentAEDShock,
+    updateCirculationState, recentAEDShock, attemptROSC, hasStableVitals,
 } from "./vitals.js";
 
 /** ACE 3.21.2 setting defaults used by the engine (initSettings.inc.sqf of each ACE medical component). */
@@ -44,7 +45,7 @@ export class Simulation {
         this.events = [];
         this.actions = [];
         this.listeners = [];
-        this.handlers = { ...woundTimers, ...vitalsTimers, ...airwayTimers, ...breathingTimers, ...circulationTimers, ...simTimers };
+        this.handlers = { ...woundTimers, ...vitalsTimers, ...airwayTimers, ...breathingTimers, ...circulationTimers, ...pharmacologyTimers, ...aedTimers, ...simTimers };
         resetAirway(this);
     }
 
@@ -65,7 +66,9 @@ export class Simulation {
     schedule(delay, kind, args = {}) {
         this.timers.push({ at: this.p.t + delay, seq: this.timerSeq++, kind, args });
     }
-    isOverdosed() { return false; } // overdose module not ported yet
+    isOverdosed() { return isOverdosed(this); }
+    attemptROSC() { return attemptROSC(this); }
+    hasStableVitals() { return hasStableVitals(this); }
 
     // Coagulation loops: checked every second; attempts at the ACM intervals
     startCoagulation() {
@@ -109,6 +112,8 @@ export class Simulation {
             p.lastWakeUpCheck = null;
             onUnconsciousAirway(this);
         } else {
+            // core/onUnconscious on waking: a patient treated while down stays lying (Lying_State)
+            if (p.wasTreated) { p.lying = true; p.wasTreated = false; }
             p.lastBreath = -1;
             resetAirway(this); // airway/onUnconscious on waking -> resetVariables
         }
@@ -163,6 +168,7 @@ export class Simulation {
         this.runTimers();
         if (!p.alive) return;
         handleUnitVitals(this, 1);
+        updateAED(this);
         if (p.alive && p.unconscious && !p.cardiacArrest) wakeUpCheck(this);
     }
     runTimers() {

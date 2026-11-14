@@ -18,6 +18,8 @@
     "cls2-unconscious-airway",
     "cls3-chest-gunshot",
     "cm1-hemorrhagic-shock",
-    "cm2-tension-chest"
+    "cm2-tension-chest",
+    "cm4-hemothorax",
+    "cm5-cardiac-arrest"
   ]
 }

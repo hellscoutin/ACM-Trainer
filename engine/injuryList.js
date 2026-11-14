@@ -47,6 +47,7 @@ export function injuryList(sim, part) {
     if (bags.Blood) e.push({ text: `Transfusing Blood [${bags.Blood}x]`, color: C.white });
     if (bags.Plasma) e.push({ text: `Transfusing Plasma [${bags.Plasma}x]`, color: C.white });
     if (bags.Saline) e.push({ text: `Transfusing Saline [${bags.Saline}x]`, color: C.white });
+    if (!p.unconscious && p.alive && p.lying) e.push({ text: "Lying down", color: C.grey });
     if (!p.unconscious && p.alive) {
         const pain = Math.max(0, Math.min(1, p.pain - p.painSuppress));
         if (pain > 0) e.push({ text: pain > 0.5 ? "In severe pain" : pain > 0.1 ? "In pain" : "In mild pain", color: C.white });

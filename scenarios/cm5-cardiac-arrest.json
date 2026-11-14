@@ -1,0 +1,44 @@
+{
+  "id": "cm5-cardiac-arrest",
+  "title": "Shockable cardiac arrest",
+  "track": "combat-medic",
+  "module": "CM-5",
+  "summary": "A soldier collapsed after a blast wave hit him in the chest. He is not breathing and has no pulse. You have an AED, IO access and resuscitation drugs.",
+  "seed": 6101,
+  "timeLimit": 900,
+  "role": "medic",
+  "patient": {
+    "weight": 80,
+    "bloodType": "A+",
+    "conscious": false
+  },
+  "injuries": [
+    {
+      "part": "body",
+      "type": "Contusion",
+      "damage": 0.8
+    }
+  ],
+  "arrest": "VF",
+  "loadout": {
+    "ACM_AED": 1,
+    "ACM_IO_FAST": 1,
+    "ACM_IV_16g": 1,
+    "ACM_Syringe_10": 3,
+    "ACM_Vial_Epinephrine": 4,
+    "ACM_Vial_Amiodarone": 2,
+    "ACM_BVM": 1,
+    "ACM_IGel": 1,
+    "ACM_OPA": 1,
+    "ACM_PulseOximeter": 1
+  },
+  "objectives": [
+    "Recognise cardiac arrest: no response, no breathing, no pulse",
+    "Start CPR at once and keep pauses short",
+    "Pads on, analyze, shock when advised, then straight back to CPR",
+    "IV epinephrine (and amiodarone for VF) through an IO",
+    "Secure the airway (i-gel lets CPR and BVM run together)",
+    "Return of circulation and SpO2 above 90 % at the end"
+  ],
+  "rubric": "rubrics/cm5-cardiac-arrest.json"
+}

@@ -1,0 +1,105 @@
+{
+ "scenario": "cm5-cardiac-arrest",
+ "passMark": 0.75,
+ "checks": [
+  {
+   "id": "cpr-fast",
+   "text": "CPR started within 30 s",
+   "type": "action-within",
+   "actions": [
+    "cpr"
+   ],
+   "within": 30,
+   "weight": 3,
+   "critical": true,
+   "why": "Without CPR SpO2 falls about 0.1 %/s and there is no restart chance at all. Compress first, then bring the AED.",
+   "guide": "Cardiac arrest"
+  },
+  {
+   "id": "pads",
+   "text": "AED pads on within 90 s",
+   "type": "action-within",
+   "actions": [
+    "aed_applypads"
+   ],
+   "within": 90,
+   "weight": 2,
+   "why": "VF is shockable. A shock multiplies the CPR success chance by up to 1.7 for about 70 s.",
+   "guide": "Cardiac arrest"
+  },
+  {
+   "id": "shock",
+   "text": "Shock given",
+   "type": "action-done",
+   "actions": [
+    "aed_shock"
+   ],
+   "weight": 2,
+   "why": "Analyze (stop compressions: the AED detects motion), then shock when advised and go straight back to CPR.",
+   "guide": "Cardiac arrest"
+  },
+  {
+   "id": "no-shock-pulse",
+   "text": "No shock on a patient with a pulse",
+   "type": "action-forbidden",
+   "actions": [
+    "aed_shock"
+   ],
+   "when": {
+    "field": "cardiacArrest",
+    "op": "==",
+    "value": false
+   },
+   "weight": 2,
+   "critical": true,
+   "why": "A shock on a beating heart causes asystole and cardiac arrest.",
+   "guide": "Cardiac arrest"
+  },
+  {
+   "id": "epi",
+   "text": "IV epinephrine given",
+   "type": "action-done",
+   "actions": [
+    "epinephrine_10_iv",
+    "epinephrine_5_iv",
+    "epinephrine_3_iv",
+    "epinephrine_1_iv"
+   ],
+   "weight": 2,
+   "why": "Only IV epinephrine counts toward CPR success (up to x2); IM and autoinjectors do not. Use an IO if there is no IV.",
+   "guide": "Medications"
+  },
+  {
+   "id": "rosc",
+   "text": "Return of circulation",
+   "type": "event-within",
+   "event": "rosc",
+   "within": 900,
+   "weight": 3,
+   "why": "Continuous CPR for more than a minute, a recent shock, IV epinephrine and the best-trained compressor give the best odds.",
+   "guide": "Cardiac arrest"
+  },
+  {
+   "id": "spo2-end",
+   "text": "SpO2 above 90 % at the end",
+   "type": "end-state",
+   "state": {
+    "all": [
+     {
+      "field": "alive",
+      "op": "==",
+      "value": true
+     },
+     {
+      "field": "spo2",
+      "op": ">",
+      "value": 90
+     }
+    ]
+   },
+   "weight": 2,
+   "why": "After ROSC keep the airway open and ventilate until oxygen recovers.",
+   "guide": "Ventilation and oxygen"
+  }
+ ]
+}

@@ -9,6 +9,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 BANDAGES = ["fielddressing", "packingbandage", "elasticbandage", "quikclot", "pressurebandage", "emergencytraumadressing"]
 IVIO = [f"insertiv_{g}_{s}" for g in ("16", "14") for s in ("upper", "middle", "lower")] + ["insertio_fast1", "insertio_ez"]
+SIZES = (10, 5, 3, 1)
+def push(drug): return [f"{drug}_{n}_iv" for n in SIZES]
 
 
 def P(field, op, value):
@@ -93,6 +95,38 @@ RUBRICS = {
          "why": "Oxygen should recover once the chest is treated.", "guide": "Ventilation and oxygen"},
         {"id": "alive", "text": "Casualty alive at the end", "type": "end-state", "state": ALIVE, "weight": 2, "critical": True,
          "why": "The casualty must survive.", "guide": "Chest injuries"},
+    ]},
+    "cm4-hemothorax": {"passMark": 0.75, "checks": [
+        {"id": "seal", "text": "Chest seal within 60 s", "type": "action-within", "actions": ["applychestseal"], "within": 60, "weight": 2,
+         "why": "Seal the open chest wound first; it resets the pneumothorax.", "guide": "Chest treatment"},
+        {"id": "txa", "text": "TXA IV within 3 minutes", "type": "action-within", "actions": push("txa"), "within": 180, "weight": 3, "critical": True,
+         "why": "A level 5-10 hemothorax keeps bleeding while platelets last. TXA (1 g IV) raises the self-clotting chance to about 50 % per check and clears 2-3 levels at a time.", "guide": "Internal bleeding, platelets and TXA"},
+        {"id": "thoracostomy", "text": "Thoracostomy and chest tube placed", "type": "action-done", "actions": ["insertchesttube"], "weight": 2,
+         "why": "Thoracostomy opens the chest; the chest tube re-seals it so the lung can work, and lets you drain the blood.", "guide": "Chest treatment"},
+        {"id": "drain", "text": "Pleural blood drained", "type": "action-done", "actions": ["drainfluid_accuvac", "drainfluid_suctionbag"], "weight": 2,
+         "why": "Blood in the chest above 0.3 L reduces breathing; above 1.2 L it stops circulation.", "guide": "Chest treatment"},
+        {"id": "no-tension-blood", "text": "Chest fluid never above 1.2 L", "type": "state-duration-max", "state": P("htxFluid", ">", 1.2), "max": 0, "weight": 2,
+         "why": "Above 1.2 L of chest fluid the circulation stops (reversible arrest). Drain early and repeatedly.", "guide": "Chest injuries"},
+        {"id": "spo2-end", "text": "SpO2 above 90 % at the end", "type": "end-state", "state": P("spo2", ">", 90), "weight": 2,
+         "why": "With the bleeding stopped, the chest drained and the tube sealed, oxygen recovers.", "guide": "Ventilation and oxygen"},
+        {"id": "alive", "text": "Casualty alive at the end", "type": "end-state", "state": ALIVE, "weight": 2, "critical": True,
+         "why": "The casualty must survive.", "guide": "Chest injuries"},
+    ]},
+    "cm5-cardiac-arrest": {"passMark": 0.75, "checks": [
+        {"id": "cpr-fast", "text": "CPR started within 30 s", "type": "action-within", "actions": ["cpr"], "within": 30, "weight": 3, "critical": True,
+         "why": "Without CPR SpO2 falls about 0.1 %/s and there is no restart chance at all. Compress first, then bring the AED.", "guide": "Cardiac arrest"},
+        {"id": "pads", "text": "AED pads on within 90 s", "type": "action-within", "actions": ["aed_applypads"], "within": 90, "weight": 2,
+         "why": "VF is shockable. A shock multiplies the CPR success chance by up to 1.7 for about 70 s.", "guide": "Cardiac arrest"},
+        {"id": "shock", "text": "Shock given", "type": "action-done", "actions": ["aed_shock"], "weight": 2,
+         "why": "Analyze (stop compressions: the AED detects motion), then shock when advised and go straight back to CPR.", "guide": "Cardiac arrest"},
+        {"id": "no-shock-pulse", "text": "No shock on a patient with a pulse", "type": "action-forbidden", "actions": ["aed_shock"], "when": P("cardiacArrest", "==", False), "weight": 2, "critical": True,
+         "why": "A shock on a beating heart causes asystole and cardiac arrest.", "guide": "Cardiac arrest"},
+        {"id": "epi", "text": "IV epinephrine given", "type": "action-done", "actions": push("epinephrine"), "weight": 2,
+         "why": "Only IV epinephrine counts toward CPR success (up to x2); IM and autoinjectors do not. Use an IO if there is no IV.", "guide": "Medications"},
+        {"id": "rosc", "text": "Return of circulation", "type": "event-within", "event": "rosc", "within": 900, "weight": 3,
+         "why": "Continuous CPR for more than a minute, a recent shock, IV epinephrine and the best-trained compressor give the best odds.", "guide": "Cardiac arrest"},
+        {"id": "spo2-end", "text": "SpO2 above 90 % at the end", "type": "end-state", "state": {"all": [ALIVE, P("spo2", ">", 90)]}, "weight": 2,
+         "why": "After ROSC keep the airway open and ventilate until oxygen recovers.", "guide": "Ventilation and oxygen"},
     ]},
 }
 

@@ -1,0 +1,53 @@
+{
+  "id": "cm4-hemothorax",
+  "title": "Hemothorax",
+  "track": "combat-medic",
+  "module": "CM-4",
+  "summary": "A rifleman was hit in the right chest by a round that went through his plate carrier. He is short of breath and his chest is filling with blood. You have TXA and a thoracostomy kit.",
+  "seed": 5203,
+  "timeLimit": 720,
+  "role": "medic",
+  "patient": {
+    "weight": 86,
+    "bloodType": "O+",
+    "conscious": true
+  },
+  "injuries": [
+    {
+      "part": "body",
+      "type": "VelocityWound",
+      "damage": 0.55
+    }
+  ],
+  "chest": {
+    "ptx": 2,
+    "htx": 1
+  },
+  "loadout": {
+    "ACM_ChestSeal": 1,
+    "ACM_NCDKit": 1,
+    "ACM_ThoracostomyKit": 1,
+    "ACM_ChestTubeKit": 1,
+    "ACM_SuctionBag": 3,
+    "ACM_ACCUVAC": 1,
+    "ACM_IO_FAST": 1,
+    "ACM_IV_16g": 2,
+    "ACM_Syringe_10": 2,
+    "ACM_Vial_TXA": 2,
+    "ACM_Vial_Lidocaine": 1,
+    "ACE_salineIV": 1,
+    "ACM_BloodBag_ON_500": 2,
+    "ACM_Stethoscope": 1,
+    "ACM_PulseOximeter": 1,
+    "ACM_BVM": 1,
+    "ACM_PressureBandage": 2
+  },
+  "objectives": [
+    "Seal the chest wound",
+    "Gain access and give TXA early: it is what lets a large hemothorax clot",
+    "Thoracostomy, chest tube and drain the blood; drain again if it builds up",
+    "Keep the chest tube sealed: a patient treated while unconscious stays lying; one who gets up unseals the tube (re-seal it)",
+    "Patient alive with SpO2 above 90 % at the end"
+  ],
+  "rubric": "rubrics/cm4-hemothorax.json"
+}

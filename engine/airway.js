@@ -4,6 +4,7 @@
 // Not yet: CBRN inflammation, surgical airway, nausea medication effects (taken as 0).
 import { lin } from "./util.js";
 import { isBodyPartBleeding } from "./wounds.js";
+import { nauseaEffect } from "./pharmacology.js";
 
 /** Strings shown in game (ACM stringtable keys STR_ACM_Airway_*). */
 export const AIRWAY_TEXT = {
@@ -44,7 +45,7 @@ export function onUnconsciousAirway(sim) {
     sim.schedule(reflexDelay, "airwayReflexLoss", { epoch });
     sim.schedule(reflexDelay + 240 + rng.random(60), "airwayCollapseStart", { epoch });
     if (sim.setting("ACM_airway_airwayObstructionVomitChance") > 0) {
-        const nausea = 0; // getNauseaMedicationEffects: not ported yet
+        const nausea = nauseaEffect(p);
         if ((p.bodyPartDamage[0] > 1 && rng.random(1) < 0.8 + nausea) || rng.random(1) < 0.3 + nausea) {
             sim.schedule(reflexDelay + 60 + rng.random(60), "airwayVomitStart", { epoch });
         }
@@ -85,7 +86,7 @@ export const airwayTimers = {
         sim.schedule(every, "airwayVomitTick", { epoch, every });
         const grace = p.vomitGrace + 20 > p.t;
         if (p.airwayOral === "SGA" || grace) return;
-        if (rng.random(1) < 0.4 * sim.setting("ACM_airway_airwayObstructionVomitChance")) {
+        if (rng.random(1) < 0.4 * sim.setting("ACM_airway_airwayObstructionVomitChance") + nauseaEffect(p)) {
             p.vomitGrace = p.t;
             p.vomitCount = Math.max(0, p.vomitCount - 1);
             sim.emit("vomit", { obstructs: !p.recoveryPosition });
